@@ -12412,6 +12412,8 @@ function getChildren(options) {
     return options.map(option => option.link);
 }
 
+const TEMPLATE_URL = "/weft-pub/template/";  //TODO: fixme !! Quick and dirty;
+
 
 if ($graphElement) {
     const ui = new __WEBPACK_IMPORTED_MODULE_4__js_graph_GraphUI_js__["a" /* default */]($graphElement, $graphWrapper);
@@ -12529,7 +12531,7 @@ if ($graphElement) {
 
     $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_PLAY, () => {
         __WEBPACK_IMPORTED_MODULE_14__js_Generator_js__["a" /* default */].createGame({
-                templateUrl: 'http://localhost:8888/template/',
+                templateUrl: TEMPLATE_URL,
                 lmnStory: __WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].storyToLmn(story)
             }
         ).then(__WEBPACK_IMPORTED_MODULE_14__js_Generator_js__["a" /* default */].toDataUrl
@@ -12540,8 +12542,9 @@ if ($graphElement) {
 
     $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_EXPORT, () => {
         __WEBPACK_IMPORTED_MODULE_14__js_Generator_js__["a" /* default */].createGame({
-            templateUrl: 'http://localhost:8888/template/',
-            lmnStory: __WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].storyToLmn(story)
+            templateUrl: TEMPLATE_URL,
+            lmnStory: __WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].storyToLmn(story),
+            internalData : story
         })
             .then(__WEBPACK_IMPORTED_MODULE_14__js_Generator_js__["a" /* default */].toDataUrl)
             .then((dataUrl)=>{
@@ -40019,13 +40022,21 @@ module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmln
 
 
 class Generator {
-    static createGame({templateUrl, lmnStory, styleSettings}){
+    static createGame({templateUrl, lmnStory, internalData,styleSettings}){
         const lmn = JSON.stringify(lmnStory);
         const storyScript = `<script> var CHATTER_DIALOG = ${lmn}</script>`;
+
         return __WEBPACK_IMPORTED_MODULE_0_axios___default.a.get(templateUrl)
             .then(function (response) {
-                return response.data.replace("<!-- $DIALOG_PLACE_HOLDER$ -->", storyScript);
+                return response.data
+                    .replace("<!-- $DIALOG_PLACE_HOLDER$ -->", storyScript)
+                    .replace("$WEFT_INTERNAL_DATA$", JSON.stringify(internalData));
             });
+    }
+
+
+    static restoreGameFromHTML(html){
+
     }
 
     static toDataUrl(html){
