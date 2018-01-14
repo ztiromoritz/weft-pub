@@ -12413,6 +12413,7 @@ function getChildren(options) {
 }
 
 const TEMPLATE_URL = "/weft-pub/template/";  //TODO: fixme !! Quick and dirty;
+//const TEMPLATE_URL = "http://localhost:8888/template";  //TODO: fixme !! Quick and dirty;
 
 
 if ($graphElement) {
@@ -12582,6 +12583,10 @@ if ($graphElement) {
         };
         __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(initialStory);
         //ui.addEntries(initialStory.entries);
+    };
+
+    window.debugRestore = function(story){
+        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
     };
 
 
@@ -40036,6 +40041,8 @@ class Generator {
 
 
     static restoreGameFromHTML(html){
+        const DATA_REGEX = / <!-- \$INTERNAL_DATA_START\$ (.*) \$INTERNAL_DATA_END\$ -->/g;
+        const match = DATA_REGEX.exec(html);
 
     }
 
