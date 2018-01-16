@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 15);
+/******/ 	return __webpack_require__(__webpack_require__.s = 17);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -10878,7 +10878,7 @@ Vue$3.compile = compileToFunctions;
 
 /* harmony default export */ __webpack_exports__["a"] = (Vue$3);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(5), __webpack_require__(6), __webpack_require__(31).setImmediate))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(5), __webpack_require__(7), __webpack_require__(34).setImmediate))
 
 /***/ }),
 /* 1 */
@@ -10887,8 +10887,8 @@ Vue$3.compile = compileToFunctions;
 "use strict";
 
 
-var bind = __webpack_require__(10);
-var isBuffer = __webpack_require__(58);
+var bind = __webpack_require__(12);
+var isBuffer = __webpack_require__(62);
 
 /*global toString:true*/
 
@@ -11202,9 +11202,11 @@ module.exports = {
     CHATTER_ADD : "CHATTER_ADD",
     CHATTER_PLAY : "CHATTER_PLAY",
     CHATTER_EXPORT : "CHATTER_EXPORT",
+    CHATTER_UPLOAD : "CHATTER_UPLOAD",
     CHATTER_SETTINGS : "CHATTER_SETTINGS",
     CHATTER_DELETE_SELECTED : "CHATTER_DELETE_SELECTED",
-    CHATTER_SELECTION_CHANGED: "CHATTER_SELECTION_CHANGED"
+    CHATTER_SELECTION_CHANGED: "CHATTER_SELECTION_CHANGED",
+    CHATTER_IMPORT_HTML_STRING : "CHATTER_IMPORT_HTML_STRING",
 
 });
 
@@ -11347,7 +11349,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(18);
+var	fixUrls = __webpack_require__(20);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -11854,10932 +11856,6 @@ process.umask = function() { return 0; };
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-var utils = __webpack_require__(1);
-var normalizeHeaderName = __webpack_require__(60);
-
-var DEFAULT_CONTENT_TYPE = {
-  'Content-Type': 'application/x-www-form-urlencoded'
-};
-
-function setContentTypeIfUnset(headers, value) {
-  if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
-    headers['Content-Type'] = value;
-  }
-}
-
-function getDefaultAdapter() {
-  var adapter;
-  if (typeof XMLHttpRequest !== 'undefined') {
-    // For browsers use XHR adapter
-    adapter = __webpack_require__(11);
-  } else if (typeof process !== 'undefined') {
-    // For node use HTTP adapter
-    adapter = __webpack_require__(11);
-  }
-  return adapter;
-}
-
-var defaults = {
-  adapter: getDefaultAdapter(),
-
-  transformRequest: [function transformRequest(data, headers) {
-    normalizeHeaderName(headers, 'Content-Type');
-    if (utils.isFormData(data) ||
-      utils.isArrayBuffer(data) ||
-      utils.isBuffer(data) ||
-      utils.isStream(data) ||
-      utils.isFile(data) ||
-      utils.isBlob(data)
-    ) {
-      return data;
-    }
-    if (utils.isArrayBufferView(data)) {
-      return data.buffer;
-    }
-    if (utils.isURLSearchParams(data)) {
-      setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
-      return data.toString();
-    }
-    if (utils.isObject(data)) {
-      setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
-      return JSON.stringify(data);
-    }
-    return data;
-  }],
-
-  transformResponse: [function transformResponse(data) {
-    /*eslint no-param-reassign:0*/
-    if (typeof data === 'string') {
-      try {
-        data = JSON.parse(data);
-      } catch (e) { /* Ignore */ }
-    }
-    return data;
-  }],
-
-  timeout: 0,
-
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN',
-
-  maxContentLength: -1,
-
-  validateStatus: function validateStatus(status) {
-    return status >= 200 && status < 300;
-  }
-};
-
-defaults.headers = {
-  common: {
-    'Accept': 'application/json, text/plain, */*'
-  }
-};
-
-utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
-  defaults.headers[method] = {};
-});
-
-utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
-  defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
-});
-
-module.exports = defaults;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
-
-/***/ }),
-/* 8 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-const flatten = arr => arr.reduce((acc, val) => acc.concat(val), []);
-
-class Util {
-    static parseMessages(str) {
-        const MESSAGE_REGEX = /<<([^\s]*) "([^"]*)">>/g;
-        const messages = [];
-        let match;
-        while ((match = MESSAGE_REGEX.exec(str)) != null) {
-            messages.push({
-                user: match[1].toLowerCase() === 'me' ? "me" : "other", content: match[2], original: match[0]
-            });
-        }
-        return messages;
-    }
-
-    static parseOptions(str) {
-        //matching [link] and [title|link]
-        const OPTION_REGEX = /\[\[([^|\]]*)\|?((?:[^\]]*))\]\]/g;
-        const options = [];
-        let match;
-        while ((match = OPTION_REGEX.exec(str)) != null) {
-            console.log("match", match);
-            options.push({
-                content: match[1],
-                link: (match[2].length > 0) ? match[2] : match[1], original: match[0]
-            });
-        }
-        return options;
-    }
-
-    static replaceLink(str, from, to) {
-        return str.replace(/\[\[([^|\]]*)\|?((?:[^\]]*))\]\]/g, (match, g1, g2) => {
-            let link = (g2.length > 0) ? g2 : g1;
-            if (link === from) {
-                link = to;
-            }
-            if (g2.length > 0) {
-                return `[[${g1}|${link}]]`;
-            } else {
-                return `[[${link}]]`;
-            }
-        });
-    }
-
-    static storyToTwee(story) {
-        console.log("Story", story);
-        return story.entries.map(_ => `::${_.id}\n${_.data.content}\n`).join("\n");
-    }
-
-    static storyToLmn(story) {
-        const lmnDialog = story.entries.map(_ => {
-            return {
-                id: _.id,
-                messages: Util.parseMessages(_.data.content),
-                options: Util.parseOptions(_.data.content),
-            }
-        }).map(_ => {
-            let result = [];
-            result = result.concat(_.messages.map((m) => {
-                console.log(m.original);
-                return [m.original];
-            }));
-            if (_.options.length > 0) {
-                result.push(['', _.options.map(o => [o.content, o.link])]);
-            }
-
-            if (result.length === 0) {
-                result.push(['<<Message "NO MESSAGE FOUND">>']);
-            }
-
-
-            result[0].unshift(_.id);
-            if (_.options.length === 0) {
-                result[result.length - 1].push('???') // <-- stop fall trough.
-            }
-
-
-            return result;
-        }).reduce((acc, val) => acc.concat(val), []); //flatten 1-level
-
-        return {dialog: lmnDialog};
-
-
-    }
-
-
-    static nonCollidingId(targetId, story){
-        let i = 1, collision, originalTarget = targetId;
-        while (typeof(collision = story.entries.find(entry => entry.id === targetId)) !== 'undefined') {
-            targetId = `${originalTarget}_${i++}`;
-        }
-        return targetId;
-    }
-}
-/* harmony export (immutable) */ __webpack_exports__["a"] = Util;
-
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony default export */ __webpack_exports__["a"] = ({
-    OKAY : 'OKAY',
-    CANCEL : "CANCEL"
-});
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function bind(fn, thisArg) {
-  return function wrap() {
-    var args = new Array(arguments.length);
-    for (var i = 0; i < args.length; i++) {
-      args[i] = arguments[i];
-    }
-    return fn.apply(thisArg, args);
-  };
-};
-
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-var utils = __webpack_require__(1);
-var settle = __webpack_require__(61);
-var buildURL = __webpack_require__(63);
-var parseHeaders = __webpack_require__(64);
-var isURLSameOrigin = __webpack_require__(65);
-var createError = __webpack_require__(12);
-var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(66);
-
-module.exports = function xhrAdapter(config) {
-  return new Promise(function dispatchXhrRequest(resolve, reject) {
-    var requestData = config.data;
-    var requestHeaders = config.headers;
-
-    if (utils.isFormData(requestData)) {
-      delete requestHeaders['Content-Type']; // Let the browser set it
-    }
-
-    var request = new XMLHttpRequest();
-    var loadEvent = 'onreadystatechange';
-    var xDomain = false;
-
-    // For IE 8/9 CORS support
-    // Only supports POST and GET calls and doesn't returns the response headers.
-    // DON'T do this for testing b/c XMLHttpRequest is mocked, not XDomainRequest.
-    if (process.env.NODE_ENV !== 'test' &&
-        typeof window !== 'undefined' &&
-        window.XDomainRequest && !('withCredentials' in request) &&
-        !isURLSameOrigin(config.url)) {
-      request = new window.XDomainRequest();
-      loadEvent = 'onload';
-      xDomain = true;
-      request.onprogress = function handleProgress() {};
-      request.ontimeout = function handleTimeout() {};
-    }
-
-    // HTTP basic authentication
-    if (config.auth) {
-      var username = config.auth.username || '';
-      var password = config.auth.password || '';
-      requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
-    }
-
-    request.open(config.method.toUpperCase(), buildURL(config.url, config.params, config.paramsSerializer), true);
-
-    // Set the request timeout in MS
-    request.timeout = config.timeout;
-
-    // Listen for ready state
-    request[loadEvent] = function handleLoad() {
-      if (!request || (request.readyState !== 4 && !xDomain)) {
-        return;
-      }
-
-      // The request errored out and we didn't get a response, this will be
-      // handled by onerror instead
-      // With one exception: request that using file: protocol, most browsers
-      // will return status as 0 even though it's a successful request
-      if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
-        return;
-      }
-
-      // Prepare the response
-      var responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null;
-      var responseData = !config.responseType || config.responseType === 'text' ? request.responseText : request.response;
-      var response = {
-        data: responseData,
-        // IE sends 1223 instead of 204 (https://github.com/axios/axios/issues/201)
-        status: request.status === 1223 ? 204 : request.status,
-        statusText: request.status === 1223 ? 'No Content' : request.statusText,
-        headers: responseHeaders,
-        config: config,
-        request: request
-      };
-
-      settle(resolve, reject, response);
-
-      // Clean up request
-      request = null;
-    };
-
-    // Handle low level network errors
-    request.onerror = function handleError() {
-      // Real errors are hidden from us by the browser
-      // onerror should only fire if it's a network error
-      reject(createError('Network Error', config, null, request));
-
-      // Clean up request
-      request = null;
-    };
-
-    // Handle timeout
-    request.ontimeout = function handleTimeout() {
-      reject(createError('timeout of ' + config.timeout + 'ms exceeded', config, 'ECONNABORTED',
-        request));
-
-      // Clean up request
-      request = null;
-    };
-
-    // Add xsrf header
-    // This is only done if running in a standard browser environment.
-    // Specifically not if we're in a web worker, or react-native.
-    if (utils.isStandardBrowserEnv()) {
-      var cookies = __webpack_require__(67);
-
-      // Add xsrf header
-      var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
-          cookies.read(config.xsrfCookieName) :
-          undefined;
-
-      if (xsrfValue) {
-        requestHeaders[config.xsrfHeaderName] = xsrfValue;
-      }
-    }
-
-    // Add headers to the request
-    if ('setRequestHeader' in request) {
-      utils.forEach(requestHeaders, function setRequestHeader(val, key) {
-        if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
-          // Remove Content-Type if data is undefined
-          delete requestHeaders[key];
-        } else {
-          // Otherwise add header to the request
-          request.setRequestHeader(key, val);
-        }
-      });
-    }
-
-    // Add withCredentials to request if needed
-    if (config.withCredentials) {
-      request.withCredentials = true;
-    }
-
-    // Add responseType to request if needed
-    if (config.responseType) {
-      try {
-        request.responseType = config.responseType;
-      } catch (e) {
-        // Expected DOMException thrown by browsers not compatible XMLHttpRequest Level 2.
-        // But, this can be suppressed for 'json' type as it can be parsed by default 'transformResponse' function.
-        if (config.responseType !== 'json') {
-          throw e;
-        }
-      }
-    }
-
-    // Handle progress if needed
-    if (typeof config.onDownloadProgress === 'function') {
-      request.addEventListener('progress', config.onDownloadProgress);
-    }
-
-    // Not all browsers support upload events
-    if (typeof config.onUploadProgress === 'function' && request.upload) {
-      request.upload.addEventListener('progress', config.onUploadProgress);
-    }
-
-    if (config.cancelToken) {
-      // Handle cancellation
-      config.cancelToken.promise.then(function onCanceled(cancel) {
-        if (!request) {
-          return;
-        }
-
-        request.abort();
-        reject(cancel);
-        // Clean up request
-        request = null;
-      });
-    }
-
-    if (requestData === undefined) {
-      requestData = null;
-    }
-
-    // Send the request
-    request.send(requestData);
-  });
-};
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var enhanceError = __webpack_require__(62);
-
-/**
- * Create an Error with the specified message, config, error code, request and response.
- *
- * @param {string} message The error message.
- * @param {Object} config The config.
- * @param {string} [code] The error code (for example, 'ECONNABORTED').
- * @param {Object} [request] The request.
- * @param {Object} [response] The response.
- * @returns {Error} The created error.
- */
-module.exports = function createError(message, config, code, request, response) {
-  var error = new Error(message);
-  return enhanceError(error, config, code, request, response);
-};
-
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function isCancel(value) {
-  return !!(value && value.__CANCEL__);
-};
-
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * A `Cancel` is an object that is thrown when an operation is canceled.
- *
- * @class
- * @param {string=} message The message.
- */
-function Cancel(message) {
-  this.message = message;
-}
-
-Cancel.prototype.toString = function toString() {
-  return 'Cancel' + (this.message ? ': ' + this.message : '');
-};
-
-Cancel.prototype.__CANCEL__ = true;
-
-module.exports = Cancel;
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__css_styles_css__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__css_styles_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__css_styles_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__common_css_chat_css__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__common_css_chat_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__common_css_chat_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_spectre_css__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_spectre_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_spectre_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_spectre_css_dist_spectre_icons_css__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_spectre_css_dist_spectre_icons_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_spectre_css_dist_spectre_icons_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__js_graph_GraphUI_js__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__js_Story_js__ = __webpack_require__(29);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__js_Events_js__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__js_editor_Editor_js__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__js_menu_Menu_js__ = __webpack_require__(36);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__js_menu_ConfirmDialog_js__ = __webpack_require__(42);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__js_menu_DialogResult_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__js_settings_Settings_js__ = __webpack_require__(43);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__js_preview_Preview_js__ = __webpack_require__(53);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__js_Util_js__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__js_Generator_js__ = __webpack_require__(55);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const story = __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].fromLocalStorage();
-
-const $graphElement = document.getElementById('graph');
-const $graphWrapper = document.getElementById('graph-wrapper');
-
-function getChildren(options) {
-    options = options || [];
-    return options.map(option => option.link);
-}
-
-const TEMPLATE_URL = "/weft-pub/template/";  //TODO: fixme !! Quick and dirty;
-//const TEMPLATE_URL = "http://localhost:8888/template";  //TODO: fixme !! Quick and dirty;
-
-
-if ($graphElement) {
-    const ui = new __WEBPACK_IMPORTED_MODULE_4__js_graph_GraphUI_js__["a" /* default */]($graphElement, $graphWrapper);
-    __WEBPACK_IMPORTED_MODULE_8__js_menu_Menu_js__["a" /* default */].setEventTarget($graphElement);
-
-    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_ENTRY_MOVED, (e) => {
-        const detail = e.detail;
-        story.entries.forEach((entry) => {
-            if (entry.id === detail.id) {
-                entry.pos.x = detail.x;
-                entry.pos.y = detail.y;
-            }
-        });
-        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
-    });
-
-
-
-
-
-    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_ENTRY_CHANGED, (e) => {
-        const detail = e.detail;
-        console.log("Detail", detail);
-        let updatedEntry;
-        let targetId = detail.id;
-
-        //Avoid collision
-        if (targetId !== detail.originalId) {
-            targetId = __WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].nonCollidingId(targetId, story);
-        }
-
-
-        story.entries.forEach((entry) => {
-            // Update changed entry
-            if (entry.id === detail.originalId) {
-                updatedEntry = entry;
-                entry.id = targetId;
-                entry.data.content = detail.content;
-                entry.children = getChildren(detail.options);
-                ui.updateEntry(entry, detail.originalId);
-            }
-
-            // Update links to changed entry
-            if (targetId !== detail.originalId) {
-                entry.data.content = __WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].replaceLink(entry.data.content, detail.originalId, targetId);
-                entry.children = getChildren(__WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].parseOptions(entry.data.content));
-                ui.updateEntry(entry);
-            }
-        });
-
-        // Create new possible Children
-        if (updatedEntry) {
-            updatedEntry.children.forEach((possible) => {
-                const existing = story.entries.find(entry => entry.id === possible);
-                if (!existing) {
-                    const newEntry = {
-                        id: possible,
-                        pos: {
-                            x: Number.parseFloat(updatedEntry.pos.x) + 100,
-                            y: Number.parseFloat(updatedEntry.pos.y)
-                        },
-                        data: {content: ""},
-                        children: []
-                    };
-                    story.entries.push(newEntry);
-                    ui.updateEntry(newEntry);
-                }
-            });
-        }
-
-
-        ui.recalculateConnections();
-        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
-    });
-
-    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_OPEN_EDITOR, (e) => {
-        const detail = e.detail;
-        const entry = story.entries.find((item) => item.id === detail.id);
-        if (entry) {
-            __WEBPACK_IMPORTED_MODULE_7__js_editor_Editor_js__["a" /* default */].showEditor(entry, $graphElement);
-        }
-    });
-
-
-    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_ADD, () => {
-        const pos = ui.getFreePosition();
-        const id = __WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].nonCollidingId('Unknown', story);
-        const newEntry = {
-            id,
-            pos,
-            data: {content: ""},
-            children: []
-        };
-        story.entries.push(newEntry);
-        ui.updateEntry(newEntry);
-    });
-
-
-    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_DELETE_SELECTED, () => {
-        const selected = ui.getSelectedIds();
-        console.log("delete received", selected);
-        const message = `Do you really want to delete ${selected.length} element(s)?`;
-        __WEBPACK_IMPORTED_MODULE_9__js_menu_ConfirmDialog_js__["a" /* default */].showDialog(message).then((result)=>{
-            if(result === __WEBPACK_IMPORTED_MODULE_10__js_menu_DialogResult_js__["a" /* default */].OKAY){
-                selected.forEach((entryId)=>{
-                    ui.removeEntry(entryId);
-                    story.entries = story.entries.filter(entry=>entry.id!==entryId);
-                    console.log(story.entries);
-                });
-                ui.recalculateConnections();
-                __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
-            }
-        });
-    });
-
-    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_PLAY, () => {
-        __WEBPACK_IMPORTED_MODULE_14__js_Generator_js__["a" /* default */].createGame({
-                templateUrl: TEMPLATE_URL,
-                lmnStory: __WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].storyToLmn(story)
-            }
-        ).then(__WEBPACK_IMPORTED_MODULE_14__js_Generator_js__["a" /* default */].toDataUrl
-        ).then((dataUrl) => {
-            __WEBPACK_IMPORTED_MODULE_12__js_preview_Preview_js__["a" /* default */].showPreview(dataUrl);
-        });
-    });
-
-    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_EXPORT, () => {
-        __WEBPACK_IMPORTED_MODULE_14__js_Generator_js__["a" /* default */].createGame({
-            templateUrl: TEMPLATE_URL,
-            lmnStory: __WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].storyToLmn(story),
-            internalData : story
-        })
-            .then(__WEBPACK_IMPORTED_MODULE_14__js_Generator_js__["a" /* default */].toDataUrl)
-            .then((dataUrl)=>{
-
-                const element = document.createElement('a');
-                element.setAttribute('href', dataUrl);
-                element.setAttribute('download', "game.html"); //TODO: story title here
-                element.style.display = 'none';
-                document.body.appendChild(element);
-                element.click();
-                document.body.removeChild(element);
-
-            });
-        console.log(JSON.stringify(__WEBPACK_IMPORTED_MODULE_13__js_Util_js__["a" /* default */].storyToLmn(story), null, 2));
-    });
-
-    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_SETTINGS, () => {
-        __WEBPACK_IMPORTED_MODULE_11__js_settings_Settings_js__["a" /* default */].showSettings();
-    });
-
-
-    if (story && story.entries) {
-        ui.addEntries(story.entries);
-    }
-
-
-    //DEBUG
-    window.restoreInitialStory = function () {
-        const initialStory = {
-            entries: [
-                {id: "A", pos: {x: 30, y: 30}, data: {content: '<<MO "Hello">> [[B]] [[C]]'}, children: ['B', 'C']},
-                {id: "B", pos: {x: 200, y: 20}, data: {content: 'foo '}, children: []},
-                {id: "C", pos: {x: 120, y: 200}, data: {content: 'foo'}, children: []},
-            ]
-        };
-        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(initialStory);
-        //ui.addEntries(initialStory.entries);
-    };
-
-    window.debugRestore = function(story){
-        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
-    };
-
-
-    window.showEditor = () => {
-        __WEBPACK_IMPORTED_MODULE_7__js_editor_Editor_js__["a" /* default */].active = true;
-    };
-
-    window.hideEditor = () => {
-        __WEBPACK_IMPORTED_MODULE_7__js_editor_Editor_js__["a" /* default */].active = false;
-    };
-
-    window.clearConnections = () => {
-        ui.clearConnections();
-    };
-}
-
-
-
-
-
-/***/ }),
-/* 16 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(17);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// Prepare cssTransformation
-var transform;
-
-var options = {"hmr":true}
-options.transform = transform
-// add the styles to the DOM
-var update = __webpack_require__(4)(content, options);
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../../../node_modules/css-loader/index.js!./styles.css", function() {
-			var newContent = require("!!../../../node_modules/css-loader/index.js!./styles.css");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(3)(undefined);
-// imports
-
-
-// module
-exports.push([module.i, "*, *:before, *:after {\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n}\n\nhtml, body, .wrapper {\n    height: 100%;\n}\n\n#graph-wrapper {\n    width: 160vw;\n    height: 120vh;\n    background-color: #eeeeee;\n    float: left;\n    position: relative;\n}\n\n#graph {\n\n}\n\nsvg .passage {\n    fill: lightblue;\n    stroke: lightblue;\n    stroke-opacity: .3;\n    stroke-width: 5;\n}\n\nsvg .passage.start {\n    fill: lightgreen;\n    stroke: lightgreen;\n    stroke-opacity: .3;\n    stroke-width: 5;\n}\n\nsvg .selected {\n    stroke: red;\n}\n\nsvg .selector-frame {\n    stroke: grey;\n    fill: rgba(0, 223, 242, 0.1)\n}\n\n\n.text-box {\n    position: absolute;\n    width: 80px;\n    height: 80px;\n    background-color: rgba(0,0,0,0);\n    pointer-events: none;\n    text-align: center;\n    display: flex;\n    align-items: center;\n    overflow: hidden;\n}\n\n.text-box span {\n    flex: 1;\n    font-weight: bold;\n    font-size: 12px;\n\n}\n\n.chat-modal .modal-container .modal-body {\n    max-height: 70vh;\n}\n\n.chat-editor {\n    border: 1px solid black;\n    border-radius: 10px;\n}\n\n.chat-editor textarea {\n    padding-left: 10px;\n}\n\n.wrap,\n.zoom-wrap {\n    /*\n    width: 320px;\n    height: 640px;\n    */\n    width: 100%;\n    height: 100%;\n    padding: 0;\n    overflow: hidden;\n}\n\n.chat-frame,\n#chat-frame {\n    /*\n    width: 960px;\n    height: 1920px;\n    */\n    width: 300%;\n    height: 300%;\n\n    transform: scale(0.3333);\n    transform-origin: 0 0;\n}\n\n#title {\n    position: fixed;\n    bottom: 20px;\n    right: 40px;\n}\n\n#menu {\n    position: fixed;\n    top: 20px;\n    right: 40px;\n    display: flex;\n    flex-direction: column;\n\n}\n\n#menu button {\n    flex: 1;\n    margin-top: 10px;\n}\n\n#menu button svg {\n    fill: white;\n    width: 1.5rem;\n}\n\n#menu button.play svg {\n    width: 1rem;\n    margin-left: 4px;\n    margin-top: 4px;\n}\n\n#menu button.download svg {\n    margin-left: 0px;\n    margin-top: 4px;\n}\n\n#menu button.add svg {\n    margin-left: 0px;\n    margin-top: 3px;\n}\n\n#menu button svg:hover {\n\n}\n\n#preview button,\n#menu button {\n    width: 3rem;\n    height: 3rem;\n}\n\n#preview button svg {\n    fill: white;\n    width: 1.5rem;\n}\n\n#preview button.refresh svg {\n    margin-left: 0px;\n    margin-top: 3px;\n}\n\n#preview .iframe-wrapper {\n    width: 360px;\n    height: 640px;\n    transform: scale(0.3333);\n    transform-origin: 0 0;\n}\n\n.editor-columns {\n    height: 800px;\n}\n\n#editor-chat-column {\n\n}\n\n#editor-form-column {\n    display: flex;\n    flex-direction: column;\n    margin-bottom: 0px;\n}\n\n.editor-form-column>div{\n\n}\n\n\n.editor-columns textarea.form-input {\n    flex: 1;\n\n}\n\n\n#editor .modal-container {\n    width: 1000px;\n    max-width: 1000px;\n}\n\n\n\n", ""]);
-
-// exports
-
-
-/***/ }),
-/* 18 */
-/***/ (function(module, exports) {
-
-
-/**
- * When source maps are enabled, `style-loader` uses a link element with a data-uri to
- * embed the css on the page. This breaks all relative urls because now they are relative to a
- * bundle instead of the current page.
- *
- * One solution is to only use full urls, but that may be impossible.
- *
- * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
- *
- * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
- *
- */
-
-module.exports = function (css) {
-  // get current location
-  var location = typeof window !== "undefined" && window.location;
-
-  if (!location) {
-    throw new Error("fixUrls requires window.location");
-  }
-
-	// blank or null?
-	if (!css || typeof css !== "string") {
-	  return css;
-  }
-
-  var baseUrl = location.protocol + "//" + location.host;
-  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
-
-	// convert each url(...)
-	/*
-	This regular expression is just a way to recursively match brackets within
-	a string.
-
-	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
-	   (  = Start a capturing group
-	     (?:  = Start a non-capturing group
-	         [^)(]  = Match anything that isn't a parentheses
-	         |  = OR
-	         \(  = Match a start parentheses
-	             (?:  = Start another non-capturing groups
-	                 [^)(]+  = Match anything that isn't a parentheses
-	                 |  = OR
-	                 \(  = Match a start parentheses
-	                     [^)(]*  = Match anything that isn't a parentheses
-	                 \)  = Match a end parentheses
-	             )  = End Group
-              *\) = Match anything and then a close parens
-          )  = Close non-capturing group
-          *  = Match anything
-       )  = Close capturing group
-	 \)  = Match a close parens
-
-	 /gi  = Get all matches, not the first.  Be case insensitive.
-	 */
-	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
-		// strip quotes (if they exist)
-		var unquotedOrigUrl = origUrl
-			.trim()
-			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
-			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
-
-		// already a full url? no change
-		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(unquotedOrigUrl)) {
-		  return fullMatch;
-		}
-
-		// convert the url to a full url
-		var newUrl;
-
-		if (unquotedOrigUrl.indexOf("//") === 0) {
-		  	//TODO: should we add protocol?
-			newUrl = unquotedOrigUrl;
-		} else if (unquotedOrigUrl.indexOf("/") === 0) {
-			// path should be relative to the base url
-			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
-		} else {
-			// path should be relative to current directory
-			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
-		}
-
-		// send back the fixed url(...)
-		return "url(" + JSON.stringify(newUrl) + ")";
-	});
-
-	// send back the fixed css
-	return fixedCss;
-};
-
-
-/***/ }),
-/* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(20);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// Prepare cssTransformation
-var transform;
-
-var options = {"hmr":true}
-options.transform = transform
-// add the styles to the DOM
-var update = __webpack_require__(4)(content, options);
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../../../node_modules/css-loader/index.js!./chat.css", function() {
-			var newContent = require("!!../../../node_modules/css-loader/index.js!./chat.css");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 20 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(3)(undefined);
-// imports
-
-
-// module
-exports.push([module.i, ".chat-size {\n    width: 100%;\n    height: 100%;\n}\n\n.chat {\n    background: white;\n    margin: 0 auto;\n    display: flex;\n    flex-direction: column;\n}\n\n.chat header {\n    width: 100%;\n    height: 120px;\n    background: black;\n}\n\n.chat main{\n    flex: 1;\n    padding: 0 30px 0 30px;\n    overflow: scroll;\n}\n\n.chat main:after {\n    content: \"\";\n    display: block;\n    height: 100px;\n    width: 100%;\n    clear: both;\n}\n\n.chat footer {\n    width: 100%;\n    height: 120px;\n    background: black;\n    position: relative;\n}\n\n.chat .answer {\n    width: 100%;\n    min-height: 130px;\n    font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n    font-size: 50px;\n    background-color: lightgrey;\n    display: flex;\n    flex-direction: row;\n}\n\n.chat .answer .content {\n    flex: 1;\n    margin: 20px;\n    min-height: 100px;\n    border-radius: 5px;\n    background-color: white;\n}\n\n.chat .answer .send {\n    margin-top: 20px;\n    margin-right: 10px;\n    width: 100px;\n    height: 100px;\n    background-color: dimgray;\n    border-radius: 50px;\n}\n\n@keyframes shadowPulse {\n    0% {\n        box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);\n    }\n\n    50% {\n        box-shadow: 0px 0px 0px 10px rgba(0, 0, 0, 0.2);\n    }\n\n    100% {\n        box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);\n    }\n}\n\n.chat .glow {\n    animation-name: shadowPulse;\n    animation-duration: 1.5s;\n    animation-iteration-count: 8;\n    animation-timing-function: linear;\n}\n\n.chat .answer .send img,\n.chat .answer .send svg{\n    display: block;\n    margin: 15px 9px;\n    width: 70px;\n    height: 70px;\n}\n\n.chat .options {\n    width: 100%;\n    background: rgba(105, 105, 105, 1);\n    font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n    font-size: 0;\n    color: rgba(255, 255, 255, 0);\n}\n\n.chat .options.show {\n    /*fade in/out animation*/\n    font-size: 50px;\n    color: rgba(255, 255, 255, 1.0);\n    transition: font-size 0.25s,\n    color 0.25s 0.25s;\n}\n\n.chat .options.hide {\n    /*fade in/out animation*/\n    font-size: 0;\n    color: rgba(255, 255, 255, 0);\n    transition: font-size 0.25s 0.25s,\n    color 0.25s;\n}\n\n\n@keyframes colorPulse {\n    0% {\n        background: rgba(105, 105, 105, 1);\n    }\n\n    50% {\n        background: rgba(75, 75, 75, 1);\n    }\n\n    100% {\n        background: rgba(105, 105, 105, 1);\n    }\n}\n\n.chat .options > div {\n    animation-name: colorPulse;\n    animation-duration: 1.5s;\n    animation-iteration-count: 8;\n    animation-timing-function: linear;\n\n    border-bottom: 1px solid rgba(255, 255, 255, 1);\n    padding: 20px;\n}\n\n.chat .options > div:nth-child(odd) {\n    animation-delay: 0.75s;\n}\n\n\n\n.chat .message {\n    max-width: 85%;\n    clear: both;\n}\n\n.chat .message.other {\n    float: left;\n}\n\n.chat .message.me {\n    float: right;\n}\n\n.chat .message .content {\n    font-size: 50px;\n    font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n}\n\n.chat .message .time {\n    display: none;\n    font-size: 30px;\n    font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n    color: grey;\n}\n\n.chat .message.me .time {\n    float: left;\n}\n\n.chat .message.other .time {\n    float: right;\n}\n\n.chat .bbl-right,\n.chat .bbl-left,\n.chat .message {\n    margin-top: 40px;\n    padding: 0 20px 0 20px;\n    position: relative;\n\n    border-radius: .4em;\n    transition: width 10s, height 2s;\n}\n\n.chat .message.me {\n    background: #05bb6f;\n}\n\n.chat .message.other {\n    background: #00dff2;\n}\n\n.chat .bbl-right:after,\n.chat .message.me:after {\n    content: '';\n    position: absolute;\n    right: 0;\n    top: 50%;\n    width: 0;\n    height: 0;\n    border: 35px solid transparent;\n    border-left-color: #05bb6f;\n    border-right: 0;\n    border-top: 0;\n    margin-top: -10px;\n    margin-right: -20px;\n}\n\n.chat .bbl-left:after, .message.other:after {\n    content: '';\n    position: absolute;\n    left: 0;\n    top: 50%;\n    width: 0;\n    height: 0;\n    border: 35px solid transparent;\n    border-right-color: #00dff2;\n    border-left: 0;\n    border-top: 0;\n    margin-top: -10px;\n    margin-left: -20px;\n}\n\n@keyframes blink {\n    50% {\n        opacity: 1;\n    }\n}\n\n.chat .typing {\n    height: 0.5em;\n    vertical-align: middle;\n}\n\n.chat .typing span {\n    height: 15px;\n    width: 15px;\n    float: left;\n    margin: 0.5em 1px;\n    background-color: darkgreen;\n    display: block;\n    border-radius: 50%;\n    opacity: 0.4;\n}\n\n.chat .typing span:nth-of-type(1) {\n    animation: 1s blink infinite 0.3333s;\n}\n\n.chat .typing span:nth-of-type(2) {\n    animation: 1s blink infinite 0.6666s;\n}\n\n.chat .typing span:nth-of-type(3) {\n    animation: 1s blink infinite 1s;\n}", ""]);
-
-// exports
-
-
-/***/ }),
-/* 21 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(22);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// Prepare cssTransformation
-var transform;
-
-var options = {"hmr":true}
-options.transform = transform
-// add the styles to the DOM
-var update = __webpack_require__(4)(content, options);
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../../../css-loader/index.js!./spectre.css", function() {
-			var newContent = require("!!../../../css-loader/index.js!./spectre.css");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 22 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(3)(undefined);
-// imports
-
-
-// module
-exports.push([module.i, "/*! Spectre.css v0.4.7 | MIT License | github.com/picturepan2/spectre */\n/* Manually forked from Normalize.css */\n/* normalize.css v5.0.0 | MIT License | github.com/necolas/normalize.css */\n/** 1. Change the default font family in all browsers (opinionated). 2. Correct the line height in all browsers. 3. Prevent adjustments of font size after orientation changes in IE on Windows Phone and in iOS. */\n/* Document ========================================================================== */\nhtml {\n  font-family: sans-serif; /* 1 */\n  -webkit-text-size-adjust: 100%; /* 3 */ \n  -ms-text-size-adjust: 100%; /* 3 */\n}\n\n/* Sections ========================================================================== */\n/** Remove the margin in all browsers (opinionated). */\nbody {\n  margin: 0;\n}\n\n/** Add the correct display in IE 9-. */\narticle,\naside,\nfooter,\nheader,\nnav,\nsection {\n  display: block;\n}\n\n/** Correct the font size and margin on `h1` elements within `section` and `article` contexts in Chrome, Firefox, and Safari. */\nh1 {\n  font-size: 2em;\n  margin: .67em 0;\n}\n\n/* Grouping content ========================================================================== */\n/** Add the correct display in IE 9-. 1. Add the correct display in IE. */\nfigcaption,\nfigure,\nmain {\n  /* 1 */ display: block;\n}\n\n/** Add the correct margin in IE 8 (removed). */\n/** 1. Add the correct box sizing in Firefox. 2. Show the overflow in Edge and IE. */\nhr {\n  box-sizing: content-box; /* 1 */\n  height: 0; /* 1 */\n  overflow: visible; /* 2 */\n}\n\n/** 1. Correct the inheritance and scaling of font size in all browsers. (removed) 2. Correct the odd `em` font sizing in all browsers. */\n/* Text-level semantics ========================================================================== */\n/** 1. Remove the gray background on active links in IE 10. 2. Remove gaps in links underline in iOS 8+ and Safari 8+. */\na {\n  background-color: transparent; /* 1 */\n  -webkit-text-decoration-skip: objects; /* 2 */\n}\n\n/** Remove the outline on focused links when they are also active or hovered in all browsers (opinionated). */\na:active,\na:hover {\n  outline-width: 0;\n}\n\n/** Modify default styling of address. */\naddress {\n  font-style: normal;\n}\n\n/** 1. Remove the bottom border in Firefox 39-. 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari. (removed) */\n/** Prevent the duplicate application of `bolder` by the next rule in Safari 6. */\nb,\nstrong {\n  font-weight: inherit;\n}\n\n/** Add the correct font weight in Chrome, Edge, and Safari. */\nb,\nstrong {\n  font-weight: bolder;\n}\n\n/** 1. Correct the inheritance and scaling of font size in all browsers. 2. Correct the odd `em` font sizing in all browsers. */\ncode,\nkbd,\npre,\nsamp {\n  font-family: \"SF Mono\", \"Segoe UI Mono\", \"Roboto Mono\", Menlo, Courier, monospace; /* 1 (changed) */\n  font-size: 1em; /* 2 */\n}\n\n/** Add the correct font style in Android 4.3-. */\ndfn {\n  font-style: italic;\n}\n\n/** Add the correct background and color in IE 9-. (Removed) */\n/** Add the correct font size in all browsers. */\nsmall {\n  font-size: 80%;\n  font-weight: 400; /* (added) */\n}\n\n/** Prevent `sub` and `sup` elements from affecting the line height in all browsers. */\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline;\n}\n\nsub {\n  bottom: -.25em;\n}\n\nsup {\n  top: -.5em;\n}\n\n/* Embedded content ========================================================================== */\n/** Add the correct display in IE 9-. */\naudio,\nvideo {\n  display: inline-block;\n}\n\n/** Add the correct display in iOS 4-7. */\naudio:not([controls]) {\n  display: none;\n  height: 0;\n}\n\n/** Remove the border on images inside links in IE 10-. */\nimg {\n  border-style: none;\n}\n\n/** Hide the overflow in IE. */\nsvg:not(:root) {\n  overflow: hidden;\n}\n\n/* Forms ========================================================================== */\n/** 1. Change the font styles in all browsers (opinionated). 2. Remove the margin in Firefox and Safari. */\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  font-family: inherit; /* 1 (changed) */\n  font-size: inherit; /* 1 (changed) */\n  line-height: inherit; /* 1 (changed) */\n  margin: 0; /* 2 */\n}\n\n/** Show the overflow in IE. 1. Show the overflow in Edge. */\nbutton,\ninput {\n  /* 1 */ overflow: visible;\n}\n\n/** Remove the inheritance of text transform in Edge, Firefox, and IE. 1. Remove the inheritance of text transform in Firefox. */\nbutton,\nselect {\n  /* 1 */ text-transform: none;\n}\n\n/** 1. Prevent a WebKit bug where (2) destroys native `audio` and `video` controls in Android 4. 2. Correct the inability to style clickable types in iOS and Safari. */\nbutton,\nhtml [type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  -webkit-appearance: button; /* 2 */\n}\n\n/** Remove the inner border and padding in Firefox. */\nbutton::-moz-focus-inner,\n[type=\"button\"]::-moz-focus-inner,\n[type=\"reset\"]::-moz-focus-inner,\n[type=\"submit\"]::-moz-focus-inner {\n  border-style: none;\n  padding: 0;\n}\n\n/** Restore the focus styles unset by the previous rule (removed). */\n/** Change the border, margin, and padding in all browsers (opinionated) (changed). */\nfieldset {\n  border: 0;\n  margin: 0;\n  padding: 0;\n}\n\n/** 1. Correct the text wrapping in Edge and IE. 2. Correct the color inheritance from `fieldset` elements in IE. 3. Remove the padding so developers are not caught out when they zero out `fieldset` elements in all browsers. */\nlegend {\n  box-sizing: border-box; /* 1 */\n  color: inherit; /* 2 */\n  display: table; /* 1 */\n  max-width: 100%; /* 1 */\n  padding: 0; /* 3 */\n  white-space: normal; /* 1 */\n}\n\n/** 1. Add the correct display in IE 9-. 2. Add the correct vertical alignment in Chrome, Firefox, and Opera. */\nprogress {\n  display: inline-block; /* 1 */\n  vertical-align: baseline; /* 2 */\n}\n\n/** Remove the default vertical scrollbar in IE. */\ntextarea {\n  overflow: auto;\n}\n\n/** 1. Add the correct box sizing in IE 10-. 2. Remove the padding in IE 10-. */\n[type=\"checkbox\"],\n[type=\"radio\"] {\n  box-sizing: border-box; /* 1 */\n  padding: 0; /* 2 */\n}\n\n/** Correct the cursor style of increment and decrement buttons in Chrome. */\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto;\n}\n\n/** 1. Correct the odd appearance in Chrome and Safari. 2. Correct the outline style in Safari. */\n[type=\"search\"] {\n  -webkit-appearance: textfield; /* 1 */\n  outline-offset: -2px; /* 2 */\n}\n\n/** Remove the inner padding and cancel buttons in Chrome and Safari on macOS. */\n[type=\"search\"]::-webkit-search-cancel-button,\n[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none;\n}\n\n/** 1. Correct the inability to style clickable types in iOS and Safari. 2. Change font properties to `inherit` in Safari. */\n::-webkit-file-upload-button {\n  -webkit-appearance: button; /* 1 */\n  font: inherit; /* 2 */\n}\n\n/* Interactive ========================================================================== */\n/* Add the correct display in IE 9-. 1. Add the correct display in Edge, IE, and Firefox. */\ndetails,\nmenu {\n  display: block;\n}\n\n/* Add the correct display in all browsers. */\nsummary {\n  display: list-item;\n  outline: none;\n}\n\n/* Scripting ========================================================================== */\n/** Add the correct display in IE 9-. */\ncanvas {\n  display: inline-block;\n}\n\n/** Add the correct display in IE. */\ntemplate {\n  display: none;\n}\n\n/* Hidden ========================================================================== */\n/** Add the correct display in IE 10-. */\n[hidden] {\n  display: none;\n}\n\n*,\n*::before,\n*::after {\n  box-sizing: inherit;\n}\n\nhtml {\n  box-sizing: border-box;\n  font-size: 20px;\n  line-height: 1.5;\n  -webkit-tap-highlight-color: transparent;\n}\n\nbody {\n  background: #fff;\n  color: #50596c;\n  font-family: -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", sans-serif;\n  font-size: .8rem;\n  overflow-x: hidden;\n  text-rendering: optimizeLegibility;\n}\n\na {\n  color: #5755d9;\n  outline: none;\n  text-decoration: none;\n}\n\na:focus {\n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\na:focus,\na:hover,\na:active,\na.active {\n  color: #4240d4;\n  text-decoration: underline;\n}\n\nh1,\nh2,\nh3,\nh4,\nh5,\nh6 {\n  color: inherit;\n  font-weight: 500;\n  line-height: 1.2;\n  margin-bottom: .5em;\n  margin-top: 0;\n}\n\n.h1,\n.h2,\n.h3,\n.h4,\n.h5,\n.h6 {\n  font-weight: 500;\n}\n\nh1,\n.h1 {\n  font-size: 2rem;\n}\n\nh2,\n.h2 {\n  font-size: 1.6rem;\n}\n\nh3,\n.h3 {\n  font-size: 1.4rem;\n}\n\nh4,\n.h4 {\n  font-size: 1.2rem;\n}\n\nh5,\n.h5 {\n  font-size: 1rem;\n}\n\nh6,\n.h6 {\n  font-size: .8rem;\n}\n\np {\n  margin: 0 0 1rem;\n}\n\na,\nins,\nu {\n  -webkit-text-decoration-skip: ink edges;\n  text-decoration-skip: ink edges;\n}\n\nabbr[title] {\n  border-bottom: .05rem dotted;\n  cursor: help;\n  text-decoration: none;\n}\n\nkbd {\n  background: #454d5d;\n  border-radius: .1rem;\n  color: #fff;\n  font-size: .7rem; \n  line-height: 1.2;\n  padding: .1rem .15rem;\n}\n\nmark {\n  background: #ffe9b3;\n  border-radius: .1rem;\n  color: #50596c;\n  padding: .05rem;\n}\n\nblockquote {\n  border-left: .1rem solid #e7e9ed;\n  margin-left: 0;\n  padding: .4rem .8rem;\n}\n\nblockquote p:last-child {\n  margin-bottom: 0;\n}\n\nul,\nol {\n  margin: .8rem 0 .8rem .8rem;\n  padding: 0;\n}\n\nul ul,\nul ol,\nol ul,\nol ol {\n  margin: .8rem 0 .8rem .8rem;\n}\n\nul li,\nol li {\n  margin-top: .4rem;\n}\n\nul {\n  list-style: disc inside;\n}\n\nul ul {\n  list-style-type: circle;\n}\n\nol {\n  list-style: decimal inside;\n}\n\nol ol {\n  list-style-type: lower-alpha;\n}\n\ndl dt {\n  font-weight: bold;\n}\n\ndl dd {\n  margin: .4rem 0 .8rem 0;\n}\n\n:lang(zh) {\n  font-family: -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", sans-serif;\n}\n\n:lang(ja) {\n  font-family: -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Hiragino Sans\", \"Hiragino Kaku Gothic Pro\", \"Yu Gothic\", YuGothic, Meiryo, \"Helvetica Neue\", sans-serif;\n}\n\n:lang(ko) {\n  font-family: -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Malgun Gothic\", \"Helvetica Neue\", sans-serif;\n}\n\n:lang(zh) ins,\n:lang(zh) u,\n:lang(ja) ins,\n:lang(ja) u,\n.cjk ins,\n.cjk u {\n  border-bottom: .05rem solid;\n  text-decoration: none;\n}\n\n:lang(zh) del + del,\n:lang(zh) del + s,\n:lang(zh) ins + ins,\n:lang(zh) ins + u,\n:lang(zh) s + del,\n:lang(zh) s + s,\n:lang(zh) u + ins,\n:lang(zh) u + u,\n:lang(ja) del + del,\n:lang(ja) del + s,\n:lang(ja) ins + ins,\n:lang(ja) ins + u,\n:lang(ja) s + del,\n:lang(ja) s + s,\n:lang(ja) u + ins,\n:lang(ja) u + u,\n.cjk del + del,\n.cjk del + s,\n.cjk ins + ins,\n.cjk ins + u,\n.cjk s + del,\n.cjk s + s,\n.cjk u + ins,\n.cjk u + u {\n  margin-left: .125em;\n}\n\n.table {\n  border-collapse: collapse;\n  border-spacing: 0;\n  text-align: left;\n  width: 100%;\n}\n\n.table.table-striped tbody tr:nth-of-type(odd) {\n  background: #f8f9fa;\n}\n\n.table tbody tr.active,\n.table.table-striped tbody tr.active {\n  background: #f0f1f4;\n}\n\n.table.table-hover tbody tr:hover {\n  background: #f0f1f4;\n}\n\n.table.table-scroll {\n  display: block;\n  overflow-x: auto;\n  padding-bottom: .75rem;\n  white-space: nowrap;\n}\n\n.table td,\n.table th {\n  border-bottom: .05rem solid #e7e9ed;\n  padding: .6rem .4rem;\n}\n\n.table th {\n  border-bottom-width: .1rem;\n}\n\n.btn {\n  -webkit-appearance: none;\n  -moz-appearance: none;\n  appearance: none;\n  background: #fff;\n  border: .05rem solid #5755d9;\n  border-radius: .1rem;\n  color: #5755d9;\n  cursor: pointer;\n  display: inline-block;\n  font-size: .8rem;\n  height: 1.8rem;\n  line-height: 1rem;\n  outline: none;\n  padding: .35rem .4rem;\n  text-align: center;\n  text-decoration: none;\n  transition: all .2s ease;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  vertical-align: middle;\n  white-space: nowrap;\n}\n\n.btn:focus {\n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.btn:focus,\n.btn:hover {\n  background: #f1f1fc;\n  border-color: #4b48d6;\n  text-decoration: none;\n}\n\n.btn:active,\n.btn.active {\n  background: #4b48d6;\n  border-color: #3634d2;\n  color: #fff;\n  text-decoration: none;\n}\n\n.btn:active.loading::after,\n.btn.active.loading::after {\n  border-bottom-color: #fff;\n  border-left-color: #fff;\n}\n\n.btn[disabled],\n.btn:disabled,\n.btn.disabled {\n  cursor: default;\n  opacity: .5;\n  pointer-events: none;\n}\n\n.btn.btn-primary {\n  background: #5755d9;\n  border-color: #4b48d6;\n  color: #fff;\n}\n\n.btn.btn-primary:focus,\n.btn.btn-primary:hover {\n  background: #4240d4;\n  border-color: #3634d2;\n  color: #fff;\n}\n\n.btn.btn-primary:active,\n.btn.btn-primary.active {\n  background: #3a38d2;\n  border-color: #302ecd;\n  color: #fff;\n}\n\n.btn.btn-primary.loading::after,\n.btn.btn-success.loading::after,\n.btn.btn-error.loading::after {\n  border-bottom-color: #fff;\n  border-left-color: #fff;\n}\n\n.btn.btn-success {\n  background: #32b643;\n  border-color: #2faa3f;\n  color: #fff;\n}\n\n.btn.btn-success:focus {\n  box-shadow: 0 0 0 .1rem rgba(50, 182, 67, .2);\n}\n\n.btn.btn-success:focus,\n.btn.btn-success:hover {\n  background: #30ae40;\n  border-color: #2da23c;\n  color: #fff;\n}\n\n.btn.btn-success:active,\n.btn.btn-success.active {\n  background: #2a9a39;\n  border-color: #278e34;\n  color: #fff;\n}\n\n.btn.btn-error {\n  background: #e85600;\n  border-color: #d95000;\n  color: #fff;\n}\n\n.btn.btn-error:focus {\n  box-shadow: 0 0 0 .1rem rgba(232, 86, 0, .2);\n}\n\n.btn.btn-error:focus,\n.btn.btn-error:hover {\n  background: #de5200;\n  border-color: #cf4d00;\n  color: #fff;\n}\n\n.btn.btn-error:active,\n.btn.btn-error.active {\n  background: #c44900;\n  border-color: #b54300;\n  color: #fff;\n}\n\n.btn.btn-link {\n  background: transparent;\n  border-color: transparent;\n  color: #5755d9;\n}\n\n.btn.btn-link:focus,\n.btn.btn-link:hover,\n.btn.btn-link:active,\n.btn.btn-link.active {\n  color: #4240d4;\n}\n\n.btn.btn-sm {\n  font-size: .7rem;\n  height: 1.4rem;\n  padding: .15rem .3rem;\n}\n\n.btn.btn-lg {\n  font-size: .9rem;\n  height: 2rem;\n  padding: .45rem .6rem;\n}\n\n.btn.btn-block {\n  display: block;\n  width: 100%;\n}\n\n.btn.btn-action {\n  padding-left: 0;\n  padding-right: 0; \n  width: 1.8rem;\n}\n\n.btn.btn-action.btn-sm {\n  width: 1.4rem;\n}\n\n.btn.btn-action.btn-lg {\n  width: 2rem;\n}\n\n.btn.btn-clear {\n  background: transparent;\n  border: 0;\n  color: currentColor;\n  height: .8rem;\n  line-height: .8rem;\n  margin-left: .2rem;\n  margin-right: -2px;\n  opacity: 1;\n  padding: 0;\n  text-decoration: none;\n  width: .8rem;\n}\n\n.btn.btn-clear:hover {\n  opacity: .95;\n}\n\n.btn.btn-clear::before {\n  content: \"\\2715\";\n}\n\n.btn-group {\n  display: inline-flex;\n  display: -ms-inline-flexbox;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n}\n\n.btn-group .btn {\n  -ms-flex: 1 0 auto;\n  flex: 1 0 auto;\n}\n\n.btn-group .btn:first-child:not(:last-child) {\n  border-bottom-right-radius: 0;\n  border-top-right-radius: 0;\n}\n\n.btn-group .btn:not(:first-child):not(:last-child) {\n  border-radius: 0;\n  margin-left: -.05rem;\n}\n\n.btn-group .btn:last-child:not(:first-child) {\n  border-bottom-left-radius: 0;\n  border-top-left-radius: 0;\n  margin-left: -.05rem;\n}\n\n.btn-group .btn:focus,\n.btn-group .btn:hover,\n.btn-group .btn:active,\n.btn-group .btn.active {\n  z-index: 1;\n}\n\n.btn-group.btn-group-block {\n  display: flex; \n  display: -ms-flexbox;\n}\n\n.btn-group.btn-group-block .btn {\n  -ms-flex: 1 0 0;\n  flex: 1 0 0;\n}\n\n.form-group:not(:last-child) {\n  margin-bottom: .4rem;\n}\n\nfieldset {\n  margin-bottom: .8rem;\n}\n\nlegend {\n  font-size: .9rem;\n  font-weight: 500;\n  margin-bottom: .8rem;\n}\n\n.form-label {\n  display: block;\n  line-height: 1rem;\n  padding: .4rem 0;\n}\n\n.form-label.label-sm {\n  padding: .2rem 0;\n}\n\n.form-label.label-lg {\n  padding: .5rem 0;\n}\n\n.form-input {\n  -webkit-appearance: none;\n  -moz-appearance: none;\n  appearance: none;\n  background: #fff;\n  background-image: none;\n  border: .05rem solid #caced7;\n  border-radius: .1rem;\n  color: #50596c;\n  display: block;\n  font-size: .8rem;\n  height: 1.8rem;\n  line-height: 1rem;\n  max-width: 100%;\n  outline: none;\n  padding: .35rem .4rem;\n  position: relative;\n  transition: all .2s ease;\n  width: 100%;\n}\n\n.form-input:focus {\n  border-color: #5755d9; \n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.form-input::-webkit-input-placeholder {\n  color: #acb3c2;\n}\n\n.form-input:-ms-input-placeholder {\n  color: #acb3c2;\n}\n\n.form-input::placeholder {\n  color: #acb3c2;\n}\n\n.form-input.input-sm {\n  font-size: .7rem;\n  height: 1.4rem;\n  padding: .15rem .3rem;\n}\n\n.form-input.input-lg {\n  font-size: .9rem;\n  height: 2rem;\n  padding: .45rem .6rem;\n}\n\n.form-input.input-inline {\n  display: inline-block;\n  vertical-align: middle;\n  width: auto;\n}\n\n.form-input[type=\"file\"] {\n  height: auto;\n}\n\ntextarea.form-input {\n  height: auto;\n}\n\n.form-input-hint {\n  color: #acb3c2;\n  font-size: .7rem;\n  margin-top: .2rem;\n}\n\n.has-success .form-input-hint,\n.is-success + .form-input-hint {\n  color: #32b643;\n}\n\n.has-error .form-input-hint,\n.is-error + .form-input-hint {\n  color: #e85600;\n}\n\n.form-select {\n  -webkit-appearance: none;\n  -moz-appearance: none;\n  appearance: none;\n  border: .05rem solid #caced7;\n  border-radius: .1rem;\n  color: inherit;\n  font-size: .8rem;\n  height: 1.8rem;\n  line-height: 1rem;\n  outline: none;\n  padding: .35rem .4rem;\n  vertical-align: middle;\n  width: 100%;\n}\n\n.form-select[size],\n.form-select[multiple] {\n  height: auto;\n}\n\n.form-select[size] option,\n.form-select[multiple] option {\n  padding: .1rem .2rem;\n}\n\n.form-select:not([multiple]):not([size]) {\n  background: #fff url(\"data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%204%205'%3E%3Cpath%20fill='%23667189'%20d='M2%200L0%202h4zm0%205L0%203h4z'/%3E%3C/svg%3E\") no-repeat right .35rem center/.4rem .5rem;\n  padding-right: 1.2rem;\n}\n\n.form-select:focus {\n  border-color: #5755d9; \n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.form-select::-ms-expand {\n  display: none;\n}\n\n.form-select.select-sm {\n  font-size: .7rem;\n  height: 1.4rem;\n  padding: .15rem 1.1rem .15rem .3rem;\n}\n\n.form-select.select-lg {\n  font-size: .9rem;\n  height: 2rem;\n  padding: .45rem 1.4rem .45rem .6rem;\n}\n\n.has-icon-left,\n.has-icon-right {\n  position: relative;\n}\n\n.has-icon-left .form-icon,\n.has-icon-right .form-icon {\n  height: .8rem;\n  margin: 0 .35rem;\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%);\n  width: .8rem;\n}\n\n.has-icon-left .form-icon {\n  left: .05rem;\n}\n\n.has-icon-left .form-input {\n  padding-left: 1.5rem;\n}\n\n.has-icon-right .form-icon {\n  right: .05rem;\n}\n\n.has-icon-right .form-input {\n  padding-right: 1.5rem;\n}\n\n.form-checkbox,\n.form-radio,\n.form-switch {\n  display: inline-block;\n  line-height: 1rem;\n  padding: .2rem 1.2rem;\n  position: relative;\n}\n\n.form-checkbox input,\n.form-radio input,\n.form-switch input {\n  clip: rect(0, 0, 0, 0);\n  height: 1px;\n  margin: -1px;\n  overflow: hidden;\n  position: absolute;\n  width: 1px;\n}\n\n.form-checkbox input:focus + .form-icon,\n.form-radio input:focus + .form-icon,\n.form-switch input:focus + .form-icon {\n  border-color: #5755d9; \n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.form-checkbox input:checked + .form-icon,\n.form-radio input:checked + .form-icon,\n.form-switch input:checked + .form-icon {\n  background: #5755d9;\n  border-color: #5755d9;\n}\n\n.form-checkbox .form-icon,\n.form-radio .form-icon,\n.form-switch .form-icon {\n  border: .05rem solid #caced7;\n  cursor: pointer;\n  display: inline-block;\n  position: absolute; \n  transition: all .2s ease;\n}\n\n.form-checkbox .form-icon,\n.form-radio .form-icon {\n  background: #fff;\n  height: .8rem;\n  left: 0;\n  top: .3rem;\n  width: .8rem;\n}\n\n.form-checkbox input:active + .form-icon,\n.form-radio input:active + .form-icon {\n  background: #f0f1f4;\n}\n\n.form-checkbox .form-icon {\n  border-radius: .1rem;\n}\n\n.form-checkbox input:checked + .form-icon::before {\n  background-clip: padding-box;\n  border: .1rem solid #fff;\n  border-left-width: 0;\n  border-top-width: 0;\n  content: \"\";\n  height: 12px;\n  left: 50%;\n  margin-left: -4px;\n  margin-top: -8px;\n  position: absolute;\n  top: 50%;\n  transform: rotate(45deg);\n  width: 8px;\n}\n\n.form-checkbox input:indeterminate + .form-icon {\n  background: #5755d9;\n  border-color: #5755d9;\n}\n\n.form-checkbox input:indeterminate + .form-icon::before {\n  background: #fff;\n  content: \"\";\n  height: 2px;\n  left: 50%;\n  margin-left: -5px;\n  margin-top: -1px;\n  position: absolute;\n  top: 50%;\n  width: 10px;\n}\n\n.form-radio .form-icon {\n  border-radius: 50%;\n}\n\n.form-radio input:checked + .form-icon::before {\n  background: #fff;\n  border-radius: 50%;\n  content: \"\";\n  height: 4px;\n  left: 50%;\n  position: absolute;\n  top: 50%;\n  transform: translate(-50%, -50%);\n  width: 4px;\n}\n\n.form-switch {\n  padding-left: 2rem;\n}\n\n.form-switch .form-icon {\n  background: #e7e9ed;\n  background-clip: padding-box;\n  border-radius: .45rem;\n  height: .9rem;\n  left: 0;\n  top: .25rem;\n  width: 1.6rem;\n}\n\n.form-switch .form-icon::before {\n  background: #fff;\n  border-radius: 50%;\n  content: \"\";\n  display: block;\n  height: .8rem;\n  left: 0;\n  position: absolute;\n  top: 0;\n  transition: all .2s ease;\n  width: .8rem;\n}\n\n.form-switch input:checked + .form-icon::before {\n  left: 14px;\n}\n\n.form-switch input:active + .form-icon::before {\n  background: #f8f9fa;\n}\n\n.input-group {\n  display: flex; \n  display: -ms-flexbox;\n}\n\n.input-group .input-group-addon {\n  background: #f8f9fa;\n  border: .05rem solid #caced7;\n  border-radius: .1rem;\n  line-height: 1rem;\n  padding: .35rem .4rem;\n}\n\n.input-group .input-group-addon.addon-sm {\n  font-size: .7rem;\n  padding: .15rem .3rem;\n}\n\n.input-group .input-group-addon.addon-lg {\n  font-size: .9rem;\n  padding: .45rem .6rem;\n}\n\n.input-group .form-input,\n.input-group .form-select {\n  -ms-flex: 1 1 auto;\n  flex: 1 1 auto;\n}\n\n.input-group .input-group-btn {\n  z-index: 1;\n}\n\n.input-group .form-input:first-child:not(:last-child),\n.input-group .form-select:first-child:not(:last-child),\n.input-group .input-group-addon:first-child:not(:last-child),\n.input-group .input-group-btn:first-child:not(:last-child) {\n  border-bottom-right-radius: 0;\n  border-top-right-radius: 0;\n}\n\n.input-group .form-input:not(:first-child):not(:last-child),\n.input-group .form-select:not(:first-child):not(:last-child),\n.input-group .input-group-addon:not(:first-child):not(:last-child),\n.input-group .input-group-btn:not(:first-child):not(:last-child) {\n  border-radius: 0;\n  margin-left: -.05rem;\n}\n\n.input-group .form-input:last-child:not(:first-child),\n.input-group .form-select:last-child:not(:first-child),\n.input-group .input-group-addon:last-child:not(:first-child),\n.input-group .input-group-btn:last-child:not(:first-child) {\n  border-bottom-left-radius: 0;\n  border-top-left-radius: 0;\n  margin-left: -.05rem;\n}\n\n.input-group .form-input:focus,\n.input-group .form-select:focus,\n.input-group .input-group-addon:focus,\n.input-group .input-group-btn:focus {\n  z-index: 2;\n}\n\n.input-group .form-select {\n  width: auto;\n}\n\n.input-group.input-inline {\n  display: inline-flex; \n  display: -ms-inline-flexbox;\n}\n\n.has-success .form-input,\n.form-input.is-success,\n.has-success .form-select,\n.form-select.is-success {\n  border-color: #32b643;\n}\n\n.has-success .form-input:focus,\n.form-input.is-success:focus,\n.has-success .form-select:focus,\n.form-select.is-success:focus {\n  box-shadow: 0 0 0 .1rem rgba(50, 182, 67, .2);\n}\n\n.has-error .form-input,\n.form-input.is-error,\n.has-error .form-select,\n.form-select.is-error {\n  border-color: #e85600;\n}\n\n.has-error .form-input:focus,\n.form-input.is-error:focus,\n.has-error .form-select:focus,\n.form-select.is-error:focus {\n  box-shadow: 0 0 0 .1rem rgba(232, 86, 0, .2);\n}\n\n.has-error .form-checkbox .form-icon,\n.form-checkbox.is-error .form-icon,\n.has-error .form-radio .form-icon,\n.form-radio.is-error .form-icon,\n.has-error .form-switch .form-icon,\n.form-switch.is-error .form-icon {\n  border-color: #e85600;\n}\n\n.has-error .form-checkbox input:checked + .form-icon,\n.form-checkbox.is-error input:checked + .form-icon,\n.has-error .form-radio input:checked + .form-icon,\n.form-radio.is-error input:checked + .form-icon,\n.has-error .form-switch input:checked + .form-icon,\n.form-switch.is-error input:checked + .form-icon {\n  background: #e85600;\n  border-color: #e85600;\n}\n\n.has-error .form-checkbox input:focus + .form-icon,\n.form-checkbox.is-error input:focus + .form-icon,\n.has-error .form-radio input:focus + .form-icon,\n.form-radio.is-error input:focus + .form-icon,\n.has-error .form-switch input:focus + .form-icon,\n.form-switch.is-error input:focus + .form-icon {\n  border-color: #e85600; \n  box-shadow: 0 0 0 .1rem rgba(232, 86, 0, .2);\n}\n\n.form-input:not(:placeholder-shown):invalid {\n  border-color: #e85600;\n}\n\n.form-input:not(:placeholder-shown):invalid:focus {\n  box-shadow: 0 0 0 .1rem rgba(232, 86, 0, .2);\n}\n\n.form-input:not(:placeholder-shown):invalid + .form-input-hint {\n  color: #e85600;\n}\n\n.form-input:disabled,\n.form-input.disabled,\n.form-select:disabled,\n.form-select.disabled {\n  background-color: #f0f1f4;\n  cursor: not-allowed;\n  opacity: .5;\n}\n\n.form-input[readonly] {\n  background-color: #f8f9fa;\n}\n\ninput:disabled + .form-icon,\ninput.disabled + .form-icon {\n  background: #f0f1f4;\n  cursor: not-allowed;\n  opacity: .5;\n}\n\n.form-switch input:disabled + .form-icon::before,\n.form-switch input.disabled + .form-icon::before {\n  background: #fff;\n}\n\n.form-horizontal {\n  padding: .4rem 0;\n}\n\n.form-horizontal .form-group {\n  display: flex; \n  display: -ms-flexbox;\n}\n\n.form-horizontal .form-checkbox,\n.form-horizontal .form-radio,\n.form-horizontal .form-switch {\n  margin: .2rem 0;\n}\n\n.label {\n  background: #f0f1f4;\n  border-radius: .1rem;\n  color: #5b657a;\n  display: inline-block; \n  line-height: 1.2;\n  padding: .1rem .15rem;\n}\n\n.label.label-rounded {\n  border-radius: 5rem;\n  padding-left: .4rem;\n  padding-right: .4rem;\n}\n\n.label.label-primary {\n  background: #5755d9;\n  color: #fff;\n}\n\n.label.label-secondary {\n  background: #f1f1fc;\n  color: #5755d9;\n}\n\n.label.label-success {\n  background: #32b643;\n  color: #fff;\n}\n\n.label.label-warning {\n  background: #ffb700;\n  color: #fff;\n}\n\n.label.label-error {\n  background: #e85600;\n  color: #fff;\n}\n\ncode {\n  background: #fdf4f4;\n  border-radius: .1rem;\n  color: #e06870;\n  font-size: 85%; \n  line-height: 1.2;\n  padding: .1rem .15rem;\n}\n\n.code {\n  border-radius: .1rem;\n  color: #50596c;\n  position: relative;\n}\n\n.code::before {\n  color: #acb3c2;\n  content: attr(data-lang);\n  font-size: .7rem;\n  position: absolute;\n  right: .4rem;\n  top: .1rem;\n}\n\n.code code {\n  background: #f8f9fa;\n  color: inherit;\n  display: block;\n  line-height: 1.5;\n  overflow-x: auto;\n  padding: 1rem;\n  width: 100%;\n}\n\n.img-responsive {\n  display: block;\n  height: auto;\n  max-width: 100%;\n}\n\n.img-fit-cover {\n  object-fit: cover;\n}\n\n.img-fit-contain {\n  object-fit: contain;\n}\n\n.video-responsive {\n  display: block;\n  overflow: hidden;\n  padding: 0;\n  position: relative;\n  width: 100%;\n}\n\n.video-responsive::before {\n  content: \"\";\n  display: block;\n  padding-bottom: 56.25%;\n}\n\n.video-responsive iframe,\n.video-responsive object,\n.video-responsive embed {\n  border: 0;\n  bottom: 0;\n  height: 100%;\n  left: 0;\n  position: absolute;\n  right: 0;\n  top: 0;\n  width: 100%;\n}\n\nvideo.video-responsive {\n  height: auto;\n  max-width: 100%;\n}\n\nvideo.video-responsive::before {\n  content: none;\n}\n\n.video-responsive-4-3::before {\n  padding-bottom: 75%;\n}\n\n.video-responsive-1-1::before {\n  padding-bottom: 100%;\n}\n\n.figure {\n  margin: 0 0 .4rem 0;\n}\n\n.figure .figure-caption {\n  color: #667189;\n  margin-top: .4rem;\n}\n\n.container {\n  margin-left: auto;\n  margin-right: auto;\n  padding-left: .4rem;\n  padding-right: .4rem;\n  width: 100%;\n}\n\n.container.grid-xl {\n  max-width: 1296px;\n}\n\n.container.grid-lg {\n  max-width: 976px;\n}\n\n.container.grid-md {\n  max-width: 856px;\n}\n\n.container.grid-sm {\n  max-width: 616px;\n}\n\n.container.grid-xs {\n  max-width: 496px;\n}\n\n.show-xs,\n.show-sm,\n.show-md,\n.show-lg,\n.show-xl {\n  display: none !important;\n}\n\n.columns {\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n  margin-left: -.4rem;\n  margin-right: -.4rem;\n}\n\n.columns.col-gapless {\n  margin-left: 0;\n  margin-right: 0;\n}\n\n.columns.col-gapless > .column {\n  padding-left: 0;\n  padding-right: 0;\n}\n\n.columns.col-oneline {\n  -ms-flex-wrap: nowrap;\n  flex-wrap: nowrap;\n  overflow-x: auto;\n}\n\n.column {\n  -ms-flex: 1;\n  flex: 1;\n  max-width: 100%;\n  padding-left: .4rem;\n  padding-right: .4rem;\n}\n\n.column.col-12,\n.column.col-11,\n.column.col-10,\n.column.col-9,\n.column.col-8,\n.column.col-7,\n.column.col-6,\n.column.col-5,\n.column.col-4,\n.column.col-3,\n.column.col-2,\n.column.col-1 {\n  -ms-flex: none;\n  flex: none;\n}\n\n.col-12 {\n  width: 100%;\n}\n\n.col-11 {\n  width: 91.66666667%;\n}\n\n.col-10 {\n  width: 83.33333333%;\n}\n\n.col-9 {\n  width: 75%;\n}\n\n.col-8 {\n  width: 66.66666667%;\n}\n\n.col-7 {\n  width: 58.33333333%;\n}\n\n.col-6 {\n  width: 50%;\n}\n\n.col-5 {\n  width: 41.66666667%;\n}\n\n.col-4 {\n  width: 33.33333333%;\n}\n\n.col-3 {\n  width: 25%;\n}\n\n.col-2 {\n  width: 16.66666667%;\n}\n\n.col-1 {\n  width: 8.33333333%;\n}\n\n.col-auto {\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n  max-width: none;\n  width: auto;\n}\n\n.col-mx-auto {\n  margin-left: auto;\n  margin-right: auto;\n}\n\n.col-ml-auto {\n  margin-left: auto;\n}\n\n.col-mr-auto {\n  margin-right: auto;\n}\n\n@media (max-width: 1280px) {\n  .col-xl-12,\n  .col-xl-11,\n  .col-xl-10,\n  .col-xl-9,\n  .col-xl-8,\n  .col-xl-7,\n  .col-xl-6,\n  .col-xl-5,\n  .col-xl-4,\n  .col-xl-3,\n  .col-xl-2,\n  .col-xl-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-xl-12 {\n    width: 100%;\n  }\n  .col-xl-11 {\n    width: 91.66666667%;\n  }\n  .col-xl-10 {\n    width: 83.33333333%;\n  }\n  .col-xl-9 {\n    width: 75%;\n  }\n  .col-xl-8 {\n    width: 66.66666667%;\n  }\n  .col-xl-7 {\n    width: 58.33333333%;\n  }\n  .col-xl-6 {\n    width: 50%;\n  }\n  .col-xl-5 {\n    width: 41.66666667%;\n  }\n  .col-xl-4 {\n    width: 33.33333333%;\n  }\n  .col-xl-3 {\n    width: 25%;\n  }\n  .col-xl-2 {\n    width: 16.66666667%;\n  }\n  .col-xl-1 {\n    width: 8.33333333%;\n  }\n  .hide-xl {\n    display: none !important;\n  }\n  .show-xl {\n    display: block !important;\n  }\n}\n\n@media (max-width: 960px) {\n  .col-lg-12,\n  .col-lg-11,\n  .col-lg-10,\n  .col-lg-9,\n  .col-lg-8,\n  .col-lg-7,\n  .col-lg-6,\n  .col-lg-5,\n  .col-lg-4,\n  .col-lg-3,\n  .col-lg-2,\n  .col-lg-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-lg-12 {\n    width: 100%;\n  }\n  .col-lg-11 {\n    width: 91.66666667%;\n  }\n  .col-lg-10 {\n    width: 83.33333333%;\n  }\n  .col-lg-9 {\n    width: 75%;\n  }\n  .col-lg-8 {\n    width: 66.66666667%;\n  }\n  .col-lg-7 {\n    width: 58.33333333%;\n  }\n  .col-lg-6 {\n    width: 50%;\n  }\n  .col-lg-5 {\n    width: 41.66666667%;\n  }\n  .col-lg-4 {\n    width: 33.33333333%;\n  }\n  .col-lg-3 {\n    width: 25%;\n  }\n  .col-lg-2 {\n    width: 16.66666667%;\n  }\n  .col-lg-1 {\n    width: 8.33333333%;\n  }\n  .hide-lg {\n    display: none !important;\n  }\n  .show-lg {\n    display: block !important;\n  }\n}\n\n@media (max-width: 840px) {\n  .col-md-12,\n  .col-md-11,\n  .col-md-10,\n  .col-md-9,\n  .col-md-8,\n  .col-md-7,\n  .col-md-6,\n  .col-md-5,\n  .col-md-4,\n  .col-md-3,\n  .col-md-2,\n  .col-md-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-md-12 {\n    width: 100%;\n  }\n  .col-md-11 {\n    width: 91.66666667%;\n  }\n  .col-md-10 {\n    width: 83.33333333%;\n  }\n  .col-md-9 {\n    width: 75%;\n  }\n  .col-md-8 {\n    width: 66.66666667%;\n  }\n  .col-md-7 {\n    width: 58.33333333%;\n  }\n  .col-md-6 {\n    width: 50%;\n  }\n  .col-md-5 {\n    width: 41.66666667%;\n  }\n  .col-md-4 {\n    width: 33.33333333%;\n  }\n  .col-md-3 {\n    width: 25%;\n  }\n  .col-md-2 {\n    width: 16.66666667%;\n  }\n  .col-md-1 {\n    width: 8.33333333%;\n  }\n  .hide-md {\n    display: none !important;\n  }\n  .show-md {\n    display: block !important;\n  }\n}\n\n@media (max-width: 600px) {\n  .col-sm-12,\n  .col-sm-11,\n  .col-sm-10,\n  .col-sm-9,\n  .col-sm-8,\n  .col-sm-7,\n  .col-sm-6,\n  .col-sm-5,\n  .col-sm-4,\n  .col-sm-3,\n  .col-sm-2,\n  .col-sm-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-sm-12 {\n    width: 100%;\n  }\n  .col-sm-11 {\n    width: 91.66666667%;\n  }\n  .col-sm-10 {\n    width: 83.33333333%;\n  }\n  .col-sm-9 {\n    width: 75%;\n  }\n  .col-sm-8 {\n    width: 66.66666667%;\n  }\n  .col-sm-7 {\n    width: 58.33333333%;\n  }\n  .col-sm-6 {\n    width: 50%;\n  }\n  .col-sm-5 {\n    width: 41.66666667%;\n  }\n  .col-sm-4 {\n    width: 33.33333333%;\n  }\n  .col-sm-3 {\n    width: 25%;\n  }\n  .col-sm-2 {\n    width: 16.66666667%;\n  }\n  .col-sm-1 {\n    width: 8.33333333%;\n  }\n  .hide-sm {\n    display: none !important;\n  }\n  .show-sm {\n    display: block !important;\n  }\n}\n\n@media (max-width: 480px) {\n  .col-xs-12,\n  .col-xs-11,\n  .col-xs-10,\n  .col-xs-9,\n  .col-xs-8,\n  .col-xs-7,\n  .col-xs-6,\n  .col-xs-5,\n  .col-xs-4,\n  .col-xs-3,\n  .col-xs-2,\n  .col-xs-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-xs-12 {\n    width: 100%;\n  }\n  .col-xs-11 {\n    width: 91.66666667%;\n  }\n  .col-xs-10 {\n    width: 83.33333333%;\n  }\n  .col-xs-9 {\n    width: 75%;\n  }\n  .col-xs-8 {\n    width: 66.66666667%;\n  }\n  .col-xs-7 {\n    width: 58.33333333%;\n  }\n  .col-xs-6 {\n    width: 50%;\n  }\n  .col-xs-5 {\n    width: 41.66666667%;\n  }\n  .col-xs-4 {\n    width: 33.33333333%;\n  }\n  .col-xs-3 {\n    width: 25%;\n  }\n  .col-xs-2 {\n    width: 16.66666667%;\n  }\n  .col-xs-1 {\n    width: 8.33333333%;\n  }\n  .hide-xs {\n    display: none !important;\n  }\n  .show-xs {\n    display: block !important;\n  }\n}\n\n.navbar {\n  align-items: stretch;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-align: stretch;\n  -ms-flex-pack: justify;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n  justify-content: space-between;\n}\n\n.navbar .navbar-section {\n  align-items: center;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex: 1 0 0;\n  flex: 1 0 0; \n  -ms-flex-align: center;\n}\n\n.navbar .navbar-section:last-child {\n  -ms-flex-pack: end;\n  justify-content: flex-end;\n}\n\n.navbar .navbar-center {\n  align-items: center;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto; \n  -ms-flex-align: center;\n}\n\n.navbar .navbar-brand {\n  font-size: .9rem;\n  font-weight: 500;\n  text-decoration: none;\n}\n\n.accordion input:checked ~ .accordion-header .icon,\n.accordion[open] .accordion-header .icon {\n  transform: rotate(90deg);\n}\n\n.accordion input:checked ~ .accordion-body,\n.accordion[open] .accordion-body {\n  max-height: 50rem;\n}\n\n.accordion .accordion-header {\n  display: block;\n  padding: .2rem .4rem;\n}\n\n.accordion .accordion-header .icon {\n  transition: all .2s ease;\n}\n\n.accordion .accordion-body {\n  margin-bottom: .4rem;\n  max-height: 0;\n  overflow: hidden;\n  transition: max-height .2s ease;\n}\n\nsummary.accordion-header::-webkit-details-marker {\n  display: none;\n}\n\n.form-autocomplete {\n  position: relative;\n}\n\n.form-autocomplete .form-autocomplete-input {\n  align-content: flex-start;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-line-pack: start;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n  height: auto;\n  min-height: 1.6rem;\n  padding: .1rem;\n}\n\n.form-autocomplete .form-autocomplete-input.is-focused {\n  border-color: #5755d9; \n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.form-autocomplete .form-autocomplete-input .form-input {\n  border-color: transparent;\n  box-shadow: none;\n  display: inline-block;\n  -ms-flex: 1 0 auto;\n  flex: 1 0 auto;\n  height: 1.2rem;\n  line-height: .8rem;\n  margin: .1rem;\n  width: auto;\n}\n\n.form-autocomplete .menu {\n  left: 0;\n  position: absolute;\n  top: 100%;\n  width: 100%;\n}\n\n.avatar {\n  background: #5755d9;\n  border-radius: 50%;\n  color: rgba(255, 255, 255, .85);\n  display: inline-block;\n  font-size: .8rem;\n  font-weight: 300;\n  height: 1.6rem;\n  line-height: 1.25;\n  margin: 0;\n  position: relative;\n  vertical-align: middle; \n  width: 1.6rem;\n}\n\n.avatar.avatar-xs {\n  font-size: .4rem;\n  height: .8rem;\n  width: .8rem;\n}\n\n.avatar.avatar-sm {\n  font-size: .6rem;\n  height: 1.2rem;\n  width: 1.2rem;\n}\n\n.avatar.avatar-lg {\n  font-size: 1.2rem;\n  height: 2.4rem;\n  width: 2.4rem;\n}\n\n.avatar.avatar-xl {\n  font-size: 1.6rem;\n  height: 3.2rem;\n  width: 3.2rem;\n}\n\n.avatar img {\n  border-radius: 50%;\n  height: 100%;\n  position: relative;\n  width: 100%;\n  z-index: 1;\n}\n\n.avatar .avatar-icon,\n.avatar .avatar-presence {\n  background: #fff;\n  bottom: 14.64%;\n  height: 50%;\n  padding: .1rem;\n  position: absolute;\n  right: 14.64%;\n  transform: translate(50%, 50%);\n  width: 50%;\n  z-index: 2;\n}\n\n.avatar .avatar-presence {\n  background: #acb3c2;\n  border-radius: 50%;\n  box-shadow: 0 0 0 .1rem #fff;\n  height: .5em;\n  width: .5em;\n}\n\n.avatar .avatar-presence.online {\n  background: #32b643;\n}\n\n.avatar .avatar-presence.busy {\n  background: #e85600;\n}\n\n.avatar .avatar-presence.away {\n  background: #ffb700;\n}\n\n.avatar[data-initial]::before {\n  color: currentColor;\n  content: attr(data-initial);\n  left: 50%;\n  position: absolute;\n  top: 50%;\n  transform: translate(-50%, -50%);\n  z-index: 1;\n}\n\n.badge {\n  position: relative;\n  white-space: nowrap;\n}\n\n.badge[data-badge]::after,\n.badge:not([data-badge])::after {\n  background: #5755d9;\n  background-clip: padding-box;\n  border-radius: .5rem;\n  box-shadow: 0 0 0 .1rem #fff;\n  color: #fff;\n  content: attr(data-badge);\n  display: inline-block;\n  transform: translate(-.1rem, -.5rem);\n}\n\n.badge[data-badge]::after {\n  font-size: .7rem;\n  height: .9rem;\n  line-height: 1;\n  min-width: .9rem;\n  padding: .1rem .2rem;\n  text-align: center;\n  white-space: nowrap;\n}\n\n.badge:not([data-badge])::after,\n.badge[data-badge=\"\"]::after {\n  height: 6px;\n  min-width: 6px;\n  padding: 0;\n  width: 6px;\n}\n\n.badge.btn::after {\n  position: absolute;\n  right: 0;\n  top: 0;\n  transform: translate(50%, -50%);\n}\n\n.badge.avatar::after {\n  position: absolute;\n  right: 14.64%;\n  top: 14.64%;\n  transform: translate(50%, -50%);\n  z-index: 100;\n}\n\n.badge.avatar-xs::after {\n  content: \"\";\n  height: .4rem;\n  min-width: .4rem;\n  padding: 0;\n  width: .4rem;\n}\n\n.breadcrumb {\n  list-style: none;\n  margin: .2rem 0;\n  padding: .2rem 0;\n}\n\n.breadcrumb .breadcrumb-item {\n  color: #667189;\n  display: inline-block;\n  margin: 0;\n  padding: .2rem 0;\n}\n\n.breadcrumb .breadcrumb-item:not(:last-child) {\n  margin-right: .2rem;\n}\n\n.breadcrumb .breadcrumb-item:not(:last-child) a {\n  color: #667189;\n}\n\n.breadcrumb .breadcrumb-item:not(:first-child)::before {\n  color: #e7e9ed;\n  content: \"/\";\n  padding-right: .4rem;\n}\n\n.bar {\n  background: #f0f1f4;\n  border-radius: .1rem;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-wrap: nowrap;\n  flex-wrap: nowrap;\n  height: .8rem;\n  width: 100%;\n}\n\n.bar.bar-sm {\n  height: .2rem;\n}\n\n.bar .bar-item {\n  background: #5755d9;\n  color: #fff;\n  display: block;\n  -ms-flex-negative: 0;\n  flex-shrink: 0;\n  font-size: .7rem;\n  height: 100%;\n  line-height: .8rem;\n  position: relative;\n  text-align: center;\n  width: 0;\n}\n\n.bar .bar-item:first-child {\n  border-bottom-left-radius: .1rem;\n  border-top-left-radius: .1rem;\n}\n\n.bar .bar-item:last-child {\n  border-bottom-right-radius: .1rem;\n  border-top-right-radius: .1rem;\n  -ms-flex-negative: 1;\n  flex-shrink: 1;\n}\n\n.bar-slider {\n  height: .1rem;\n  margin: .4rem 0;\n  position: relative;\n}\n\n.bar-slider .bar-item {\n  left: 0;\n  padding: 0;\n  position: absolute;\n}\n\n.bar-slider .bar-item:not(:last-child):first-child {\n  background: #f0f1f4;\n  z-index: 1;\n}\n\n.bar-slider .bar-slider-btn {\n  background: #5755d9;\n  border: 0;\n  border-radius: 50%;\n  height: .6rem;\n  padding: 0;\n  position: absolute;\n  right: 0;\n  top: 50%;\n  transform: translate(50%, -50%);\n  width: .6rem;\n}\n\n.bar-slider .bar-slider-btn:active {\n  box-shadow: 0 0 0 .1rem #5755d9;\n}\n\n.card {\n  background: #fff;\n  border: .05rem solid #e7e9ed;\n  border-radius: .1rem;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-direction: column;\n  flex-direction: column;\n}\n\n.card .card-header,\n.card .card-body,\n.card .card-footer {\n  padding: .8rem;\n  padding-bottom: 0;\n}\n\n.card .card-header:last-child,\n.card .card-body:last-child,\n.card .card-footer:last-child {\n  padding-bottom: .8rem;\n}\n\n.card .card-image {\n  padding-top: .8rem;\n}\n\n.card .card-image:first-child {\n  padding-top: 0;\n}\n\n.card .card-image:first-child img {\n  border-top-left-radius: .1rem;\n  border-top-right-radius: .1rem;\n}\n\n.card .card-image:last-child img {\n  border-bottom-left-radius: .1rem;\n  border-bottom-right-radius: .1rem;\n}\n\n.chip {\n  align-items: center;\n  background: #f0f1f4;\n  border-radius: 5rem;\n  color: #667189;\n  display: inline-flex;\n  display: -ms-inline-flexbox;\n  -ms-flex-align: center;\n  font-size: 90%;\n  height: 1.2rem;\n  line-height: .8rem;\n  margin: .1rem;\n  max-width: 100%;\n  padding: .2rem .4rem;\n  text-decoration: none;\n  vertical-align: middle;\n}\n\n.chip.active {\n  background: #5755d9;\n  color: #fff;\n}\n\n.chip .avatar {\n  margin-left: -.4rem;\n  margin-right: .2rem;\n}\n\n.dropdown {\n  display: inline-block;\n  position: relative;\n}\n\n.dropdown .menu {\n  animation: slide-down .15s ease 1;\n  display: none;\n  left: 0;\n  max-height: 50vh;\n  overflow-y: auto;\n  position: absolute;\n  top: 100%;\n}\n\n.dropdown.dropdown-right .menu {\n  left: auto;\n  right: 0;\n}\n\n.dropdown.active .menu,\n.dropdown .dropdown-toggle:focus + .menu,\n.dropdown .menu:hover {\n  display: block;\n}\n\n.dropdown .btn-group .dropdown-toggle:nth-last-child(2) {\n  border-bottom-right-radius: .1rem;\n  border-top-right-radius: .1rem;\n}\n\n.empty {\n  background: #f8f9fa;\n  border-radius: .1rem;\n  color: #667189;\n  padding: 3.2rem 1.6rem; \n  text-align: center;\n}\n\n.empty .empty-icon {\n  margin-bottom: .8rem;\n}\n\n.empty .empty-title,\n.empty .empty-subtitle {\n  margin: .4rem auto;\n}\n\n.empty .empty-action {\n  margin-top: .8rem;\n}\n\n.menu {\n  background: #fff;\n  border-radius: .1rem;\n  box-shadow: 0 .05rem .2rem rgba(69, 77, 93, .3);\n  list-style: none;\n  margin: 0;\n  min-width: 180px;\n  padding: .4rem;\n  transform: translateY(.2rem);\n  z-index: 100;\n}\n\n.menu.menu-nav {\n  background: transparent;\n  box-shadow: none;\n}\n\n.menu .menu-item {\n  margin-top: 0;\n  padding: 0 .4rem;\n  text-decoration: none;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n\n.menu .menu-item > a {\n  border-radius: .1rem;\n  color: inherit;\n  display: block;\n  margin: 0 -.4rem;\n  padding: .2rem .4rem;\n  text-decoration: none;\n}\n\n.menu .menu-item > a:focus,\n.menu .menu-item > a:hover {\n  background: #f1f1fc;\n  color: #5755d9;\n}\n\n.menu .menu-item > a:active,\n.menu .menu-item > a.active {\n  background: #f1f1fc;\n  color: #5755d9;\n}\n\n.menu .menu-item + .menu-item {\n  margin-top: .2rem;\n}\n\n.menu .menu-badge {\n  float: right;\n  padding: .2rem 0;\n}\n\n.menu .menu-badge .btn {\n  margin-top: -.1rem;\n}\n\n.modal {\n  align-items: center;\n  bottom: 0;\n  display: none;\n  -ms-flex-align: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  left: 0;\n  opacity: 0;\n  overflow: hidden;\n  padding: .4rem;\n  position: fixed;\n  right: 0;\n  top: 0;\n}\n\n.modal:target,\n.modal.active {\n  display: flex;\n  display: -ms-flexbox;\n  opacity: 1;\n  z-index: 400;\n}\n\n.modal:target .modal-overlay,\n.modal.active .modal-overlay {\n  background: rgba(248, 249, 250, .75);\n  bottom: 0;\n  cursor: default;\n  display: block;\n  left: 0;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.modal:target .modal-container,\n.modal.active .modal-container {\n  animation: slide-down .2s ease 1;\n  max-width: 640px;\n  width: 100%;\n  z-index: 1;\n}\n\n.modal.modal-sm .modal-container {\n  max-width: 320px;\n  padding: 0 .4rem;\n}\n\n.modal.modal-lg .modal-overlay {\n  background: #fff;\n}\n\n.modal.modal-lg .modal-container {\n  box-shadow: none;\n  max-width: 960px;\n}\n\n.modal-container {\n  background: #fff;\n  border-radius: .1rem;\n  box-shadow: 0 .2rem .5rem rgba(69, 77, 93, .3);\n  display: block;\n  padding: 0 .8rem;\n  text-align: left;\n}\n\n.modal-container .modal-header {\n  padding: .8rem;\n}\n\n.modal-container .modal-body {\n  max-height: 50vh;\n  overflow-y: auto;\n  padding: .8rem;\n  position: relative;\n}\n\n.modal-container .modal-footer {\n  padding: .8rem;\n  text-align: right;\n}\n\n.nav {\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  list-style: none;\n  margin: .2rem 0;\n}\n\n.nav .nav-item a {\n  color: #667189;\n  padding: .2rem .4rem;\n  text-decoration: none;\n}\n\n.nav .nav-item a:focus,\n.nav .nav-item a:hover {\n  color: #5755d9;\n}\n\n.nav .nav-item.active > a {\n  color: #50596c;\n  font-weight: bold;\n}\n\n.nav .nav-item.active > a:focus,\n.nav .nav-item.active > a:hover {\n  color: #5755d9;\n}\n\n.nav .nav {\n  margin-bottom: .4rem;\n  margin-left: .8rem;\n}\n\n.pagination {\n  display: flex;\n  display: -ms-flexbox;\n  list-style: none;\n  margin: .2rem 0;\n  padding: .2rem 0;\n}\n\n.pagination .page-item {\n  margin: .2rem .05rem;\n}\n\n.pagination .page-item span {\n  display: inline-block;\n  padding: .2rem .2rem;\n}\n\n.pagination .page-item a {\n  border-radius: .1rem;\n  color: #667189;\n  display: inline-block;\n  padding: .2rem .4rem;\n  text-decoration: none;\n}\n\n.pagination .page-item a:focus,\n.pagination .page-item a:hover {\n  color: #5755d9;\n}\n\n.pagination .page-item.disabled a {\n  cursor: default;\n  opacity: .5;\n  pointer-events: none;\n}\n\n.pagination .page-item.active a {\n  background: #5755d9;\n  color: #fff;\n}\n\n.pagination .page-item.page-prev,\n.pagination .page-item.page-next {\n  -ms-flex: 1 0 50%;\n  flex: 1 0 50%;\n}\n\n.pagination .page-item.page-next {\n  text-align: right;\n}\n\n.pagination .page-item .page-item-title {\n  margin: 0;\n}\n\n.pagination .page-item .page-item-subtitle {\n  margin: 0;\n  opacity: .5;\n}\n\n.panel {\n  border: .05rem solid #e7e9ed;\n  border-radius: .1rem;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-direction: column;\n  flex-direction: column;\n}\n\n.panel .panel-header,\n.panel .panel-footer {\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n  padding: .8rem;\n}\n\n.panel .panel-nav {\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n}\n\n.panel .panel-body {\n  -ms-flex: 1 1 auto;\n  flex: 1 1 auto;\n  overflow-y: auto;\n  padding: 0 .8rem;\n}\n\n.popover {\n  display: inline-block;\n  position: relative;\n}\n\n.popover .popover-container {\n  left: 50%;\n  opacity: 0;\n  padding: .4rem;\n  position: absolute;\n  top: 0;\n  transform: translate(-50%, -50%) scale(0);\n  transition: transform .2s ease;\n  width: 320px;\n  z-index: 400;\n}\n\n.popover *:focus + .popover-container,\n.popover:hover .popover-container,\n.popover .popover-container:hover {\n  display: block;\n  opacity: 1;\n  transform: translate(-50%, -100%) scale(1);\n}\n\n.popover.popover-right .popover-container {\n  left: 100%;\n  top: 50%;\n}\n\n.popover.popover-right :focus + .popover-container,\n.popover.popover-right:hover .popover-container,\n.popover.popover-right .popover-container:hover {\n  transform: translate(0, -50%) scale(1);\n}\n\n.popover.popover-bottom .popover-container {\n  left: 50%;\n  top: 100%;\n}\n\n.popover.popover-bottom :focus + .popover-container,\n.popover.popover-bottom:hover .popover-container,\n.popover.popover-bottom .popover-container:hover {\n  transform: translate(-50%, 0) scale(1);\n}\n\n.popover.popover-left .popover-container {\n  left: 0;\n  top: 50%;\n}\n\n.popover.popover-left :focus + .popover-container,\n.popover.popover-left:hover .popover-container,\n.popover.popover-left .popover-container:hover {\n  transform: translate(-100%, -50%) scale(1);\n}\n\n.popover .card {\n  border: 0; \n  box-shadow: 0 .2rem .5rem rgba(69, 77, 93, .3);\n}\n\n.step {\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-wrap: nowrap;\n  flex-wrap: nowrap;\n  list-style: none;\n  margin: .2rem 0;\n  width: 100%;\n}\n\n.step .step-item {\n  -ms-flex: 1 1 0;\n  flex: 1 1 0;\n  margin-top: 0;\n  min-height: 1rem;\n  position: relative; \n  text-align: center;\n}\n\n.step .step-item:not(:first-child)::before {\n  background: #5755d9;\n  content: \"\";\n  height: 2px;\n  left: -50%;\n  position: absolute;\n  top: 9px;\n  width: 100%;\n}\n\n.step .step-item a {\n  color: #acb3c2;\n  display: inline-block;\n  padding: 20px 10px 0;\n  text-decoration: none;\n}\n\n.step .step-item a::before {\n  background: #5755d9;\n  border: .1rem solid #fff;\n  border-radius: 50%;\n  content: \"\";\n  display: block;\n  height: .6rem;\n  left: 50%;\n  position: absolute;\n  top: .2rem;\n  transform: translateX(-50%);\n  width: .6rem;\n  z-index: 1;\n}\n\n.step .step-item.active a::before {\n  background: #fff;\n  border: .1rem solid #5755d9;\n}\n\n.step .step-item.active ~ .step-item::before {\n  background: #e7e9ed;\n}\n\n.step .step-item.active ~ .step-item a::before {\n  background: #e7e9ed;\n}\n\n.tab {\n  align-items: center;\n  border-bottom: .05rem solid #e7e9ed;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-align: center;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n  list-style: none;\n  margin: .2rem 0 .15rem 0;\n}\n\n.tab .tab-item {\n  margin-top: 0;\n}\n\n.tab .tab-item a {\n  border-bottom: .1rem solid transparent;\n  color: inherit;\n  display: block;\n  margin: 0 .4rem 0 0;\n  padding: .4rem .2rem .3rem .2rem;\n  text-decoration: none;\n}\n\n.tab .tab-item a:focus,\n.tab .tab-item a:hover {\n  color: #5755d9;\n}\n\n.tab .tab-item.active a,\n.tab .tab-item a.active {\n  border-bottom-color: #5755d9;\n  color: #5755d9;\n}\n\n.tab .tab-item.tab-action {\n  -ms-flex: 1 0 auto;\n  flex: 1 0 auto;\n  text-align: right;\n}\n\n.tab .tab-item .btn-clear {\n  margin-top: -.2rem;\n}\n\n.tab.tab-block .tab-item {\n  -ms-flex: 1 0 0;\n  flex: 1 0 0;\n  text-align: center;\n}\n\n.tab.tab-block .tab-item a {\n  margin: 0;\n}\n\n.tab.tab-block .tab-item .badge[data-badge]::after {\n  position: absolute;\n  right: .1rem;\n  top: .1rem;\n  transform: translate(0, 0);\n}\n\n.tab:not(.tab-block) .badge {\n  padding-right: 0;\n}\n\n.tile {\n  align-content: space-between;\n  align-items: flex-start;\n  display: flex; \n  display: -ms-flexbox;\n  -ms-flex-align: start;\n  -ms-flex-line-pack: justify;\n}\n\n.tile .tile-icon,\n.tile .tile-action {\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n}\n\n.tile .tile-content {\n  -ms-flex: 1 1 auto;\n  flex: 1 1 auto;\n}\n\n.tile .tile-content:not(:first-child) {\n  padding-left: .4rem;\n}\n\n.tile .tile-content:not(:last-child) {\n  padding-right: .4rem;\n}\n\n.tile .tile-title,\n.tile .tile-subtitle {\n  line-height: 1rem;\n}\n\n.tile.tile-centered {\n  align-items: center; \n  -ms-flex-align: center;\n}\n\n.tile.tile-centered .tile-content {\n  overflow: hidden;\n}\n\n.tile.tile-centered .tile-title,\n.tile.tile-centered .tile-subtitle {\n  margin-bottom: 0; \n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.toast {\n  background: rgba(69, 77, 93, .9);\n  border: .05rem solid #454d5d;\n  border-color: #454d5d;\n  border-radius: .1rem;\n  color: #fff;\n  display: block;\n  padding: .4rem;\n  width: 100%;\n}\n\n.toast.toast-primary {\n  background: rgba(87, 85, 217, .9);\n  border-color: #5755d9;\n}\n\n.toast.toast-success {\n  background: rgba(50, 182, 67, .9);\n  border-color: #32b643;\n}\n\n.toast.toast-warning {\n  background: rgba(255, 183, 0, .9);\n  border-color: #ffb700;\n}\n\n.toast.toast-error {\n  background: rgba(232, 86, 0, .9);\n  border-color: #e85600;\n}\n\n.toast a {\n  color: #fff;\n  text-decoration: underline;\n}\n\n.toast a:focus,\n.toast a:hover,\n.toast a:active,\n.toast a.active {\n  opacity: .75;\n}\n\n.toast .btn-clear {\n  margin: 4px -2px 4px 4px;\n}\n\n.tooltip {\n  position: relative;\n}\n\n.tooltip::after {\n  background: rgba(69, 77, 93, .9);\n  border-radius: .1rem;\n  bottom: 100%;\n  color: #fff;\n  content: attr(data-tooltip);\n  display: block;\n  font-size: .7rem;\n  left: 50%;\n  max-width: 320px;\n  opacity: 0;\n  overflow: hidden;\n  padding: .2rem .4rem;\n  pointer-events: none;\n  position: absolute;\n  text-overflow: ellipsis;\n  transform: translate(-50%, .4rem);\n  transition: all .2s ease;\n  white-space: pre;\n  z-index: 300;\n}\n\n.tooltip:focus::after,\n.tooltip:hover::after {\n  opacity: 1;\n  transform: translate(-50%, -.2rem);\n}\n\n.tooltip[disabled],\n.tooltip.disabled {\n  pointer-events: auto;\n}\n\n.tooltip.tooltip-right::after {\n  bottom: 50%;\n  left: 100%;\n  transform: translate(-.2rem, 50%);\n}\n\n.tooltip.tooltip-right:focus::after,\n.tooltip.tooltip-right:hover::after {\n  transform: translate(.2rem, 50%);\n}\n\n.tooltip.tooltip-bottom::after {\n  bottom: auto;\n  top: 100%;\n  transform: translate(-50%, -.4rem);\n}\n\n.tooltip.tooltip-bottom:focus::after,\n.tooltip.tooltip-bottom:hover::after {\n  transform: translate(-50%, .2rem);\n}\n\n.tooltip.tooltip-left::after {\n  bottom: 50%;\n  left: auto;\n  right: 100%;\n  transform: translate(.4rem, 50%);\n}\n\n.tooltip.tooltip-left:focus::after,\n.tooltip.tooltip-left:hover::after {\n  transform: translate(-.2rem, 50%);\n}\n\n@keyframes loading {\n  0% {\n    transform: rotate(0deg);\n  }\n  100% {\n    transform: rotate(360deg);\n  }\n}\n\n@keyframes slide-down {\n  0% {\n    opacity: 0;\n    transform: translateY(-1.6rem);\n  }\n  100% {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n.text-primary {\n  color: #5755d9;\n}\n\na.text-primary:focus,\na.text-primary:hover {\n  color: #4240d4;\n}\n\n.text-secondary {\n  color: #e5e5f9;\n}\n\na.text-secondary:focus,\na.text-secondary:hover {\n  color: #d1d0f4;\n}\n\n.text-gray {\n  color: #acb3c2;\n}\n\na.text-gray:focus,\na.text-gray:hover {\n  color: #9ea6b7;\n}\n\n.text-light {\n  color: #fff;\n}\n\na.text-light:focus,\na.text-light:hover {\n  color: #f2f2f2;\n}\n\n.text-success {\n  color: #32b643;\n}\n\na.text-success:focus,\na.text-success:hover {\n  color: #2da23c;\n}\n\n.text-warning {\n  color: #ffb700;\n}\n\na.text-warning:focus,\na.text-warning:hover {\n  color: #e6a500;\n}\n\n.text-error {\n  color: #e85600;\n}\n\na.text-error:focus,\na.text-error:hover {\n  color: #cf4d00;\n}\n\n.bg-primary {\n  background: #5755d9;\n  color: #fff;\n}\n\n.bg-secondary {\n  background: #f1f1fc;\n}\n\n.bg-dark {\n  background: #454d5d;\n  color: #fff;\n}\n\n.bg-gray {\n  background: #f8f9fa;\n}\n\n.bg-success {\n  background: #32b643;\n  color: #fff;\n}\n\n.bg-warning {\n  background: #ffb700;\n  color: #fff;\n}\n\n.bg-error {\n  background: #e85600;\n  color: #fff;\n}\n\n.c-hand {\n  cursor: pointer;\n}\n\n.c-move {\n  cursor: move;\n}\n\n.c-zoom-in {\n  cursor: zoom-in;\n}\n\n.c-zoom-out {\n  cursor: zoom-out;\n}\n\n.c-not-allowed {\n  cursor: not-allowed;\n}\n\n.c-auto {\n  cursor: auto;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline {\n  display: inline;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex; \n  display: -ms-flexbox;\n}\n\n.d-inline-flex {\n  display: inline-flex; \n  display: -ms-inline-flexbox;\n}\n\n.d-none,\n.d-hide {\n  display: none !important;\n}\n\n.d-visible {\n  visibility: visible;\n}\n\n.d-invisible {\n  visibility: hidden;\n}\n\n.text-hide {\n  background: transparent;\n  border: 0;\n  color: transparent;\n  font-size: 0;\n  line-height: 0;\n  text-shadow: none;\n}\n\n.text-assistive {\n  border: 0;\n  clip: rect(0, 0, 0, 0);\n  height: 1px;\n  margin: -1px;\n  overflow: hidden;\n  padding: 0;\n  position: absolute;\n  width: 1px;\n}\n\n.divider,\n.divider-vert {\n  display: block;\n  position: relative;\n}\n\n.divider[data-content]::after,\n.divider-vert[data-content]::after {\n  background: #fff;\n  color: #acb3c2;\n  content: attr(data-content);\n  display: inline-block;\n  font-size: .7rem;\n  padding: 0 .4rem;\n  transform: translateY(-.65rem);\n}\n\n.divider {\n  border-top: .05rem solid #e7e9ed;\n  height: .05rem;\n  margin: .4rem 0;\n}\n\n.divider[data-content] {\n  margin: .8rem 0;\n}\n\n.divider-vert {\n  display: block;\n  padding: .8rem;\n}\n\n.divider-vert::before {\n  border-left: .05rem solid #e7e9ed;\n  bottom: .4rem;\n  content: \"\";\n  display: block;\n  left: 50%;\n  position: absolute;\n  top: .4rem;\n  transform: translateX(-50%);\n}\n\n.divider-vert[data-content]::after {\n  left: 50%;\n  padding: .2rem 0;\n  position: absolute;\n  top: 50%;\n  transform: translate(-50%, -50%);\n}\n\n.loading {\n  color: transparent !important;\n  min-height: .8rem;\n  pointer-events: none;\n  position: relative;\n}\n\n.loading::after {\n  animation: loading 500ms infinite linear;\n  border: .1rem solid #5755d9;\n  border-radius: 50%;\n  border-right-color: transparent;\n  border-top-color: transparent;\n  content: \"\";\n  display: block;\n  height: .8rem;\n  left: 50%;\n  margin-left: -.4rem;\n  margin-top: -.4rem;\n  position: absolute;\n  top: 50%;\n  width: .8rem;\n  z-index: 1;\n}\n\n.loading.loading-lg {\n  min-height: 2rem;\n}\n\n.loading.loading-lg::after {\n  height: 1.6rem;\n  margin-left: -.8rem;\n  margin-top: -.8rem;\n  width: 1.6rem;\n}\n\n.clearfix::after,\n.container::after {\n  clear: both;\n  content: \"\";\n  display: table;\n}\n\n.float-left {\n  float: left !important;\n}\n\n.float-right {\n  float: right !important;\n}\n\n.relative {\n  position: relative;\n}\n\n.absolute {\n  position: absolute;\n}\n\n.fixed {\n  position: fixed;\n}\n\n.centered {\n  display: block;\n  float: none;\n  margin-left: auto;\n  margin-right: auto;\n}\n\n.flex-centered {\n  align-items: center;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-align: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n}\n\n.m-0 {\n  margin: 0;\n}\n\n.mb-0 {\n  margin-bottom: 0;\n}\n\n.ml-0 {\n  margin-left: 0;\n}\n\n.mr-0 {\n  margin-right: 0;\n}\n\n.mt-0 {\n  margin-top: 0;\n}\n\n.mx-0 {\n  margin-left: 0;\n  margin-right: 0;\n}\n\n.my-0 {\n  margin-bottom: 0;\n  margin-top: 0;\n}\n\n.m-1 {\n  margin: .2rem;\n}\n\n.mb-1 {\n  margin-bottom: .2rem;\n}\n\n.ml-1 {\n  margin-left: .2rem;\n}\n\n.mr-1 {\n  margin-right: .2rem;\n}\n\n.mt-1 {\n  margin-top: .2rem;\n}\n\n.mx-1 {\n  margin-left: .2rem;\n  margin-right: .2rem;\n}\n\n.my-1 {\n  margin-bottom: .2rem;\n  margin-top: .2rem;\n}\n\n.m-2 {\n  margin: .4rem;\n}\n\n.mb-2 {\n  margin-bottom: .4rem;\n}\n\n.ml-2 {\n  margin-left: .4rem;\n}\n\n.mr-2 {\n  margin-right: .4rem;\n}\n\n.mt-2 {\n  margin-top: .4rem;\n}\n\n.mx-2 {\n  margin-left: .4rem;\n  margin-right: .4rem;\n}\n\n.my-2 {\n  margin-bottom: .4rem;\n  margin-top: .4rem;\n}\n\n.p-0 {\n  padding: 0;\n}\n\n.pb-0 {\n  padding-bottom: 0;\n}\n\n.pl-0 {\n  padding-left: 0;\n}\n\n.pr-0 {\n  padding-right: 0;\n}\n\n.pt-0 {\n  padding-top: 0;\n}\n\n.px-0 {\n  padding-left: 0;\n  padding-right: 0;\n}\n\n.py-0 {\n  padding-bottom: 0;\n  padding-top: 0;\n}\n\n.p-1 {\n  padding: .2rem;\n}\n\n.pb-1 {\n  padding-bottom: .2rem;\n}\n\n.pl-1 {\n  padding-left: .2rem;\n}\n\n.pr-1 {\n  padding-right: .2rem;\n}\n\n.pt-1 {\n  padding-top: .2rem;\n}\n\n.px-1 {\n  padding-left: .2rem;\n  padding-right: .2rem;\n}\n\n.py-1 {\n  padding-bottom: .2rem;\n  padding-top: .2rem;\n}\n\n.p-2 {\n  padding: .4rem;\n}\n\n.pb-2 {\n  padding-bottom: .4rem;\n}\n\n.pl-2 {\n  padding-left: .4rem;\n}\n\n.pr-2 {\n  padding-right: .4rem;\n}\n\n.pt-2 {\n  padding-top: .4rem;\n}\n\n.px-2 {\n  padding-left: .4rem;\n  padding-right: .4rem;\n}\n\n.py-2 {\n  padding-bottom: .4rem;\n  padding-top: .4rem;\n}\n\n.rounded {\n  border-radius: .1rem;\n}\n\n.circle {\n  border-radius: 50%;\n}\n\n.text-left {\n  text-align: left;\n}\n\n.text-right {\n  text-align: right;\n}\n\n.text-center {\n  text-align: center;\n}\n\n.text-justify {\n  text-align: justify;\n}\n\n.text-lowercase {\n  text-transform: lowercase;\n}\n\n.text-uppercase {\n  text-transform: uppercase;\n}\n\n.text-capitalize {\n  text-transform: capitalize;\n}\n\n.text-normal {\n  font-weight: normal;\n}\n\n.text-bold {\n  font-weight: bold;\n}\n\n.text-italic {\n  font-style: italic;\n}\n\n.text-large {\n  font-size: 1.2em;\n}\n\n.text-ellipsis {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.text-clip {\n  overflow: hidden;\n  text-overflow: clip;\n  white-space: nowrap;\n}\n\n.text-break {\n  -webkit-hyphens: auto;\n  -ms-hyphens: auto;\n  hyphens: auto;\n  word-break: break-word;\n  word-wrap: break-word;\n}", ""]);
-
-// exports
-
-
-/***/ }),
-/* 23 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(24);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// Prepare cssTransformation
-var transform;
-
-var options = {"hmr":true}
-options.transform = transform
-// add the styles to the DOM
-var update = __webpack_require__(4)(content, options);
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../../css-loader/index.js!./spectre-icons.css", function() {
-			var newContent = require("!!../../css-loader/index.js!./spectre-icons.css");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 24 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(3)(undefined);
-// imports
-
-
-// module
-exports.push([module.i, "/*! Spectre.css Icons v0.4.6 | MIT License | github.com/picturepan2/spectre */\n.icon {\n  box-sizing: border-box;\n  display: inline-block;\n  font-size: inherit;\n  font-style: normal;\n  height: 1em;\n  position: relative;\n  text-indent: -9999px;\n  vertical-align: middle;\n  width: 1em;\n}\n\n.icon::before,\n.icon::after {\n  display: block;\n  left: 50%;\n  position: absolute;\n  top: 50%;\n  transform: translate(-50%, -50%);\n}\n\n.icon.icon-2x {\n  font-size: 1.6rem;\n}\n\n.icon.icon-3x {\n  font-size: 2.4rem;\n}\n\n.icon.icon-4x {\n  font-size: 3.2rem;\n}\n\n.accordion .icon,\n.btn .icon,\n.toast .icon,\n.menu .icon {\n  vertical-align: -10%;\n}\n\n.btn-lg .icon {\n  vertical-align: -15%;\n}\n\n.icon-arrow-down::before,\n.icon-arrow-left::before,\n.icon-arrow-right::before,\n.icon-arrow-up::before,\n.icon-downward::before,\n.icon-back::before,\n.icon-forward::before,\n.icon-upward::before {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-right: 0;\n  content: \"\";\n  height: .65em;\n  width: .65em;\n}\n\n.icon-arrow-down::before {\n  transform: translate(-50%, -75%) rotate(225deg);\n}\n\n.icon-arrow-left::before {\n  transform: translate(-25%, -50%) rotate(-45deg);\n}\n\n.icon-arrow-right::before {\n  transform: translate(-75%, -50%) rotate(135deg);\n}\n\n.icon-arrow-up::before {\n  transform: translate(-50%, -25%) rotate(45deg);\n}\n\n.icon-back::after,\n.icon-forward::after {\n  background: currentColor;\n  content: \"\";\n  height: .1rem;\n  width: .8em;\n}\n\n.icon-downward::after,\n.icon-upward::after {\n  background: currentColor;\n  content: \"\";\n  height: .8em;\n  width: .1rem;\n}\n\n.icon-back::after {\n  left: 55%;\n}\n\n.icon-back::before {\n  transform: translate(-50%, -50%) rotate(-45deg);\n}\n\n.icon-downward::after {\n  top: 45%;\n}\n\n.icon-downward::before {\n  transform: translate(-50%, -50%) rotate(-135deg);\n}\n\n.icon-forward::after {\n  left: 45%;\n}\n\n.icon-forward::before {\n  transform: translate(-50%, -50%) rotate(135deg);\n}\n\n.icon-upward::after {\n  top: 55%;\n}\n\n.icon-upward::before {\n  transform: translate(-50%, -50%) rotate(45deg);\n}\n\n.icon-caret::before {\n  border-left: .3em solid transparent;\n  border-right: .3em solid transparent;\n  border-top: .3em solid currentColor;\n  content: \"\";\n  height: 0;\n  transform: translate(-50%, -25%);\n  width: 0;\n}\n\n.icon-menu::before {\n  background: currentColor;\n  box-shadow: 0 -.35em, 0 .35em;\n  content: \"\";\n  height: .1rem;\n  width: 100%;\n}\n\n.icon-apps::before {\n  background: currentColor;\n  box-shadow: -.35em -.35em, -.35em 0, -.35em .35em, 0 -.35em, 0 .35em, .35em -.35em, .35em 0, .35em .35em;\n  content: \"\";\n  height: 3px;\n  width: 3px;\n}\n\n.icon-resize-horiz::before,\n.icon-resize-horiz::after,\n.icon-resize-vert::before,\n.icon-resize-vert::after {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-right: 0;\n  content: \"\";\n  height: .45em;\n  width: .45em;\n}\n\n.icon-resize-horiz::before,\n.icon-resize-vert::before {\n  transform: translate(-50%, -90%) rotate(45deg);\n}\n\n.icon-resize-horiz::after,\n.icon-resize-vert::after {\n  transform: translate(-50%, -10%) rotate(225deg);\n}\n\n.icon-resize-horiz::before {\n  transform: translate(-90%, -50%) rotate(-45deg);\n}\n\n.icon-resize-horiz::after {\n  transform: translate(-10%, -50%) rotate(135deg);\n}\n\n.icon-more-horiz::before,\n.icon-more-vert::before {\n  background: currentColor;\n  border-radius: 50%;\n  box-shadow: -.4em 0, .4em 0;\n  content: \"\";\n  height: 3px;\n  width: 3px;\n}\n\n.icon-more-vert::before {\n  box-shadow: 0 -.4em, 0 .4em;\n}\n\n.icon-plus::before,\n.icon-minus::before,\n.icon-cross::before {\n  background: currentColor;\n  content: \"\";\n  height: .1rem;\n  width: 100%;\n}\n\n.icon-plus::after,\n.icon-cross::after {\n  background: currentColor;\n  content: \"\";\n  height: 100%;\n  width: .1rem;\n}\n\n.icon-cross::before {\n  width: 100%;\n}\n\n.icon-cross::after {\n  height: 100%;\n}\n\n.icon-cross::before,\n.icon-cross::after {\n  transform: translate(-50%, -50%) rotate(45deg);\n}\n\n.icon-check::before {\n  border: .1rem solid currentColor;\n  border-right: 0;\n  border-top: 0;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, -75%) rotate(-45deg); \n  width: .9em;\n}\n\n.icon-stop {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n}\n\n.icon-stop::before {\n  background: currentColor;\n  content: \"\";\n  height: .1rem;\n  transform: translate(-50%, -50%) rotate(45deg);\n  width: 1em;\n}\n\n.icon-shutdown {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  border-top-color: transparent;\n}\n\n.icon-shutdown::before {\n  background: currentColor;\n  content: \"\";\n  height: .5em;\n  top: .1em;\n  width: .1rem;\n}\n\n.icon-refresh::before {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  border-right-color: transparent;\n  content: \"\";\n  height: 1em;\n  width: 1em;\n}\n\n.icon-refresh::after {\n  border: .2em solid currentColor;\n  border-left-color: transparent;\n  border-top-color: transparent;\n  content: \"\";\n  height: 0;\n  left: 80%;\n  top: 20%;\n  width: 0;\n}\n\n.icon-search::before {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  content: \"\";\n  height: .75em;\n  left: 5%;\n  top: 5%;\n  transform: translate(0, 0) rotate(45deg);\n  width: .75em;\n}\n\n.icon-search::after {\n  background: currentColor;\n  content: \"\";\n  height: .1rem;\n  left: 80%;\n  top: 80%;\n  transform: translate(-50%, -50%) rotate(45deg);\n  width: .4em;\n}\n\n.icon-edit::before {\n  border: .1rem solid currentColor;\n  content: \"\";\n  height: .4em;\n  transform: translate(-40%, -60%) rotate(-45deg);\n  width: .85em;\n}\n\n.icon-edit::after {\n  border: .15em solid currentColor;\n  border-right-color: transparent;\n  border-top-color: transparent;\n  content: \"\";\n  height: 0;\n  left: 5%;\n  top: 95%;\n  transform: translate(0, -100%);\n  width: 0;\n}\n\n.icon-delete::before {\n  border: .1rem solid currentColor;\n  border-bottom-left-radius: .1rem;\n  border-bottom-right-radius: .1rem;\n  border-top: 0;\n  content: \"\";\n  height: .75em;\n  top: 60%;\n  width: .75em;\n}\n\n.icon-delete::after {\n  background: currentColor;\n  box-shadow: -.25em .2em, .25em .2em;\n  content: \"\";\n  height: .1rem;\n  top: .05rem;\n  width: .5em;\n}\n\n.icon-share {\n  border: .1rem solid currentColor;\n  border-radius: .1rem;\n  border-right: 0;\n  border-top: 0;\n}\n\n.icon-share::before {\n  border: .1rem solid currentColor;\n  border-left: 0;\n  border-top: 0;\n  content: \"\";\n  height: .4em;\n  left: 100%;\n  top: .25em;\n  transform: translate(-125%, -50%) rotate(-45deg);\n  width: .4em;\n}\n\n.icon-share::after {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-radius: 75% 0;\n  border-right: 0;\n  content: \"\";\n  height: .5em;\n  width: .6em;\n}\n\n.icon-flag::before {\n  background: currentColor;\n  content: \"\";\n  height: 1em;\n  left: 15%;\n  width: .1rem;\n}\n\n.icon-flag::after {\n  border: .1rem solid currentColor;\n  border-bottom-right-radius: .1rem;\n  border-left: 0;\n  border-top-right-radius: .1rem;\n  content: \"\";\n  height: .65em;\n  left: 60%;\n  top: 35%;\n  width: .8em;\n}\n\n.icon-bookmark::before {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-top-left-radius: .1rem;\n  border-top-right-radius: .1rem;\n  content: \"\";\n  height: .9em;\n  width: .8em;\n}\n\n.icon-bookmark::after {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-left: 0;\n  border-radius: .1rem;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, 35%) rotate(-45deg) skew(15deg, 15deg);\n  width: .5em;\n}\n\n.icon-download,\n.icon-upload {\n  border-bottom: .1rem solid currentColor;\n}\n\n.icon-download::before,\n.icon-upload::before {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-right: 0;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, -60%) rotate(-135deg); \n  width: .5em;\n}\n\n.icon-download::after,\n.icon-upload::after {\n  background: currentColor;\n  content: \"\";\n  height: .6em;\n  top: 40%;\n  width: .1rem;\n}\n\n.icon-upload::before {\n  transform: translate(-50%, -60%) rotate(45deg);\n}\n\n.icon-upload::after {\n  top: 50%;\n}\n\n.icon-time {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n}\n\n.icon-time::before {\n  background: currentColor;\n  content: \"\";\n  height: .4em;\n  transform: translate(-50%, -75%);\n  width: .1rem;\n}\n\n.icon-time::after {\n  background: currentColor;\n  content: \"\";\n  height: .3em;\n  transform: translate(-50%, -75%) rotate(90deg);\n  transform-origin: 50% 90%;\n  width: .1rem;\n}\n\n.icon-mail::before {\n  border: .1rem solid currentColor;\n  border-radius: .1rem;\n  content: \"\";\n  height: .8em;\n  width: 1em;\n}\n\n.icon-mail::after {\n  border: .1rem solid currentColor;\n  border-right: 0;\n  border-top: 0;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, -90%) rotate(-45deg) skew(10deg, 10deg);\n  width: .5em;\n}\n\n.icon-people::before {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  content: \"\";\n  height: .45em;\n  top: 25%;\n  width: .45em;\n}\n\n.icon-people::after {\n  border: .1rem solid currentColor;\n  border-radius: 50% 50% 0 0;\n  content: \"\";\n  height: .4em;\n  top: 75%;\n  width: .9em;\n}\n\n.icon-message {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-radius: .1rem;\n  border-right: 0;\n}\n\n.icon-message::before {\n  border: .1rem solid currentColor;\n  border-bottom-right-radius: .1rem;\n  border-left: 0;\n  border-top: 0;\n  content: \"\";\n  height: .8em;\n  left: 65%;\n  top: 40%;\n  width: .7em;\n}\n\n.icon-message::after {\n  background: currentColor;\n  border-radius: .1rem;\n  content: \"\";\n  height: .3em;\n  left: 10%;\n  top: 100%;\n  transform: translate(0, -90%) rotate(45deg);\n  width: .1rem;\n}\n\n.icon-photo {\n  border: .1rem solid currentColor;\n  border-radius: .1rem;\n}\n\n.icon-photo::before {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  content: \"\";\n  height: .25em;\n  left: 35%;\n  top: 35%;\n  width: .25em;\n}\n\n.icon-photo::after {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-left: 0;\n  content: \"\";\n  height: .5em;\n  left: 60%;\n  transform: translate(-50%, 25%) rotate(-45deg);\n  width: .5em;\n}\n\n.icon-link::before,\n.icon-link::after {\n  border: .1rem solid currentColor;\n  border-radius: 5em 0 0 5em;\n  border-right: 0;\n  content: \"\";\n  height: .5em;\n  width: .75em;\n}\n\n.icon-link::before {\n  transform: translate(-70%, -45%) rotate(-45deg);\n}\n\n.icon-link::after {\n  transform: translate(-30%, -55%) rotate(135deg);\n}\n\n.icon-location::before {\n  border: .1rem solid currentColor;\n  border-radius: 50% 50% 50% 0;\n  content: \"\";\n  height: .8em;\n  transform: translate(-50%, -60%) rotate(-45deg);\n  width: .8em;\n}\n\n.icon-location::after {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  content: \"\";\n  height: .2em;\n  transform: translate(-50%, -80%);\n  width: .2em;\n}\n\n.icon-emoji {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n}\n\n.icon-emoji::before {\n  border-radius: 50%;\n  box-shadow: -.17em -.15em, .17em -.15em;\n  content: \"\";\n  height: .1em;\n  width: .1em;\n}\n\n.icon-emoji::after {\n  border: .1rem solid currentColor;\n  border-bottom-color: transparent;\n  border-radius: 50%;\n  border-right-color: transparent;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, -40%) rotate(-135deg);\n  width: .5em;\n}", ""]);
-
-// exports
-
-
-/***/ }),
-/* 25 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__snap_SnapMod_js__ = __webpack_require__(26);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Events_js__ = __webpack_require__(2);
-
-
-
-var gridSize = 50;
-
-
-//Internal Event Handler:
-// * They Handle the recalculation and redraw
-// * Then they call the UIs handler that create DOM Events in the svgRoot element
-const start = function (ui) {
-
-    const startDragElement = (element)=>{
-        const _x = element.attr("x");
-        const _y = element.attr("y");
-        element.data("ox", _x);
-        element.data("oy", _y);
-        const label = element.data("label");
-        label.style.left = `${_x}px`;
-        label.style.top = `${_y}px`;
-    };
-
-
-    return function (e) {
-        startDragElement(this);
-        Object.values(ui.squares).forEach((square)=>{
-            if(square.element.hasClass('selected')){
-                startDragElement(square.element);
-            }
-        });
-        if (ui.onDragStart) {
-            ui.onDragStart(this, e);
-        }
-    };
-};
-
-const move = function (ui) {
-
-    const adjustConnections = () => {
-        ui.connections.forEach(con => ui.snap.connection(con));
-    };
-
-    const moveElement = (element,dx,dy)=>{
-        const _x = parseInt(element.data("ox")) + dx;
-        const _y = parseInt(element.data("oy")) + dy;
-        element.attr({
-            x: _x,
-            y: _y
-        });
-        const label = element.data("label");
-        label.style.left = `${_x}px`;
-        label.style.top = `${_y}px`;
-    };
-
-
-    return function (dx, dy) {
-        moveElement(this,dx,dy)
-        Object.values(ui.squares).forEach((square)=>{
-            if(square.element.hasClass('selected')){
-                moveElement(square.element,dx,dy);
-            }
-        });
-        adjustConnections();
-    }
-};
-
-const stop = function (ui) {
-
-    return function (e) {
-        if (ui.onDragStop) {
-            ui.onDragStop(this, e);
-        }
-    };
-};
-
-
-const dblClick = function (ui) {
-    return function (e) {
-        if (ui.onDblClick) {
-            ui.onDblClick(this, e);
-        }
-    };
-};
-
-const click = function (ui) {
-    return function (e) {
-        if (ui.onClick) {
-            ui.onClick(this, e);
-        }
-    };
-};
-
-
-const CONNECTION_CONF = {
-    directed: true,
-    straight: true
-};
-
-const SQUARE_SIZE = 80;
-
-class GraphUI {
-
-    constructor(svgRoot, parentDiv) {
-        this.parentDiv = parentDiv;
-        this.svgRoot = svgRoot;
-        this.snap = Object(__WEBPACK_IMPORTED_MODULE_0__snap_SnapMod_js__["a" /* default */])(svgRoot);
-        this.squares = Object.create({});
-        this.connections = [];
-        this._start = start(this);
-        this._move = move(this);
-        this._stop = stop(this);
-        this._dblClick = dblClick(this);
-        this._click = click(this);
-
-        this._initSelectionFrame();
-    }
-
-
-    _initSelectionFrame() {
-
-        const getOffset = () => {
-            var rect = this.svgRoot.getBoundingClientRect();
-            var scrollTop = window.scrollY
-                || window.pageYOffset
-                || document.body.scrollTop + (document.documentElement && document.documentElement.scrollTop || 0);
-            var scrollLeft = window.scrollX
-                || window.pageXOffset
-                || document.body.scrollLeft + (document.documentElement && document.documentElement.scrollLeft || 0);
-            return {
-                offsetX: -(rect.left + scrollLeft),
-                offsetY: -(rect.top + scrollTop)
-            };
-        };
-
-        this.svgRoot.addEventListener('mousedown', (e) => {
-            if (e.srcElement === this.svgRoot) {
-                document.body.style.cursor = 'crosshair';
-
-                const {offsetX, offsetY} = getOffset();
-                const x_0 = e.pageX + offsetX;
-                const y_0 = e.pageY + offsetY;
-                const frame = this.snap.rect(x_0, y_0, 0, 0);
-                frame.addClass('selector-frame');
-
-                const onMouseMove = (e) => {
-                    const x_1 = e.pageX + offsetX;
-                    const y_1 = e.pageY + offsetY;
-                    frame.attr('x', Math.min(x_0, x_1));
-                    frame.attr('y', Math.min(y_0, y_1));
-                    frame.attr('width', Math.abs(x_0 - x_1));
-                    frame.attr('height', Math.abs(y_0 - y_1));
-                };
-
-                const onMouseUp = (e) => {
-                    const x_1 = e.pageX + offsetX;
-                    const y_1 = e.pageY + offsetY;
-                    this._selectElements({x_0,y_0}, {x_1,y_1});
-                    frame.remove();
-                    this.svgRoot.removeEventListener('mousemove', onMouseMove);
-                    this.svgRoot.removeEventListener('mouseup', onMouseUp);
-                    document.body.style.cursor = '';
-                };
-
-                this.svgRoot.addEventListener('mousemove', onMouseMove);
-                this.svgRoot.addEventListener('mouseup', onMouseUp);
-
-                if (e.srcElement === this.svgRoot) {
-                    this.onOuterClick();
-                }
-            }
-        });
-    }
-
-    _createElement(square) {
-
-
-        const label = document.createElement('div');
-        label.classList.add('text-box');
-        label.innerHTML = `<span>${square.id}</span>`;
-        label.style.left = `${square.pos.x}px`;
-        label.style.top = `${square.pos.y}px`;
-        this.parentDiv.appendChild(label);
-
-        const element = this.snap.rect(square.pos.x, square.pos.y, SQUARE_SIZE, SQUARE_SIZE);
-        if(square.id === 'Start')
-            element.addClass('start');
-        element.addClass('passage');
-        element.data('entryId', square.id);
-        element.data('label', label);
-        element.drag(this._move, this._start, this._stop);
-        element.dblclick(this._dblClick);
-        element.click(this._click);
-        return element;
-    }
-
-    onDragStart(element) {
-        this._selectSingleElement(element);
-    };
-
-    onDragStop(element) {
-        const detail = {
-            id: element.data('entryId'),
-            x: element.attr('x'),
-            y: element.attr('y')
-        };
-        this.svgRoot.dispatchEvent(new CustomEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_ENTRY_MOVED, {detail}));
-    };
-
-    onClick(element) {
-        this._selectSingleElement(element);
-    }
-
-    getSelectedIds(){
-        return Object.values(this.squares)
-            .filter(square=>square.element.hasClass('selected'))
-            .map(square=>{console.log("e",square);return square.element.data('entryId')});
-    }
-
-    _selectionChanged(){
-        const selected = this.getSelectedIds();
-        this.svgRoot.dispatchEvent(new CustomEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_SELECTION_CHANGED, {detail:{selected}}));
-    }
-
-    _selectSingleElement(element) {
-        const clickedId = element.data('entryId');
-        console.log('inner', clickedId);
-        if (!element.hasClass('selected')) {
-            element.addClass('selected');
-            Object.values(this.squares).forEach((square) => {
-                if (square.element.data('entryId') !== clickedId) {
-                    square.element.removeClass('selected');
-                }
-            });
-            this._selectionChanged();
-        }
-    }
-
-    _selectElements({x_0, y_0}, {x_1, y_1}) {
-        const between = (test, bound_0, bound_1) => {
-            const max = Math.max(bound_0, bound_1);
-            const min = Math.min(bound_0, bound_1);
-            return (min <= test && test <= max);
-        };
-
-        Object.values(this.squares).forEach((square) => {
-            const x = Number.parseFloat(square.element.attr('x'));
-            const y = Number.parseFloat(square.element.attr('y'));
-            if(between(x,x_0,x_1) && between(y,y_0,y_1)){
-                square.element.addClass('selected');
-            }else{
-                square.element.removeClass('selected');
-            }
-        });
-        this._selectionChanged();
-    };
-
-    onOuterClick() {
-        Object.values(this.squares).forEach((square) => {
-            square.element.removeClass('selected');
-        });
-        this._selectionChanged();
-    }
-
-    onDblClick(element) {
-        const detail = {
-            id: element.data('entryId'),
-        };
-        this.svgRoot.dispatchEvent(new CustomEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_OPEN_EDITOR, {detail}));
-    };
-
-
-    clearConnections() {
-        this.connections.forEach((connection) => {
-            connection.line.remove();
-            connection.bg.remove();
-        });
-        this.connections = [];
-    }
-
-    recalculateConnections() {
-        this.clearConnections();
-        Object.values(this.squares).forEach((square) => {
-            const parentSquare = this.squares[square.id];
-            square.children.forEach((child) => {
-                const childSquare = this.squares[child];
-                if (childSquare) {
-                    const items = this.snap.connection(parentSquare.element, childSquare.element, "blue", "grey", CONNECTION_CONF);
-                    this.connections.push(items);
-                }
-            });
-        })
-    }
-
-    updateEntry(entry, oldId) {
-        // remove old entry
-        const toRemove = (typeof oldId !== 'undefined') ? oldId : entry.id;
-        this.removeEntry(toRemove);
-
-        // add new entry
-        this.squares[entry.id] = this.createSquare(entry);
-    }
-
-    removeEntry(entryId){
-        const square = this.squares[entryId];
-        if (square) {
-            const label = square.element.data('label');
-            label.remove();
-            square.element.remove();
-        }
-        delete this.squares[entryId]
-    }
-
-    createSquare(entry) {
-        return {
-            id: entry.id,
-            element: this._createElement(entry),
-            children: entry.children
-        };
-    }
-
-    /**
-     *
-     * @param {{id,pos,data,children}} entries
-     */
-    addEntries(entries) {
-        this.clearConnections();
-        entries.forEach((entry) => {
-            this.squares[entry.id] = this.createSquare(entry);
-        });
-        this.recalculateConnections();
-
-    }
-
-    getFreePosition() {
-        let x = 0;
-        let y = 0;
-        Object.values(this.squares).forEach(square => {
-            const element = square.element;
-            x = Math.max(x, Number.parseFloat(element.attr('x')));
-            y = Math.max(y, Number.parseFloat(element.attr('y')));
-        });
-        x = x + SQUARE_SIZE + 10;
-        return {x, y};
-    }
-
-
-}
-
-
-/* harmony default export */ __webpack_exports__["a"] = (GraphUI);
-
-/***/ }),
-/* 26 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs__ = __webpack_require__(27);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs__);
-
-
-//Add Some Plugins to SNAP
-
-//Source code from Dmitry at http://raphaeljs.com/graffle.html
-__WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs___default.a.plugin(function (Snap, Element, Paper, global) {
-
-    Paper.prototype.connection = function (obj1, obj2, line, bg, options) {
-        options = options || {};
-
-        //first argument is the created connection itself
-        //other arguements will be ignored then.
-        if (obj1.line && obj1.from && obj1.to) {
-            line = obj1;
-            obj1 = line.from;
-            obj2 = line.to;
-            options = line.options;
-        }
-
-        var bb1 = obj1.getBBox(),
-            bb2 = obj2.getBBox(),
-            p = [{x: bb1.x + bb1.width / 2, y: bb1.y - 1},
-                {x: bb1.x + bb1.width / 2, y: bb1.y + bb1.height + 1},
-                {x: bb1.x - 1, y: bb1.y + bb1.height / 2},
-                {x: bb1.x + bb1.width + 1, y: bb1.y + bb1.height / 2},
-                {x: bb2.x + bb2.width / 2, y: bb2.y - 1},
-                {x: bb2.x + bb2.width / 2, y: bb2.y + bb2.height + 1},
-                {x: bb2.x - 1, y: bb2.y + bb2.height / 2},
-                {x: bb2.x + bb2.width + 1, y: bb2.y + bb2.height / 2}],
-            d = {}, dis = [];
-
-
-        for (var i = 0; i < 4; i++) {
-            for (var j = 4; j < 8; j++) {
-                var dx = Math.abs(p[i].x - p[j].x),
-                    dy = Math.abs(p[i].y - p[j].y);
-                if ((i == j - 4) || (((i != 3 && j != 6) || p[i].x < p[j].x) && ((i != 2 && j != 7) || p[i].x > p[j].x) && ((i != 0 && j != 5) || p[i].y > p[j].y) && ((i != 1 && j != 4) || p[i].y < p[j].y))) {
-                    dis.push(dx + dy);
-                    d[dis[dis.length - 1]] = [i, j];
-                }
-            }
-        }
-        if (dis.length == 0) {
-            var res = [0, 4];
-        } else {
-            res = d[Math.min.apply(Math, dis)];
-        }
-        var x1 = p[res[0]].x,
-            y1 = p[res[0]].y,
-            x4 = p[res[1]].x,
-            y4 = p[res[1]].y;
-        dx = Math.max(Math.abs(x1 - x4) / 2, 10);
-        dy = Math.max(Math.abs(y1 - y4) / 2, 10);
-        var x2 = [x1, x1, x1 - dx, x1 + dx][res[0]].toFixed(3),
-            y2 = [y1 - dy, y1 + dy, y1, y1][res[0]].toFixed(3),
-            x3 = [0, 0, 0, 0, x4, x4, x4 - dx, x4 + dx][res[1]].toFixed(3),
-            y3 = [0, 0, 0, 0, y1 + dy, y1 - dy, y4, y4][res[1]].toFixed(3);
-        var path;
-        if (options.straight) {
-            path = "M" + [x1.toFixed(3), y1.toFixed(3)].join() + "L" + [x4.toFixed(3), y4.toFixed(3)].join();
-        } else {
-            console.log("CCC");
-            path = "M" + x1.toFixed(3) + "," + y1.toFixed(3) + "C" + [x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)].join();
-        }
-
-        if (line && line.line) {
-            line.bg && line.bg.attr({path: path});
-            line.line.attr({path: path});
-        } else {
-            var color = typeof line == "string" ? line : "yellow";
-            var attr = {stroke: color, fill: "none"};
-            if (options.directed) {
-                var arrowPath = this.path("M 2 59 L 293 148 L 1 243 L 121 151 Z").attr({
-                    fill: color,
-                    stroke: color,
-                    strokeWidth: 5
-                });
-                var arrowMarker = arrowPath.marker(0, 0, 8000, 8000, 250, 150).attr({
-                    markerUnits: 'strokeWidth',
-                    markerWidth: 300,
-                    markerHeight: 300,
-                    orient: "auto"
-                });
-
-                attr['markerEnd'] = arrowMarker;
-            }
-            return {
-                bg: bg && bg.split && this.path(path).attr({
-                    stroke: bg.split("|")[0],
-                    fill: "none",
-                    "stroke-width": bg.split("|")[1] || 3
-                }),
-                line: this.path(path).attr(attr),
-                from: obj1,
-                to: obj2,
-                options : options
-            };
-        }
-    }
-
-});
-
-
-/* harmony default export */ __webpack_exports__["a"] = (__WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs___default.a);
-
-/***/ }),
-/* 27 */
-/***/ (function(module, exports, __webpack_require__) {
-
-window.eve = __webpack_require__(28)
-
-// Copyright (c) 2017 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-var mina = (function (eve) {
-    var animations = {},
-    requestAnimFrame = window.requestAnimationFrame       ||
-                       window.webkitRequestAnimationFrame ||
-                       window.mozRequestAnimationFrame    ||
-                       window.oRequestAnimationFrame      ||
-                       window.msRequestAnimationFrame     ||
-                       function (callback) {
-                           setTimeout(callback, 16, new Date().getTime());
-                           return true;
-                       },
-    requestID,
-    isArray = Array.isArray || function (a) {
-        return a instanceof Array ||
-            Object.prototype.toString.call(a) == "[object Array]";
-    },
-    idgen = 0,
-    idprefix = "M" + (+new Date).toString(36),
-    ID = function () {
-        return idprefix + (idgen++).toString(36);
-    },
-    diff = function (a, b, A, B) {
-        if (isArray(a)) {
-            res = [];
-            for (var i = 0, ii = a.length; i < ii; i++) {
-                res[i] = diff(a[i], b, A[i], B);
-            }
-            return res;
-        }
-        var dif = (A - a) / (B - b);
-        return function (bb) {
-            return a + dif * (bb - b);
-        };
-    },
-    timer = Date.now || function () {
-        return +new Date;
-    },
-    sta = function (val) {
-        var a = this;
-        if (val == null) {
-            return a.s;
-        }
-        var ds = a.s - val;
-        a.b += a.dur * ds;
-        a.B += a.dur * ds;
-        a.s = val;
-    },
-    speed = function (val) {
-        var a = this;
-        if (val == null) {
-            return a.spd;
-        }
-        a.spd = val;
-    },
-    duration = function (val) {
-        var a = this;
-        if (val == null) {
-            return a.dur;
-        }
-        a.s = a.s * val / a.dur;
-        a.dur = val;
-    },
-    stopit = function () {
-        var a = this;
-        delete animations[a.id];
-        a.update();
-        eve("mina.stop." + a.id, a);
-    },
-    pause = function () {
-        var a = this;
-        if (a.pdif) {
-            return;
-        }
-        delete animations[a.id];
-        a.update();
-        a.pdif = a.get() - a.b;
-    },
-    resume = function () {
-        var a = this;
-        if (!a.pdif) {
-            return;
-        }
-        a.b = a.get() - a.pdif;
-        delete a.pdif;
-        animations[a.id] = a;
-        frame();
-    },
-    update = function () {
-        var a = this,
-            res;
-        if (isArray(a.start)) {
-            res = [];
-            for (var j = 0, jj = a.start.length; j < jj; j++) {
-                res[j] = +a.start[j] +
-                    (a.end[j] - a.start[j]) * a.easing(a.s);
-            }
-        } else {
-            res = +a.start + (a.end - a.start) * a.easing(a.s);
-        }
-        a.set(res);
-    },
-    frame = function (timeStamp) {
-        // Manual invokation?
-        if (!timeStamp) {
-            // Frame loop stopped?
-            if (!requestID) {
-                // Start frame loop...
-                requestID = requestAnimFrame(frame);
-            }
-            return;
-        }
-        var len = 0;
-        for (var i in animations) if (animations.hasOwnProperty(i)) {
-            var a = animations[i],
-                b = a.get(),
-                res;
-            len++;
-            a.s = (b - a.b) / (a.dur / a.spd);
-            if (a.s >= 1) {
-                delete animations[i];
-                a.s = 1;
-                len--;
-                (function (a) {
-                    setTimeout(function () {
-                        eve("mina.finish." + a.id, a);
-                    });
-                }(a));
-            }
-            a.update();
-        }
-        requestID = len ? requestAnimFrame(frame) : false;
-    },
-    /*\
-     * mina
-     [ method ]
-     **
-     * Generic animation of numbers
-     **
-     - a (number) start _slave_ number
-     - A (number) end _slave_ number
-     - b (number) start _master_ number (start time in general case)
-     - B (number) end _master_ number (end time in general case)
-     - get (function) getter of _master_ number (see @mina.time)
-     - set (function) setter of _slave_ number
-     - easing (function) #optional easing function, default is @mina.linear
-     = (object) animation descriptor
-     o {
-     o         id (string) animation id,
-     o         start (number) start _slave_ number,
-     o         end (number) end _slave_ number,
-     o         b (number) start _master_ number,
-     o         s (number) animation status (0..1),
-     o         dur (number) animation duration,
-     o         spd (number) animation speed,
-     o         get (function) getter of _master_ number (see @mina.time),
-     o         set (function) setter of _slave_ number,
-     o         easing (function) easing function, default is @mina.linear,
-     o         status (function) status getter/setter,
-     o         speed (function) speed getter/setter,
-     o         duration (function) duration getter/setter,
-     o         stop (function) animation stopper
-     o         pause (function) pauses the animation
-     o         resume (function) resumes the animation
-     o         update (function) calles setter with the right value of the animation
-     o }
-    \*/
-    mina = function (a, A, b, B, get, set, easing) {
-        var anim = {
-            id: ID(),
-            start: a,
-            end: A,
-            b: b,
-            s: 0,
-            dur: B - b,
-            spd: 1,
-            get: get,
-            set: set,
-            easing: easing || mina.linear,
-            status: sta,
-            speed: speed,
-            duration: duration,
-            stop: stopit,
-            pause: pause,
-            resume: resume,
-            update: update
-        };
-        animations[anim.id] = anim;
-        var len = 0, i;
-        for (i in animations) if (animations.hasOwnProperty(i)) {
-            len++;
-            if (len == 2) {
-                break;
-            }
-        }
-        len == 1 && frame();
-        return anim;
-    };
-    /*\
-     * mina.time
-     [ method ]
-     **
-     * Returns the current time. Equivalent to:
-     | function () {
-     |     return (new Date).getTime();
-     | }
-    \*/
-    mina.time = timer;
-    /*\
-     * mina.getById
-     [ method ]
-     **
-     * Returns an animation by its id
-     - id (string) animation's id
-     = (object) See @mina
-    \*/
-    mina.getById = function (id) {
-        return animations[id] || null;
-    };
-
-    /*\
-     * mina.linear
-     [ method ]
-     **
-     * Default linear easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.linear = function (n) {
-        return n;
-    };
-    /*\
-     * mina.easeout
-     [ method ]
-     **
-     * Easeout easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.easeout = function (n) {
-        return Math.pow(n, 1.7);
-    };
-    /*\
-     * mina.easein
-     [ method ]
-     **
-     * Easein easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.easein = function (n) {
-        return Math.pow(n, .48);
-    };
-    /*\
-     * mina.easeinout
-     [ method ]
-     **
-     * Easeinout easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.easeinout = function (n) {
-        if (n == 1) {
-            return 1;
-        }
-        if (n == 0) {
-            return 0;
-        }
-        var q = .48 - n / 1.04,
-            Q = Math.sqrt(.1734 + q * q),
-            x = Q - q,
-            X = Math.pow(Math.abs(x), 1 / 3) * (x < 0 ? -1 : 1),
-            y = -Q - q,
-            Y = Math.pow(Math.abs(y), 1 / 3) * (y < 0 ? -1 : 1),
-            t = X + Y + .5;
-        return (1 - t) * 3 * t * t + t * t * t;
-    };
-    /*\
-     * mina.backin
-     [ method ]
-     **
-     * Backin easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.backin = function (n) {
-        if (n == 1) {
-            return 1;
-        }
-        var s = 1.70158;
-        return n * n * ((s + 1) * n - s);
-    };
-    /*\
-     * mina.backout
-     [ method ]
-     **
-     * Backout easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.backout = function (n) {
-        if (n == 0) {
-            return 0;
-        }
-        n = n - 1;
-        var s = 1.70158;
-        return n * n * ((s + 1) * n + s) + 1;
-    };
-    /*\
-     * mina.elastic
-     [ method ]
-     **
-     * Elastic easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.elastic = function (n) {
-        if (n == !!n) {
-            return n;
-        }
-        return Math.pow(2, -10 * n) * Math.sin((n - .075) *
-            (2 * Math.PI) / .3) + 1;
-    };
-    /*\
-     * mina.bounce
-     [ method ]
-     **
-     * Bounce easing
-     - n (number) input 0..1
-     = (number) output 0..1
-    \*/
-    mina.bounce = function (n) {
-        var s = 7.5625,
-            p = 2.75,
-            l;
-        if (n < 1 / p) {
-            l = s * n * n;
-        } else {
-            if (n < 2 / p) {
-                n -= 1.5 / p;
-                l = s * n * n + .75;
-            } else {
-                if (n < 2.5 / p) {
-                    n -= 2.25 / p;
-                    l = s * n * n + .9375;
-                } else {
-                    n -= 2.625 / p;
-                    l = s * n * n + .984375;
-                }
-            }
-        }
-        return l;
-    };
-    window.mina = mina;
-    return mina;
-})(typeof eve == "undefined" ? function () {} : eve);
-
-// Copyright (c) 2013 - 2017 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-var Snap = (function(root) {
-Snap.version = "0.5.1";
-/*\
- * Snap
- [ method ]
- **
- * Creates a drawing surface or wraps existing SVG element.
- **
- - width (number|string) width of surface
- - height (number|string) height of surface
- * or
- - DOM (SVGElement) element to be wrapped into Snap structure
- * or
- - array (array) array of elements (will return set of elements)
- * or
- - query (string) CSS query selector
- = (object) @Element
-\*/
-function Snap(w, h) {
-    if (w) {
-        if (w.nodeType) {
-            return wrap(w);
-        }
-        if (is(w, "array") && Snap.set) {
-            return Snap.set.apply(Snap, w);
-        }
-        if (w instanceof Element) {
-            return w;
-        }
-        if (h == null) {
-            try {
-                w = glob.doc.querySelector(String(w));
-                return wrap(w);
-            } catch (e) {
-                return null;
-            }
-        }
-    }
-    w = w == null ? "100%" : w;
-    h = h == null ? "100%" : h;
-    return new Paper(w, h);
-}
-Snap.toString = function () {
-    return "Snap v" + this.version;
-};
-Snap._ = {};
-var glob = {
-    win: root.window,
-    doc: root.window.document
-};
-Snap._.glob = glob;
-var has = "hasOwnProperty",
-    Str = String,
-    toFloat = parseFloat,
-    toInt = parseInt,
-    math = Math,
-    mmax = math.max,
-    mmin = math.min,
-    abs = math.abs,
-    pow = math.pow,
-    PI = math.PI,
-    round = math.round,
-    E = "",
-    S = " ",
-    objectToString = Object.prototype.toString,
-    ISURL = /^url\(['"]?([^\)]+?)['"]?\)$/i,
-    colourRegExp = /^\s*((#[a-f\d]{6})|(#[a-f\d]{3})|rgba?\(\s*([\d\.]+%?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+%?(?:\s*,\s*[\d\.]+%?)?)\s*\)|hsba?\(\s*([\d\.]+(?:deg|\xb0|%)?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+(?:%?\s*,\s*[\d\.]+)?%?)\s*\)|hsla?\(\s*([\d\.]+(?:deg|\xb0|%)?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+(?:%?\s*,\s*[\d\.]+)?%?)\s*\))\s*$/i,
-    bezierrg = /^(?:cubic-)?bezier\(([^,]+),([^,]+),([^,]+),([^\)]+)\)/,
-    separator = Snap._.separator = /[,\s]+/,
-    whitespace = /[\s]/g,
-    commaSpaces = /[\s]*,[\s]*/,
-    hsrg = {hs: 1, rg: 1},
-    pathCommand = /([a-z])[\s,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\s]*,?[\s]*)+)/ig,
-    tCommand = /([rstm])[\s,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\s]*,?[\s]*)+)/ig,
-    pathValues = /(-?\d*\.?\d*(?:e[\-+]?\d+)?)[\s]*,?[\s]*/ig,
-    idgen = 0,
-    idprefix = "S" + (+new Date).toString(36),
-    ID = function (el) {
-        return (el && el.type ? el.type : E) + idprefix + (idgen++).toString(36);
-    },
-    xlink = "http://www.w3.org/1999/xlink",
-    xmlns = "http://www.w3.org/2000/svg",
-    hub = {},
-    /*\
-     * Snap.url
-     [ method ]
-     **
-     * Wraps path into `"url('<path>')"`.
-     - value (string) path
-     = (string) wrapped path
-    \*/
-    URL = Snap.url = function (url) {
-        return "url('#" + url + "')";
-    };
-
-function $(el, attr) {
-    if (attr) {
-        if (el == "#text") {
-            el = glob.doc.createTextNode(attr.text || attr["#text"] || "");
-        }
-        if (el == "#comment") {
-            el = glob.doc.createComment(attr.text || attr["#text"] || "");
-        }
-        if (typeof el == "string") {
-            el = $(el);
-        }
-        if (typeof attr == "string") {
-            if (el.nodeType == 1) {
-                if (attr.substring(0, 6) == "xlink:") {
-                    return el.getAttributeNS(xlink, attr.substring(6));
-                }
-                if (attr.substring(0, 4) == "xml:") {
-                    return el.getAttributeNS(xmlns, attr.substring(4));
-                }
-                return el.getAttribute(attr);
-            } else if (attr == "text") {
-                return el.nodeValue;
-            } else {
-                return null;
-            }
-        }
-        if (el.nodeType == 1) {
-            for (var key in attr) if (attr[has](key)) {
-                var val = Str(attr[key]);
-                if (val) {
-                    if (key.substring(0, 6) == "xlink:") {
-                        el.setAttributeNS(xlink, key.substring(6), val);
-                    } else if (key.substring(0, 4) == "xml:") {
-                        el.setAttributeNS(xmlns, key.substring(4), val);
-                    } else {
-                        el.setAttribute(key, val);
-                    }
-                } else {
-                    el.removeAttribute(key);
-                }
-            }
-        } else if ("text" in attr) {
-            el.nodeValue = attr.text;
-        }
-    } else {
-        el = glob.doc.createElementNS(xmlns, el);
-    }
-    return el;
-}
-Snap._.$ = $;
-Snap._.id = ID;
-function getAttrs(el) {
-    var attrs = el.attributes,
-        name,
-        out = {};
-    for (var i = 0; i < attrs.length; i++) {
-        if (attrs[i].namespaceURI == xlink) {
-            name = "xlink:";
-        } else {
-            name = "";
-        }
-        name += attrs[i].name;
-        out[name] = attrs[i].textContent;
-    }
-    return out;
-}
-function is(o, type) {
-    type = Str.prototype.toLowerCase.call(type);
-    if (type == "finite") {
-        return isFinite(o);
-    }
-    if (type == "array" &&
-        (o instanceof Array || Array.isArray && Array.isArray(o))) {
-        return true;
-    }
-    return  type == "null" && o === null ||
-            type == typeof o && o !== null ||
-            type == "object" && o === Object(o) ||
-            objectToString.call(o).slice(8, -1).toLowerCase() == type;
-}
-/*\
- * Snap.format
- [ method ]
- **
- * Replaces construction of type `{<name>}` to the corresponding argument
- **
- - token (string) string to format
- - json (object) object which properties are used as a replacement
- = (string) formatted string
- > Usage
- | // this draws a rectangular shape equivalent to "M10,20h40v50h-40z"
- | paper.path(Snap.format("M{x},{y}h{dim.width}v{dim.height}h{dim['negative width']}z", {
- |     x: 10,
- |     y: 20,
- |     dim: {
- |         width: 40,
- |         height: 50,
- |         "negative width": -40
- |     }
- | }));
-\*/
-Snap.format = (function () {
-    var tokenRegex = /\{([^\}]+)\}/g,
-        objNotationRegex = /(?:(?:^|\.)(.+?)(?=\[|\.|$|\()|\[('|")(.+?)\2\])(\(\))?/g, // matches .xxxxx or ["xxxxx"] to run over object properties
-        replacer = function (all, key, obj) {
-            var res = obj;
-            key.replace(objNotationRegex, function (all, name, quote, quotedName, isFunc) {
-                name = name || quotedName;
-                if (res) {
-                    if (name in res) {
-                        res = res[name];
-                    }
-                    typeof res == "function" && isFunc && (res = res());
-                }
-            });
-            res = (res == null || res == obj ? all : res) + "";
-            return res;
-        };
-    return function (str, obj) {
-        return Str(str).replace(tokenRegex, function (all, key) {
-            return replacer(all, key, obj);
-        });
-    };
-})();
-function clone(obj) {
-    if (typeof obj == "function" || Object(obj) !== obj) {
-        return obj;
-    }
-    var res = new obj.constructor;
-    for (var key in obj) if (obj[has](key)) {
-        res[key] = clone(obj[key]);
-    }
-    return res;
-}
-Snap._.clone = clone;
-function repush(array, item) {
-    for (var i = 0, ii = array.length; i < ii; i++) if (array[i] === item) {
-        return array.push(array.splice(i, 1)[0]);
-    }
-}
-function cacher(f, scope, postprocessor) {
-    function newf() {
-        var arg = Array.prototype.slice.call(arguments, 0),
-            args = arg.join("\u2400"),
-            cache = newf.cache = newf.cache || {},
-            count = newf.count = newf.count || [];
-        if (cache[has](args)) {
-            repush(count, args);
-            return postprocessor ? postprocessor(cache[args]) : cache[args];
-        }
-        count.length >= 1e3 && delete cache[count.shift()];
-        count.push(args);
-        cache[args] = f.apply(scope, arg);
-        return postprocessor ? postprocessor(cache[args]) : cache[args];
-    }
-    return newf;
-}
-Snap._.cacher = cacher;
-function angle(x1, y1, x2, y2, x3, y3) {
-    if (x3 == null) {
-        var x = x1 - x2,
-            y = y1 - y2;
-        if (!x && !y) {
-            return 0;
-        }
-        return (180 + math.atan2(-y, -x) * 180 / PI + 360) % 360;
-    } else {
-        return angle(x1, y1, x3, y3) - angle(x2, y2, x3, y3);
-    }
-}
-function rad(deg) {
-    return deg % 360 * PI / 180;
-}
-function deg(rad) {
-    return rad * 180 / PI % 360;
-}
-function x_y() {
-    return this.x + S + this.y;
-}
-function x_y_w_h() {
-    return this.x + S + this.y + S + this.width + " \xd7 " + this.height;
-}
-
-/*\
- * Snap.rad
- [ method ]
- **
- * Transform angle to radians
- - deg (number) angle in degrees
- = (number) angle in radians
-\*/
-Snap.rad = rad;
-/*\
- * Snap.deg
- [ method ]
- **
- * Transform angle to degrees
- - rad (number) angle in radians
- = (number) angle in degrees
-\*/
-Snap.deg = deg;
-/*\
- * Snap.sin
- [ method ]
- **
- * Equivalent to `Math.sin()` only works with degrees, not radians.
- - angle (number) angle in degrees
- = (number) sin
-\*/
-Snap.sin = function (angle) {
-    return math.sin(Snap.rad(angle));
-};
-/*\
- * Snap.tan
- [ method ]
- **
- * Equivalent to `Math.tan()` only works with degrees, not radians.
- - angle (number) angle in degrees
- = (number) tan
-\*/
-Snap.tan = function (angle) {
-    return math.tan(Snap.rad(angle));
-};
-/*\
- * Snap.cos
- [ method ]
- **
- * Equivalent to `Math.cos()` only works with degrees, not radians.
- - angle (number) angle in degrees
- = (number) cos
-\*/
-Snap.cos = function (angle) {
-    return math.cos(Snap.rad(angle));
-};
-/*\
- * Snap.asin
- [ method ]
- **
- * Equivalent to `Math.asin()` only works with degrees, not radians.
- - num (number) value
- = (number) asin in degrees
-\*/
-Snap.asin = function (num) {
-    return Snap.deg(math.asin(num));
-};
-/*\
- * Snap.acos
- [ method ]
- **
- * Equivalent to `Math.acos()` only works with degrees, not radians.
- - num (number) value
- = (number) acos in degrees
-\*/
-Snap.acos = function (num) {
-    return Snap.deg(math.acos(num));
-};
-/*\
- * Snap.atan
- [ method ]
- **
- * Equivalent to `Math.atan()` only works with degrees, not radians.
- - num (number) value
- = (number) atan in degrees
-\*/
-Snap.atan = function (num) {
-    return Snap.deg(math.atan(num));
-};
-/*\
- * Snap.atan2
- [ method ]
- **
- * Equivalent to `Math.atan2()` only works with degrees, not radians.
- - num (number) value
- = (number) atan2 in degrees
-\*/
-Snap.atan2 = function (num) {
-    return Snap.deg(math.atan2(num));
-};
-/*\
- * Snap.angle
- [ method ]
- **
- * Returns an angle between two or three points
- - x1 (number) x coord of first point
- - y1 (number) y coord of first point
- - x2 (number) x coord of second point
- - y2 (number) y coord of second point
- - x3 (number) #optional x coord of third point
- - y3 (number) #optional y coord of third point
- = (number) angle in degrees
-\*/
-Snap.angle = angle;
-/*\
- * Snap.len
- [ method ]
- **
- * Returns distance between two points
- - x1 (number) x coord of first point
- - y1 (number) y coord of first point
- - x2 (number) x coord of second point
- - y2 (number) y coord of second point
- = (number) distance
-\*/
-Snap.len = function (x1, y1, x2, y2) {
-    return Math.sqrt(Snap.len2(x1, y1, x2, y2));
-};
-/*\
- * Snap.len2
- [ method ]
- **
- * Returns squared distance between two points
- - x1 (number) x coord of first point
- - y1 (number) y coord of first point
- - x2 (number) x coord of second point
- - y2 (number) y coord of second point
- = (number) distance
-\*/
-Snap.len2 = function (x1, y1, x2, y2) {
-    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
-};
-/*\
- * Snap.closestPoint
- [ method ]
- **
- * Returns closest point to a given one on a given path.
- - path (Element) path element
- - x (number) x coord of a point
- - y (number) y coord of a point
- = (object) in format
- {
-    x (number) x coord of the point on the path
-    y (number) y coord of the point on the path
-    length (number) length of the path to the point
-    distance (number) distance from the given point to the path
- }
-\*/
-// Copied from http://bl.ocks.org/mbostock/8027637
-Snap.closestPoint = function (path, x, y) {
-    function distance2(p) {
-        var dx = p.x - x,
-            dy = p.y - y;
-        return dx * dx + dy * dy;
-    }
-    var pathNode = path.node,
-        pathLength = pathNode.getTotalLength(),
-        precision = pathLength / pathNode.pathSegList.numberOfItems * .125,
-        best,
-        bestLength,
-        bestDistance = Infinity;
-
-    // linear scan for coarse approximation
-    for (var scan, scanLength = 0, scanDistance; scanLength <= pathLength; scanLength += precision) {
-        if ((scanDistance = distance2(scan = pathNode.getPointAtLength(scanLength))) < bestDistance) {
-            best = scan;
-            bestLength = scanLength;
-            bestDistance = scanDistance;
-        }
-    }
-
-    // binary search for precise estimate
-    precision *= .5;
-    while (precision > .5) {
-        var before,
-            after,
-            beforeLength,
-            afterLength,
-            beforeDistance,
-            afterDistance;
-        if ((beforeLength = bestLength - precision) >= 0 && (beforeDistance = distance2(before = pathNode.getPointAtLength(beforeLength))) < bestDistance) {
-            best = before;
-            bestLength = beforeLength;
-            bestDistance = beforeDistance;
-        } else if ((afterLength = bestLength + precision) <= pathLength && (afterDistance = distance2(after = pathNode.getPointAtLength(afterLength))) < bestDistance) {
-            best = after;
-            bestLength = afterLength;
-            bestDistance = afterDistance;
-        } else {
-            precision *= .5;
-        }
-    }
-
-    best = {
-        x: best.x,
-        y: best.y,
-        length: bestLength,
-        distance: Math.sqrt(bestDistance)
-    };
-    return best;
-}
-/*\
- * Snap.is
- [ method ]
- **
- * Handy replacement for the `typeof` operator
- - o (…) any object or primitive
- - type (string) name of the type, e.g., `string`, `function`, `number`, etc.
- = (boolean) `true` if given value is of given type
-\*/
-Snap.is = is;
-/*\
- * Snap.snapTo
- [ method ]
- **
- * Snaps given value to given grid
- - values (array|number) given array of values or step of the grid
- - value (number) value to adjust
- - tolerance (number) #optional maximum distance to the target value that would trigger the snap. Default is `10`.
- = (number) adjusted value
-\*/
-Snap.snapTo = function (values, value, tolerance) {
-    tolerance = is(tolerance, "finite") ? tolerance : 10;
-    if (is(values, "array")) {
-        var i = values.length;
-        while (i--) if (abs(values[i] - value) <= tolerance) {
-            return values[i];
-        }
-    } else {
-        values = +values;
-        var rem = value % values;
-        if (rem < tolerance) {
-            return value - rem;
-        }
-        if (rem > values - tolerance) {
-            return value - rem + values;
-        }
-    }
-    return value;
-};
-// Colour
-/*\
- * Snap.getRGB
- [ method ]
- **
- * Parses color string as RGB object
- - color (string) color string in one of the following formats:
- # <ul>
- #     <li>Color name (<code>red</code>, <code>green</code>, <code>cornflowerblue</code>, etc)</li>
- #     <li>#••• — shortened HTML color: (<code>#000</code>, <code>#fc0</code>, etc.)</li>
- #     <li>#•••••• — full length HTML color: (<code>#000000</code>, <code>#bd2300</code>)</li>
- #     <li>rgb(•••, •••, •••) — red, green and blue channels values: (<code>rgb(200,&nbsp;100,&nbsp;0)</code>)</li>
- #     <li>rgba(•••, •••, •••, •••) — also with opacity</li>
- #     <li>rgb(•••%, •••%, •••%) — same as above, but in %: (<code>rgb(100%,&nbsp;175%,&nbsp;0%)</code>)</li>
- #     <li>rgba(•••%, •••%, •••%, •••%) — also with opacity</li>
- #     <li>hsb(•••, •••, •••) — hue, saturation and brightness values: (<code>hsb(0.5,&nbsp;0.25,&nbsp;1)</code>)</li>
- #     <li>hsba(•••, •••, •••, •••) — also with opacity</li>
- #     <li>hsb(•••%, •••%, •••%) — same as above, but in %</li>
- #     <li>hsba(•••%, •••%, •••%, •••%) — also with opacity</li>
- #     <li>hsl(•••, •••, •••) — hue, saturation and luminosity values: (<code>hsb(0.5,&nbsp;0.25,&nbsp;0.5)</code>)</li>
- #     <li>hsla(•••, •••, •••, •••) — also with opacity</li>
- #     <li>hsl(•••%, •••%, •••%) — same as above, but in %</li>
- #     <li>hsla(•••%, •••%, •••%, •••%) — also with opacity</li>
- # </ul>
- * Note that `%` can be used any time: `rgb(20%, 255, 50%)`.
- = (object) RGB object in the following format:
- o {
- o     r (number) red,
- o     g (number) green,
- o     b (number) blue,
- o     hex (string) color in HTML/CSS format: #••••••,
- o     error (boolean) true if string can't be parsed
- o }
-\*/
-Snap.getRGB = cacher(function (colour) {
-    if (!colour || !!((colour = Str(colour)).indexOf("-") + 1)) {
-        return {r: -1, g: -1, b: -1, hex: "none", error: 1, toString: rgbtoString};
-    }
-    if (colour == "none") {
-        return {r: -1, g: -1, b: -1, hex: "none", toString: rgbtoString};
-    }
-    !(hsrg[has](colour.toLowerCase().substring(0, 2)) || colour.charAt() == "#") && (colour = toHex(colour));
-    if (!colour) {
-        return {r: -1, g: -1, b: -1, hex: "none", error: 1, toString: rgbtoString};
-    }
-    var res,
-        red,
-        green,
-        blue,
-        opacity,
-        t,
-        values,
-        rgb = colour.match(colourRegExp);
-    if (rgb) {
-        if (rgb[2]) {
-            blue = toInt(rgb[2].substring(5), 16);
-            green = toInt(rgb[2].substring(3, 5), 16);
-            red = toInt(rgb[2].substring(1, 3), 16);
-        }
-        if (rgb[3]) {
-            blue = toInt((t = rgb[3].charAt(3)) + t, 16);
-            green = toInt((t = rgb[3].charAt(2)) + t, 16);
-            red = toInt((t = rgb[3].charAt(1)) + t, 16);
-        }
-        if (rgb[4]) {
-            values = rgb[4].split(commaSpaces);
-            red = toFloat(values[0]);
-            values[0].slice(-1) == "%" && (red *= 2.55);
-            green = toFloat(values[1]);
-            values[1].slice(-1) == "%" && (green *= 2.55);
-            blue = toFloat(values[2]);
-            values[2].slice(-1) == "%" && (blue *= 2.55);
-            rgb[1].toLowerCase().slice(0, 4) == "rgba" && (opacity = toFloat(values[3]));
-            values[3] && values[3].slice(-1) == "%" && (opacity /= 100);
-        }
-        if (rgb[5]) {
-            values = rgb[5].split(commaSpaces);
-            red = toFloat(values[0]);
-            values[0].slice(-1) == "%" && (red /= 100);
-            green = toFloat(values[1]);
-            values[1].slice(-1) == "%" && (green /= 100);
-            blue = toFloat(values[2]);
-            values[2].slice(-1) == "%" && (blue /= 100);
-            (values[0].slice(-3) == "deg" || values[0].slice(-1) == "\xb0") && (red /= 360);
-            rgb[1].toLowerCase().slice(0, 4) == "hsba" && (opacity = toFloat(values[3]));
-            values[3] && values[3].slice(-1) == "%" && (opacity /= 100);
-            return Snap.hsb2rgb(red, green, blue, opacity);
-        }
-        if (rgb[6]) {
-            values = rgb[6].split(commaSpaces);
-            red = toFloat(values[0]);
-            values[0].slice(-1) == "%" && (red /= 100);
-            green = toFloat(values[1]);
-            values[1].slice(-1) == "%" && (green /= 100);
-            blue = toFloat(values[2]);
-            values[2].slice(-1) == "%" && (blue /= 100);
-            (values[0].slice(-3) == "deg" || values[0].slice(-1) == "\xb0") && (red /= 360);
-            rgb[1].toLowerCase().slice(0, 4) == "hsla" && (opacity = toFloat(values[3]));
-            values[3] && values[3].slice(-1) == "%" && (opacity /= 100);
-            return Snap.hsl2rgb(red, green, blue, opacity);
-        }
-        red = mmin(math.round(red), 255);
-        green = mmin(math.round(green), 255);
-        blue = mmin(math.round(blue), 255);
-        opacity = mmin(mmax(opacity, 0), 1);
-        rgb = {r: red, g: green, b: blue, toString: rgbtoString};
-        rgb.hex = "#" + (16777216 | blue | green << 8 | red << 16).toString(16).slice(1);
-        rgb.opacity = is(opacity, "finite") ? opacity : 1;
-        return rgb;
-    }
-    return {r: -1, g: -1, b: -1, hex: "none", error: 1, toString: rgbtoString};
-}, Snap);
-/*\
- * Snap.hsb
- [ method ]
- **
- * Converts HSB values to a hex representation of the color
- - h (number) hue
- - s (number) saturation
- - b (number) value or brightness
- = (string) hex representation of the color
-\*/
-Snap.hsb = cacher(function (h, s, b) {
-    return Snap.hsb2rgb(h, s, b).hex;
-});
-/*\
- * Snap.hsl
- [ method ]
- **
- * Converts HSL values to a hex representation of the color
- - h (number) hue
- - s (number) saturation
- - l (number) luminosity
- = (string) hex representation of the color
-\*/
-Snap.hsl = cacher(function (h, s, l) {
-    return Snap.hsl2rgb(h, s, l).hex;
-});
-/*\
- * Snap.rgb
- [ method ]
- **
- * Converts RGB values to a hex representation of the color
- - r (number) red
- - g (number) green
- - b (number) blue
- = (string) hex representation of the color
-\*/
-Snap.rgb = cacher(function (r, g, b, o) {
-    if (is(o, "finite")) {
-        var round = math.round;
-        return "rgba(" + [round(r), round(g), round(b), +o.toFixed(2)] + ")";
-    }
-    return "#" + (16777216 | b | g << 8 | r << 16).toString(16).slice(1);
-});
-var toHex = function (color) {
-    var i = glob.doc.getElementsByTagName("head")[0] || glob.doc.getElementsByTagName("svg")[0],
-        red = "rgb(255, 0, 0)";
-    toHex = cacher(function (color) {
-        if (color.toLowerCase() == "red") {
-            return red;
-        }
-        i.style.color = red;
-        i.style.color = color;
-        var out = glob.doc.defaultView.getComputedStyle(i, E).getPropertyValue("color");
-        return out == red ? null : out;
-    });
-    return toHex(color);
-},
-hsbtoString = function () {
-    return "hsb(" + [this.h, this.s, this.b] + ")";
-},
-hsltoString = function () {
-    return "hsl(" + [this.h, this.s, this.l] + ")";
-},
-rgbtoString = function () {
-    return this.opacity == 1 || this.opacity == null ?
-            this.hex :
-            "rgba(" + [this.r, this.g, this.b, this.opacity] + ")";
-},
-prepareRGB = function (r, g, b) {
-    if (g == null && is(r, "object") && "r" in r && "g" in r && "b" in r) {
-        b = r.b;
-        g = r.g;
-        r = r.r;
-    }
-    if (g == null && is(r, string)) {
-        var clr = Snap.getRGB(r);
-        r = clr.r;
-        g = clr.g;
-        b = clr.b;
-    }
-    if (r > 1 || g > 1 || b > 1) {
-        r /= 255;
-        g /= 255;
-        b /= 255;
-    }
-
-    return [r, g, b];
-},
-packageRGB = function (r, g, b, o) {
-    r = math.round(r * 255);
-    g = math.round(g * 255);
-    b = math.round(b * 255);
-    var rgb = {
-        r: r,
-        g: g,
-        b: b,
-        opacity: is(o, "finite") ? o : 1,
-        hex: Snap.rgb(r, g, b),
-        toString: rgbtoString
-    };
-    is(o, "finite") && (rgb.opacity = o);
-    return rgb;
-};
-/*\
- * Snap.color
- [ method ]
- **
- * Parses the color string and returns an object featuring the color's component values
- - clr (string) color string in one of the supported formats (see @Snap.getRGB)
- = (object) Combined RGB/HSB object in the following format:
- o {
- o     r (number) red,
- o     g (number) green,
- o     b (number) blue,
- o     hex (string) color in HTML/CSS format: #••••••,
- o     error (boolean) `true` if string can't be parsed,
- o     h (number) hue,
- o     s (number) saturation,
- o     v (number) value (brightness),
- o     l (number) lightness
- o }
-\*/
-Snap.color = function (clr) {
-    var rgb;
-    if (is(clr, "object") && "h" in clr && "s" in clr && "b" in clr) {
-        rgb = Snap.hsb2rgb(clr);
-        clr.r = rgb.r;
-        clr.g = rgb.g;
-        clr.b = rgb.b;
-        clr.opacity = 1;
-        clr.hex = rgb.hex;
-    } else if (is(clr, "object") && "h" in clr && "s" in clr && "l" in clr) {
-        rgb = Snap.hsl2rgb(clr);
-        clr.r = rgb.r;
-        clr.g = rgb.g;
-        clr.b = rgb.b;
-        clr.opacity = 1;
-        clr.hex = rgb.hex;
-    } else {
-        if (is(clr, "string")) {
-            clr = Snap.getRGB(clr);
-        }
-        if (is(clr, "object") && "r" in clr && "g" in clr && "b" in clr && !("error" in clr)) {
-            rgb = Snap.rgb2hsl(clr);
-            clr.h = rgb.h;
-            clr.s = rgb.s;
-            clr.l = rgb.l;
-            rgb = Snap.rgb2hsb(clr);
-            clr.v = rgb.b;
-        } else {
-            clr = {hex: "none"};
-            clr.r = clr.g = clr.b = clr.h = clr.s = clr.v = clr.l = -1;
-            clr.error = 1;
-        }
-    }
-    clr.toString = rgbtoString;
-    return clr;
-};
-/*\
- * Snap.hsb2rgb
- [ method ]
- **
- * Converts HSB values to an RGB object
- - h (number) hue
- - s (number) saturation
- - v (number) value or brightness
- = (object) RGB object in the following format:
- o {
- o     r (number) red,
- o     g (number) green,
- o     b (number) blue,
- o     hex (string) color in HTML/CSS format: #••••••
- o }
-\*/
-Snap.hsb2rgb = function (h, s, v, o) {
-    if (is(h, "object") && "h" in h && "s" in h && "b" in h) {
-        v = h.b;
-        s = h.s;
-        o = h.o;
-        h = h.h;
-    }
-    h *= 360;
-    var R, G, B, X, C;
-    h = h % 360 / 60;
-    C = v * s;
-    X = C * (1 - abs(h % 2 - 1));
-    R = G = B = v - C;
-
-    h = ~~h;
-    R += [C, X, 0, 0, X, C][h];
-    G += [X, C, C, X, 0, 0][h];
-    B += [0, 0, X, C, C, X][h];
-    return packageRGB(R, G, B, o);
-};
-/*\
- * Snap.hsl2rgb
- [ method ]
- **
- * Converts HSL values to an RGB object
- - h (number) hue
- - s (number) saturation
- - l (number) luminosity
- = (object) RGB object in the following format:
- o {
- o     r (number) red,
- o     g (number) green,
- o     b (number) blue,
- o     hex (string) color in HTML/CSS format: #••••••
- o }
-\*/
-Snap.hsl2rgb = function (h, s, l, o) {
-    if (is(h, "object") && "h" in h && "s" in h && "l" in h) {
-        l = h.l;
-        s = h.s;
-        h = h.h;
-    }
-    if (h > 1 || s > 1 || l > 1) {
-        h /= 360;
-        s /= 100;
-        l /= 100;
-    }
-    h *= 360;
-    var R, G, B, X, C;
-    h = h % 360 / 60;
-    C = 2 * s * (l < .5 ? l : 1 - l);
-    X = C * (1 - abs(h % 2 - 1));
-    R = G = B = l - C / 2;
-
-    h = ~~h;
-    R += [C, X, 0, 0, X, C][h];
-    G += [X, C, C, X, 0, 0][h];
-    B += [0, 0, X, C, C, X][h];
-    return packageRGB(R, G, B, o);
-};
-/*\
- * Snap.rgb2hsb
- [ method ]
- **
- * Converts RGB values to an HSB object
- - r (number) red
- - g (number) green
- - b (number) blue
- = (object) HSB object in the following format:
- o {
- o     h (number) hue,
- o     s (number) saturation,
- o     b (number) brightness
- o }
-\*/
-Snap.rgb2hsb = function (r, g, b) {
-    b = prepareRGB(r, g, b);
-    r = b[0];
-    g = b[1];
-    b = b[2];
-
-    var H, S, V, C;
-    V = mmax(r, g, b);
-    C = V - mmin(r, g, b);
-    H = C == 0 ? null :
-        V == r ? (g - b) / C :
-        V == g ? (b - r) / C + 2 :
-                 (r - g) / C + 4;
-    H = (H + 360) % 6 * 60 / 360;
-    S = C == 0 ? 0 : C / V;
-    return {h: H, s: S, b: V, toString: hsbtoString};
-};
-/*\
- * Snap.rgb2hsl
- [ method ]
- **
- * Converts RGB values to an HSL object
- - r (number) red
- - g (number) green
- - b (number) blue
- = (object) HSL object in the following format:
- o {
- o     h (number) hue,
- o     s (number) saturation,
- o     l (number) luminosity
- o }
-\*/
-Snap.rgb2hsl = function (r, g, b) {
-    b = prepareRGB(r, g, b);
-    r = b[0];
-    g = b[1];
-    b = b[2];
-
-    var H, S, L, M, m, C;
-    M = mmax(r, g, b);
-    m = mmin(r, g, b);
-    C = M - m;
-    H = C == 0 ? null :
-        M == r ? (g - b) / C :
-        M == g ? (b - r) / C + 2 :
-                 (r - g) / C + 4;
-    H = (H + 360) % 6 * 60 / 360;
-    L = (M + m) / 2;
-    S = C == 0 ? 0 :
-         L < .5 ? C / (2 * L) :
-                  C / (2 - 2 * L);
-    return {h: H, s: S, l: L, toString: hsltoString};
-};
-
-// Transformations
-/*\
- * Snap.parsePathString
- [ method ]
- **
- * Utility method
- **
- * Parses given path string into an array of arrays of path segments
- - pathString (string|array) path string or array of segments (in the last case it is returned straight away)
- = (array) array of segments
-\*/
-Snap.parsePathString = function (pathString) {
-    if (!pathString) {
-        return null;
-    }
-    var pth = Snap.path(pathString);
-    if (pth.arr) {
-        return Snap.path.clone(pth.arr);
-    }
-
-    var paramCounts = {a: 7, c: 6, o: 2, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, u: 3, z: 0},
-        data = [];
-    if (is(pathString, "array") && is(pathString[0], "array")) { // rough assumption
-        data = Snap.path.clone(pathString);
-    }
-    if (!data.length) {
-        Str(pathString).replace(pathCommand, function (a, b, c) {
-            var params = [],
-                name = b.toLowerCase();
-            c.replace(pathValues, function (a, b) {
-                b && params.push(+b);
-            });
-            if (name == "m" && params.length > 2) {
-                data.push([b].concat(params.splice(0, 2)));
-                name = "l";
-                b = b == "m" ? "l" : "L";
-            }
-            if (name == "o" && params.length == 1) {
-                data.push([b, params[0]]);
-            }
-            if (name == "r") {
-                data.push([b].concat(params));
-            } else while (params.length >= paramCounts[name]) {
-                data.push([b].concat(params.splice(0, paramCounts[name])));
-                if (!paramCounts[name]) {
-                    break;
-                }
-            }
-        });
-    }
-    data.toString = Snap.path.toString;
-    pth.arr = Snap.path.clone(data);
-    return data;
-};
-/*\
- * Snap.parseTransformString
- [ method ]
- **
- * Utility method
- **
- * Parses given transform string into an array of transformations
- - TString (string|array) transform string or array of transformations (in the last case it is returned straight away)
- = (array) array of transformations
-\*/
-var parseTransformString = Snap.parseTransformString = function (TString) {
-    if (!TString) {
-        return null;
-    }
-    var paramCounts = {r: 3, s: 4, t: 2, m: 6},
-        data = [];
-    if (is(TString, "array") && is(TString[0], "array")) { // rough assumption
-        data = Snap.path.clone(TString);
-    }
-    if (!data.length) {
-        Str(TString).replace(tCommand, function (a, b, c) {
-            var params = [],
-                name = b.toLowerCase();
-            c.replace(pathValues, function (a, b) {
-                b && params.push(+b);
-            });
-            data.push([b].concat(params));
-        });
-    }
-    data.toString = Snap.path.toString;
-    return data;
-};
-function svgTransform2string(tstr) {
-    var res = [];
-    tstr = tstr.replace(/(?:^|\s)(\w+)\(([^)]+)\)/g, function (all, name, params) {
-        params = params.split(/\s*,\s*|\s+/);
-        if (name == "rotate" && params.length == 1) {
-            params.push(0, 0);
-        }
-        if (name == "scale") {
-            if (params.length > 2) {
-                params = params.slice(0, 2);
-            } else if (params.length == 2) {
-                params.push(0, 0);
-            }
-            if (params.length == 1) {
-                params.push(params[0], 0, 0);
-            }
-        }
-        if (name == "skewX") {
-            res.push(["m", 1, 0, math.tan(rad(params[0])), 1, 0, 0]);
-        } else if (name == "skewY") {
-            res.push(["m", 1, math.tan(rad(params[0])), 0, 1, 0, 0]);
-        } else {
-            res.push([name.charAt(0)].concat(params));
-        }
-        return all;
-    });
-    return res;
-}
-Snap._.svgTransform2string = svgTransform2string;
-Snap._.rgTransform = /^[a-z][\s]*-?\.?\d/i;
-function transform2matrix(tstr, bbox) {
-    var tdata = parseTransformString(tstr),
-        m = new Snap.Matrix;
-    if (tdata) {
-        for (var i = 0, ii = tdata.length; i < ii; i++) {
-            var t = tdata[i],
-                tlen = t.length,
-                command = Str(t[0]).toLowerCase(),
-                absolute = t[0] != command,
-                inver = absolute ? m.invert() : 0,
-                x1,
-                y1,
-                x2,
-                y2,
-                bb;
-            if (command == "t" && tlen == 2){
-                m.translate(t[1], 0);
-            } else if (command == "t" && tlen == 3) {
-                if (absolute) {
-                    x1 = inver.x(0, 0);
-                    y1 = inver.y(0, 0);
-                    x2 = inver.x(t[1], t[2]);
-                    y2 = inver.y(t[1], t[2]);
-                    m.translate(x2 - x1, y2 - y1);
-                } else {
-                    m.translate(t[1], t[2]);
-                }
-            } else if (command == "r") {
-                if (tlen == 2) {
-                    bb = bb || bbox;
-                    m.rotate(t[1], bb.x + bb.width / 2, bb.y + bb.height / 2);
-                } else if (tlen == 4) {
-                    if (absolute) {
-                        x2 = inver.x(t[2], t[3]);
-                        y2 = inver.y(t[2], t[3]);
-                        m.rotate(t[1], x2, y2);
-                    } else {
-                        m.rotate(t[1], t[2], t[3]);
-                    }
-                }
-            } else if (command == "s") {
-                if (tlen == 2 || tlen == 3) {
-                    bb = bb || bbox;
-                    m.scale(t[1], t[tlen - 1], bb.x + bb.width / 2, bb.y + bb.height / 2);
-                } else if (tlen == 4) {
-                    if (absolute) {
-                        x2 = inver.x(t[2], t[3]);
-                        y2 = inver.y(t[2], t[3]);
-                        m.scale(t[1], t[1], x2, y2);
-                    } else {
-                        m.scale(t[1], t[1], t[2], t[3]);
-                    }
-                } else if (tlen == 5) {
-                    if (absolute) {
-                        x2 = inver.x(t[3], t[4]);
-                        y2 = inver.y(t[3], t[4]);
-                        m.scale(t[1], t[2], x2, y2);
-                    } else {
-                        m.scale(t[1], t[2], t[3], t[4]);
-                    }
-                }
-            } else if (command == "m" && tlen == 7) {
-                m.add(t[1], t[2], t[3], t[4], t[5], t[6]);
-            }
-        }
-    }
-    return m;
-}
-Snap._.transform2matrix = transform2matrix;
-Snap._unit2px = unit2px;
-var contains = glob.doc.contains || glob.doc.compareDocumentPosition ?
-    function (a, b) {
-        var adown = a.nodeType == 9 ? a.documentElement : a,
-            bup = b && b.parentNode;
-            return a == bup || !!(bup && bup.nodeType == 1 && (
-                adown.contains ?
-                    adown.contains(bup) :
-                    a.compareDocumentPosition && a.compareDocumentPosition(bup) & 16
-            ));
-    } :
-    function (a, b) {
-        if (b) {
-            while (b) {
-                b = b.parentNode;
-                if (b == a) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-function getSomeDefs(el) {
-    var p = el.node.ownerSVGElement && wrap(el.node.ownerSVGElement) ||
-            el.node.parentNode && wrap(el.node.parentNode) ||
-            Snap.select("svg") ||
-            Snap(0, 0),
-        pdefs = p.select("defs"),
-        defs  = pdefs == null ? false : pdefs.node;
-    if (!defs) {
-        defs = make("defs", p.node).node;
-    }
-    return defs;
-}
-function getSomeSVG(el) {
-    return el.node.ownerSVGElement && wrap(el.node.ownerSVGElement) || Snap.select("svg");
-}
-Snap._.getSomeDefs = getSomeDefs;
-Snap._.getSomeSVG = getSomeSVG;
-function unit2px(el, name, value) {
-    var svg = getSomeSVG(el).node,
-        out = {},
-        mgr = svg.querySelector(".svg---mgr");
-    if (!mgr) {
-        mgr = $("rect");
-        $(mgr, {x: -9e9, y: -9e9, width: 10, height: 10, "class": "svg---mgr", fill: "none"});
-        svg.appendChild(mgr);
-    }
-    function getW(val) {
-        if (val == null) {
-            return E;
-        }
-        if (val == +val) {
-            return val;
-        }
-        $(mgr, {width: val});
-        try {
-            return mgr.getBBox().width;
-        } catch (e) {
-            return 0;
-        }
-    }
-    function getH(val) {
-        if (val == null) {
-            return E;
-        }
-        if (val == +val) {
-            return val;
-        }
-        $(mgr, {height: val});
-        try {
-            return mgr.getBBox().height;
-        } catch (e) {
-            return 0;
-        }
-    }
-    function set(nam, f) {
-        if (name == null) {
-            out[nam] = f(el.attr(nam) || 0);
-        } else if (nam == name) {
-            out = f(value == null ? el.attr(nam) || 0 : value);
-        }
-    }
-    switch (el.type) {
-        case "rect":
-            set("rx", getW);
-            set("ry", getH);
-        case "image":
-            set("width", getW);
-            set("height", getH);
-        case "text":
-            set("x", getW);
-            set("y", getH);
-        break;
-        case "circle":
-            set("cx", getW);
-            set("cy", getH);
-            set("r", getW);
-        break;
-        case "ellipse":
-            set("cx", getW);
-            set("cy", getH);
-            set("rx", getW);
-            set("ry", getH);
-        break;
-        case "line":
-            set("x1", getW);
-            set("x2", getW);
-            set("y1", getH);
-            set("y2", getH);
-        break;
-        case "marker":
-            set("refX", getW);
-            set("markerWidth", getW);
-            set("refY", getH);
-            set("markerHeight", getH);
-        break;
-        case "radialGradient":
-            set("fx", getW);
-            set("fy", getH);
-        break;
-        case "tspan":
-            set("dx", getW);
-            set("dy", getH);
-        break;
-        default:
-            set(name, getW);
-    }
-    svg.removeChild(mgr);
-    return out;
-}
-/*\
- * Snap.select
- [ method ]
- **
- * Wraps a DOM element specified by CSS selector as @Element
- - query (string) CSS selector of the element
- = (Element) the current element
-\*/
-Snap.select = function (query) {
-    query = Str(query).replace(/([^\\]):/g, "$1\\:");
-    return wrap(glob.doc.querySelector(query));
-};
-/*\
- * Snap.selectAll
- [ method ]
- **
- * Wraps DOM elements specified by CSS selector as set or array of @Element
- - query (string) CSS selector of the element
- = (Element) the current element
-\*/
-Snap.selectAll = function (query) {
-    var nodelist = glob.doc.querySelectorAll(query),
-        set = (Snap.set || Array)();
-    for (var i = 0; i < nodelist.length; i++) {
-        set.push(wrap(nodelist[i]));
-    }
-    return set;
-};
-
-function add2group(list) {
-    if (!is(list, "array")) {
-        list = Array.prototype.slice.call(arguments, 0);
-    }
-    var i = 0,
-        j = 0,
-        node = this.node;
-    while (this[i]) delete this[i++];
-    for (i = 0; i < list.length; i++) {
-        if (list[i].type == "set") {
-            list[i].forEach(function (el) {
-                node.appendChild(el.node);
-            });
-        } else {
-            node.appendChild(list[i].node);
-        }
-    }
-    var children = node.childNodes;
-    for (i = 0; i < children.length; i++) {
-        this[j++] = wrap(children[i]);
-    }
-    return this;
-}
-// Hub garbage collector every 10s
-setInterval(function () {
-    for (var key in hub) if (hub[has](key)) {
-        var el = hub[key],
-            node = el.node;
-        if (el.type != "svg" && !node.ownerSVGElement || el.type == "svg" && (!node.parentNode || "ownerSVGElement" in node.parentNode && !node.ownerSVGElement)) {
-            delete hub[key];
-        }
-    }
-}, 1e4);
-function Element(el) {
-    if (el.snap in hub) {
-        return hub[el.snap];
-    }
-    var svg;
-    try {
-        svg = el.ownerSVGElement;
-    } catch(e) {}
-    /*\
-     * Element.node
-     [ property (object) ]
-     **
-     * Gives you a reference to the DOM object, so you can assign event handlers or just mess around.
-     > Usage
-     | // draw a circle at coordinate 10,10 with radius of 10
-     | var c = paper.circle(10, 10, 10);
-     | c.node.onclick = function () {
-     |     c.attr("fill", "red");
-     | };
-    \*/
-    this.node = el;
-    if (svg) {
-        this.paper = new Paper(svg);
-    }
-    /*\
-     * Element.type
-     [ property (string) ]
-     **
-     * SVG tag name of the given element.
-    \*/
-    this.type = el.tagName || el.nodeName;
-    var id = this.id = ID(this);
-    this.anims = {};
-    this._ = {
-        transform: []
-    };
-    el.snap = id;
-    hub[id] = this;
-    if (this.type == "g") {
-        this.add = add2group;
-    }
-    if (this.type in {g: 1, mask: 1, pattern: 1, symbol: 1}) {
-        for (var method in Paper.prototype) if (Paper.prototype[has](method)) {
-            this[method] = Paper.prototype[method];
-        }
-    }
-}
-   /*\
-     * Element.attr
-     [ method ]
-     **
-     * Gets or sets given attributes of the element.
-     **
-     - params (object) contains key-value pairs of attributes you want to set
-     * or
-     - param (string) name of the attribute
-     = (Element) the current element
-     * or
-     = (string) value of attribute
-     > Usage
-     | el.attr({
-     |     fill: "#fc0",
-     |     stroke: "#000",
-     |     strokeWidth: 2, // CamelCase...
-     |     "fill-opacity": 0.5, // or dash-separated names
-     |     width: "*=2" // prefixed values
-     | });
-     | console.log(el.attr("fill")); // #fc0
-     * Prefixed values in format `"+=10"` supported. All four operations
-     * (`+`, `-`, `*` and `/`) could be used. Optionally you can use units for `+`
-     * and `-`: `"+=2em"`.
-    \*/
-    Element.prototype.attr = function (params, value) {
-        var el = this,
-            node = el.node;
-        if (!params) {
-            if (node.nodeType != 1) {
-                return {
-                    text: node.nodeValue
-                };
-            }
-            var attr = node.attributes,
-                out = {};
-            for (var i = 0, ii = attr.length; i < ii; i++) {
-                out[attr[i].nodeName] = attr[i].nodeValue;
-            }
-            return out;
-        }
-        if (is(params, "string")) {
-            if (arguments.length > 1) {
-                var json = {};
-                json[params] = value;
-                params = json;
-            } else {
-                return eve("snap.util.getattr." + params, el).firstDefined();
-            }
-        }
-        for (var att in params) {
-            if (params[has](att)) {
-                eve("snap.util.attr." + att, el, params[att]);
-            }
-        }
-        return el;
-    };
-/*\
- * Snap.parse
- [ method ]
- **
- * Parses SVG fragment and converts it into a @Fragment
- **
- - svg (string) SVG string
- = (Fragment) the @Fragment
-\*/
-Snap.parse = function (svg) {
-    var f = glob.doc.createDocumentFragment(),
-        full = true,
-        div = glob.doc.createElement("div");
-    svg = Str(svg);
-    if (!svg.match(/^\s*<\s*svg(?:\s|>)/)) {
-        svg = "<svg>" + svg + "</svg>";
-        full = false;
-    }
-    div.innerHTML = svg;
-    svg = div.getElementsByTagName("svg")[0];
-    if (svg) {
-        if (full) {
-            f = svg;
-        } else {
-            while (svg.firstChild) {
-                f.appendChild(svg.firstChild);
-            }
-        }
-    }
-    return new Fragment(f);
-};
-function Fragment(frag) {
-    this.node = frag;
-}
-/*\
- * Snap.fragment
- [ method ]
- **
- * Creates a DOM fragment from a given list of elements or strings
- **
- - varargs (…) SVG string
- = (Fragment) the @Fragment
-\*/
-Snap.fragment = function () {
-    var args = Array.prototype.slice.call(arguments, 0),
-        f = glob.doc.createDocumentFragment();
-    for (var i = 0, ii = args.length; i < ii; i++) {
-        var item = args[i];
-        if (item.node && item.node.nodeType) {
-            f.appendChild(item.node);
-        }
-        if (item.nodeType) {
-            f.appendChild(item);
-        }
-        if (typeof item == "string") {
-            f.appendChild(Snap.parse(item).node);
-        }
-    }
-    return new Fragment(f);
-};
-
-function make(name, parent) {
-    var res = $(name);
-    parent.appendChild(res);
-    var el = wrap(res);
-    return el;
-}
-function Paper(w, h) {
-    var res,
-        desc,
-        defs,
-        proto = Paper.prototype;
-    if (w && w.tagName && w.tagName.toLowerCase() == "svg") {
-        if (w.snap in hub) {
-            return hub[w.snap];
-        }
-        var doc = w.ownerDocument;
-        res = new Element(w);
-        desc = w.getElementsByTagName("desc")[0];
-        defs = w.getElementsByTagName("defs")[0];
-        if (!desc) {
-            desc = $("desc");
-            desc.appendChild(doc.createTextNode("Created with Snap"));
-            res.node.appendChild(desc);
-        }
-        if (!defs) {
-            defs = $("defs");
-            res.node.appendChild(defs);
-        }
-        res.defs = defs;
-        for (var key in proto) if (proto[has](key)) {
-            res[key] = proto[key];
-        }
-        res.paper = res.root = res;
-    } else {
-        res = make("svg", glob.doc.body);
-        $(res.node, {
-            height: h,
-            version: 1.1,
-            width: w,
-            xmlns: xmlns
-        });
-    }
-    return res;
-}
-function wrap(dom) {
-    if (!dom) {
-        return dom;
-    }
-    if (dom instanceof Element || dom instanceof Fragment) {
-        return dom;
-    }
-    if (dom.tagName && dom.tagName.toLowerCase() == "svg") {
-        return new Paper(dom);
-    }
-    if (dom.tagName && dom.tagName.toLowerCase() == "object" && dom.type == "image/svg+xml") {
-        return new Paper(dom.contentDocument.getElementsByTagName("svg")[0]);
-    }
-    return new Element(dom);
-}
-
-Snap._.make = make;
-Snap._.wrap = wrap;
-/*\
- * Paper.el
- [ method ]
- **
- * Creates an element on paper with a given name and no attributes
- **
- - name (string) tag name
- - attr (object) attributes
- = (Element) the current element
- > Usage
- | var c = paper.circle(10, 10, 10); // is the same as...
- | var c = paper.el("circle").attr({
- |     cx: 10,
- |     cy: 10,
- |     r: 10
- | });
- | // and the same as
- | var c = paper.el("circle", {
- |     cx: 10,
- |     cy: 10,
- |     r: 10
- | });
-\*/
-Paper.prototype.el = function (name, attr) {
-    var el = make(name, this.node);
-    attr && el.attr(attr);
-    return el;
-};
-/*\
- * Element.children
- [ method ]
- **
- * Returns array of all the children of the element.
- = (array) array of Elements
-\*/
-Element.prototype.children = function () {
-    var out = [],
-        ch = this.node.childNodes;
-    for (var i = 0, ii = ch.length; i < ii; i++) {
-        out[i] = Snap(ch[i]);
-    }
-    return out;
-};
-function jsonFiller(root, o) {
-    for (var i = 0, ii = root.length; i < ii; i++) {
-        var item = {
-                type: root[i].type,
-                attr: root[i].attr()
-            },
-            children = root[i].children();
-        o.push(item);
-        if (children.length) {
-            jsonFiller(children, item.childNodes = []);
-        }
-    }
-}
-/*\
- * Element.toJSON
- [ method ]
- **
- * Returns object representation of the given element and all its children.
- = (object) in format
- o {
- o     type (string) this.type,
- o     attr (object) attributes map,
- o     childNodes (array) optional array of children in the same format
- o }
-\*/
-Element.prototype.toJSON = function () {
-    var out = [];
-    jsonFiller([this], out);
-    return out[0];
-};
-// default
-eve.on("snap.util.getattr", function () {
-    var att = eve.nt();
-    att = att.substring(att.lastIndexOf(".") + 1);
-    var css = att.replace(/[A-Z]/g, function (letter) {
-        return "-" + letter.toLowerCase();
-    });
-    if (cssAttr[has](css)) {
-        return this.node.ownerDocument.defaultView.getComputedStyle(this.node, null).getPropertyValue(css);
-    } else {
-        return $(this.node, att);
-    }
-});
-var cssAttr = {
-    "alignment-baseline": 0,
-    "baseline-shift": 0,
-    "clip": 0,
-    "clip-path": 0,
-    "clip-rule": 0,
-    "color": 0,
-    "color-interpolation": 0,
-    "color-interpolation-filters": 0,
-    "color-profile": 0,
-    "color-rendering": 0,
-    "cursor": 0,
-    "direction": 0,
-    "display": 0,
-    "dominant-baseline": 0,
-    "enable-background": 0,
-    "fill": 0,
-    "fill-opacity": 0,
-    "fill-rule": 0,
-    "filter": 0,
-    "flood-color": 0,
-    "flood-opacity": 0,
-    "font": 0,
-    "font-family": 0,
-    "font-size": 0,
-    "font-size-adjust": 0,
-    "font-stretch": 0,
-    "font-style": 0,
-    "font-variant": 0,
-    "font-weight": 0,
-    "glyph-orientation-horizontal": 0,
-    "glyph-orientation-vertical": 0,
-    "image-rendering": 0,
-    "kerning": 0,
-    "letter-spacing": 0,
-    "lighting-color": 0,
-    "marker": 0,
-    "marker-end": 0,
-    "marker-mid": 0,
-    "marker-start": 0,
-    "mask": 0,
-    "opacity": 0,
-    "overflow": 0,
-    "pointer-events": 0,
-    "shape-rendering": 0,
-    "stop-color": 0,
-    "stop-opacity": 0,
-    "stroke": 0,
-    "stroke-dasharray": 0,
-    "stroke-dashoffset": 0,
-    "stroke-linecap": 0,
-    "stroke-linejoin": 0,
-    "stroke-miterlimit": 0,
-    "stroke-opacity": 0,
-    "stroke-width": 0,
-    "text-anchor": 0,
-    "text-decoration": 0,
-    "text-rendering": 0,
-    "unicode-bidi": 0,
-    "visibility": 0,
-    "word-spacing": 0,
-    "writing-mode": 0
-};
-
-eve.on("snap.util.attr", function (value) {
-    var att = eve.nt(),
-        attr = {};
-    att = att.substring(att.lastIndexOf(".") + 1);
-    attr[att] = value;
-    var style = att.replace(/-(\w)/gi, function (all, letter) {
-            return letter.toUpperCase();
-        }),
-        css = att.replace(/[A-Z]/g, function (letter) {
-            return "-" + letter.toLowerCase();
-        });
-    if (cssAttr[has](css)) {
-        this.node.style[style] = value == null ? E : value;
-    } else {
-        $(this.node, attr);
-    }
-});
-(function (proto) {}(Paper.prototype));
-
-// simple ajax
-/*\
- * Snap.ajax
- [ method ]
- **
- * Simple implementation of Ajax
- **
- - url (string) URL
- - postData (object|string) data for post request
- - callback (function) callback
- - scope (object) #optional scope of callback
- * or
- - url (string) URL
- - callback (function) callback
- - scope (object) #optional scope of callback
- = (XMLHttpRequest) the XMLHttpRequest object, just in case
-\*/
-Snap.ajax = function (url, postData, callback, scope){
-    var req = new XMLHttpRequest,
-        id = ID();
-    if (req) {
-        if (is(postData, "function")) {
-            scope = callback;
-            callback = postData;
-            postData = null;
-        } else if (is(postData, "object")) {
-            var pd = [];
-            for (var key in postData) if (postData.hasOwnProperty(key)) {
-                pd.push(encodeURIComponent(key) + "=" + encodeURIComponent(postData[key]));
-            }
-            postData = pd.join("&");
-        }
-        req.open(postData ? "POST" : "GET", url, true);
-        if (postData) {
-            req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-            req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        }
-        if (callback) {
-            eve.once("snap.ajax." + id + ".0", callback);
-            eve.once("snap.ajax." + id + ".200", callback);
-            eve.once("snap.ajax." + id + ".304", callback);
-        }
-        req.onreadystatechange = function() {
-            if (req.readyState != 4) return;
-            eve("snap.ajax." + id + "." + req.status, scope, req);
-        };
-        if (req.readyState == 4) {
-            return req;
-        }
-        req.send(postData);
-        return req;
-    }
-};
-/*\
- * Snap.load
- [ method ]
- **
- * Loads external SVG file as a @Fragment (see @Snap.ajax for more advanced AJAX)
- **
- - url (string) URL
- - callback (function) callback
- - scope (object) #optional scope of callback
-\*/
-Snap.load = function (url, callback, scope) {
-    Snap.ajax(url, function (req) {
-        var f = Snap.parse(req.responseText);
-        scope ? callback.call(scope, f) : callback(f);
-    });
-};
-var getOffset = function (elem) {
-    var box = elem.getBoundingClientRect(),
-        doc = elem.ownerDocument,
-        body = doc.body,
-        docElem = doc.documentElement,
-        clientTop = docElem.clientTop || body.clientTop || 0, clientLeft = docElem.clientLeft || body.clientLeft || 0,
-        top  = box.top  + (g.win.pageYOffset || docElem.scrollTop || body.scrollTop ) - clientTop,
-        left = box.left + (g.win.pageXOffset || docElem.scrollLeft || body.scrollLeft) - clientLeft;
-    return {
-        y: top,
-        x: left
-    };
-};
-/*\
- * Snap.getElementByPoint
- [ method ]
- **
- * Returns you topmost element under given point.
- **
- = (object) Snap element object
- - x (number) x coordinate from the top left corner of the window
- - y (number) y coordinate from the top left corner of the window
- > Usage
- | Snap.getElementByPoint(mouseX, mouseY).attr({stroke: "#f00"});
-\*/
-Snap.getElementByPoint = function (x, y) {
-    var paper = this,
-        svg = paper.canvas,
-        target = glob.doc.elementFromPoint(x, y);
-    if (glob.win.opera && target.tagName == "svg") {
-        var so = getOffset(target),
-            sr = target.createSVGRect();
-        sr.x = x - so.x;
-        sr.y = y - so.y;
-        sr.width = sr.height = 1;
-        var hits = target.getIntersectionList(sr, null);
-        if (hits.length) {
-            target = hits[hits.length - 1];
-        }
-    }
-    if (!target) {
-        return null;
-    }
-    return wrap(target);
-};
-/*\
- * Snap.plugin
- [ method ]
- **
- * Let you write plugins. You pass in a function with five arguments, like this:
- | Snap.plugin(function (Snap, Element, Paper, global, Fragment) {
- |     Snap.newmethod = function () {};
- |     Element.prototype.newmethod = function () {};
- |     Paper.prototype.newmethod = function () {};
- | });
- * Inside the function you have access to all main objects (and their
- * prototypes). This allow you to extend anything you want.
- **
- - f (function) your plugin body
-\*/
-Snap.plugin = function (f) {
-    f(Snap, Element, Paper, glob, Fragment);
-};
-glob.win.Snap = Snap;
-return Snap;
-}(window || this));
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var elproto = Element.prototype,
-        is = Snap.is,
-        Str = String,
-        unit2px = Snap._unit2px,
-        $ = Snap._.$,
-        make = Snap._.make,
-        getSomeDefs = Snap._.getSomeDefs,
-        has = "hasOwnProperty",
-        wrap = Snap._.wrap;
-    /*\
-     * Element.getBBox
-     [ method ]
-     **
-     * Returns the bounding box descriptor for the given element
-     **
-     = (object) bounding box descriptor:
-     o {
-     o     cx: (number) x of the center,
-     o     cy: (number) x of the center,
-     o     h: (number) height,
-     o     height: (number) height,
-     o     path: (string) path command for the box,
-     o     r0: (number) radius of a circle that fully encloses the box,
-     o     r1: (number) radius of the smallest circle that can be enclosed,
-     o     r2: (number) radius of the largest circle that can be enclosed,
-     o     vb: (string) box as a viewbox command,
-     o     w: (number) width,
-     o     width: (number) width,
-     o     x2: (number) x of the right side,
-     o     x: (number) x of the left side,
-     o     y2: (number) y of the bottom edge,
-     o     y: (number) y of the top edge
-     o }
-    \*/
-    elproto.getBBox = function (isWithoutTransform) {
-        if (this.type == "tspan") {
-            return Snap._.box(this.node.getClientRects().item(0));
-        }
-        if (!Snap.Matrix || !Snap.path) {
-            return this.node.getBBox();
-        }
-        var el = this,
-            m = new Snap.Matrix;
-        if (el.removed) {
-            return Snap._.box();
-        }
-        while (el.type == "use") {
-            if (!isWithoutTransform) {
-                m = m.add(el.transform().localMatrix.translate(el.attr("x") || 0, el.attr("y") || 0));
-            }
-            if (el.original) {
-                el = el.original;
-            } else {
-                var href = el.attr("xlink:href");
-                el = el.original = el.node.ownerDocument.getElementById(href.substring(href.indexOf("#") + 1));
-            }
-        }
-        var _ = el._,
-            pathfinder = Snap.path.get[el.type] || Snap.path.get.deflt;
-        try {
-            if (isWithoutTransform) {
-                _.bboxwt = pathfinder ? Snap.path.getBBox(el.realPath = pathfinder(el)) : Snap._.box(el.node.getBBox());
-                return Snap._.box(_.bboxwt);
-            } else {
-                el.realPath = pathfinder(el);
-                el.matrix = el.transform().localMatrix;
-                _.bbox = Snap.path.getBBox(Snap.path.map(el.realPath, m.add(el.matrix)));
-                return Snap._.box(_.bbox);
-            }
-        } catch (e) {
-            // Firefox doesn’t give you bbox of hidden element
-            return Snap._.box();
-        }
-    };
-    var propString = function () {
-        return this.string;
-    };
-    function extractTransform(el, tstr) {
-        if (tstr == null) {
-            var doReturn = true;
-            if (el.type == "linearGradient" || el.type == "radialGradient") {
-                tstr = el.node.getAttribute("gradientTransform");
-            } else if (el.type == "pattern") {
-                tstr = el.node.getAttribute("patternTransform");
-            } else {
-                tstr = el.node.getAttribute("transform");
-            }
-            if (!tstr) {
-                return new Snap.Matrix;
-            }
-            tstr = Snap._.svgTransform2string(tstr);
-        } else {
-            if (!Snap._.rgTransform.test(tstr)) {
-                tstr = Snap._.svgTransform2string(tstr);
-            } else {
-                tstr = Str(tstr).replace(/\.{3}|\u2026/g, el._.transform || "");
-            }
-            if (is(tstr, "array")) {
-                tstr = Snap.path ? Snap.path.toString.call(tstr) : Str(tstr);
-            }
-            el._.transform = tstr;
-        }
-        var m = Snap._.transform2matrix(tstr, el.getBBox(1));
-        if (doReturn) {
-            return m;
-        } else {
-            el.matrix = m;
-        }
-    }
-    /*\
-     * Element.transform
-     [ method ]
-     **
-     * Gets or sets transformation of the element
-     **
-     - tstr (string) transform string in Snap or SVG format
-     = (Element) the current element
-     * or
-     = (object) transformation descriptor:
-     o {
-     o     string (string) transform string,
-     o     globalMatrix (Matrix) matrix of all transformations applied to element or its parents,
-     o     localMatrix (Matrix) matrix of transformations applied only to the element,
-     o     diffMatrix (Matrix) matrix of difference between global and local transformations,
-     o     global (string) global transformation as string,
-     o     local (string) local transformation as string,
-     o     toString (function) returns `string` property
-     o }
-    \*/
-    elproto.transform = function (tstr) {
-        var _ = this._;
-        if (tstr == null) {
-            var papa = this,
-                global = new Snap.Matrix(this.node.getCTM()),
-                local = extractTransform(this),
-                ms = [local],
-                m = new Snap.Matrix,
-                i,
-                localString = local.toTransformString(),
-                string = Str(local) == Str(this.matrix) ?
-                            Str(_.transform) : localString;
-            while (papa.type != "svg" && (papa = papa.parent())) {
-                ms.push(extractTransform(papa));
-            }
-            i = ms.length;
-            while (i--) {
-                m.add(ms[i]);
-            }
-            return {
-                string: string,
-                globalMatrix: global,
-                totalMatrix: m,
-                localMatrix: local,
-                diffMatrix: global.clone().add(local.invert()),
-                global: global.toTransformString(),
-                total: m.toTransformString(),
-                local: localString,
-                toString: propString
-            };
-        }
-        if (tstr instanceof Snap.Matrix) {
-            this.matrix = tstr;
-            this._.transform = tstr.toTransformString();
-        } else {
-            extractTransform(this, tstr);
-        }
-
-        if (this.node) {
-            if (this.type == "linearGradient" || this.type == "radialGradient") {
-                $(this.node, {gradientTransform: this.matrix});
-            } else if (this.type == "pattern") {
-                $(this.node, {patternTransform: this.matrix});
-            } else {
-                $(this.node, {transform: this.matrix});
-            }
-        }
-
-        return this;
-    };
-    /*\
-     * Element.parent
-     [ method ]
-     **
-     * Returns the element's parent
-     **
-     = (Element) the parent element
-    \*/
-    elproto.parent = function () {
-        return wrap(this.node.parentNode);
-    };
-    /*\
-     * Element.append
-     [ method ]
-     **
-     * Appends the given element to current one
-     **
-     - el (Element|Set) element to append
-     = (Element) the parent element
-    \*/
-    /*\
-     * Element.add
-     [ method ]
-     **
-     * See @Element.append
-    \*/
-    elproto.append = elproto.add = function (el) {
-        if (el) {
-            if (el.type == "set") {
-                var it = this;
-                el.forEach(function (el) {
-                    it.add(el);
-                });
-                return this;
-            }
-            el = wrap(el);
-            this.node.appendChild(el.node);
-            el.paper = this.paper;
-        }
-        return this;
-    };
-    /*\
-     * Element.appendTo
-     [ method ]
-     **
-     * Appends the current element to the given one
-     **
-     - el (Element) parent element to append to
-     = (Element) the child element
-    \*/
-    elproto.appendTo = function (el) {
-        if (el) {
-            el = wrap(el);
-            el.append(this);
-        }
-        return this;
-    };
-    /*\
-     * Element.prepend
-     [ method ]
-     **
-     * Prepends the given element to the current one
-     **
-     - el (Element) element to prepend
-     = (Element) the parent element
-    \*/
-    elproto.prepend = function (el) {
-        if (el) {
-            if (el.type == "set") {
-                var it = this,
-                    first;
-                el.forEach(function (el) {
-                    if (first) {
-                        first.after(el);
-                    } else {
-                        it.prepend(el);
-                    }
-                    first = el;
-                });
-                return this;
-            }
-            el = wrap(el);
-            var parent = el.parent();
-            this.node.insertBefore(el.node, this.node.firstChild);
-            this.add && this.add();
-            el.paper = this.paper;
-            this.parent() && this.parent().add();
-            parent && parent.add();
-        }
-        return this;
-    };
-    /*\
-     * Element.prependTo
-     [ method ]
-     **
-     * Prepends the current element to the given one
-     **
-     - el (Element) parent element to prepend to
-     = (Element) the child element
-    \*/
-    elproto.prependTo = function (el) {
-        el = wrap(el);
-        el.prepend(this);
-        return this;
-    };
-    /*\
-     * Element.before
-     [ method ]
-     **
-     * Inserts given element before the current one
-     **
-     - el (Element) element to insert
-     = (Element) the parent element
-    \*/
-    elproto.before = function (el) {
-        if (el.type == "set") {
-            var it = this;
-            el.forEach(function (el) {
-                var parent = el.parent();
-                it.node.parentNode.insertBefore(el.node, it.node);
-                parent && parent.add();
-            });
-            this.parent().add();
-            return this;
-        }
-        el = wrap(el);
-        var parent = el.parent();
-        this.node.parentNode.insertBefore(el.node, this.node);
-        this.parent() && this.parent().add();
-        parent && parent.add();
-        el.paper = this.paper;
-        return this;
-    };
-    /*\
-     * Element.after
-     [ method ]
-     **
-     * Inserts given element after the current one
-     **
-     - el (Element) element to insert
-     = (Element) the parent element
-    \*/
-    elproto.after = function (el) {
-        el = wrap(el);
-        var parent = el.parent();
-        if (this.node.nextSibling) {
-            this.node.parentNode.insertBefore(el.node, this.node.nextSibling);
-        } else {
-            this.node.parentNode.appendChild(el.node);
-        }
-        this.parent() && this.parent().add();
-        parent && parent.add();
-        el.paper = this.paper;
-        return this;
-    };
-    /*\
-     * Element.insertBefore
-     [ method ]
-     **
-     * Inserts the element after the given one
-     **
-     - el (Element) element next to whom insert to
-     = (Element) the parent element
-    \*/
-    elproto.insertBefore = function (el) {
-        el = wrap(el);
-        var parent = this.parent();
-        el.node.parentNode.insertBefore(this.node, el.node);
-        this.paper = el.paper;
-        parent && parent.add();
-        el.parent() && el.parent().add();
-        return this;
-    };
-    /*\
-     * Element.insertAfter
-     [ method ]
-     **
-     * Inserts the element after the given one
-     **
-     - el (Element) element next to whom insert to
-     = (Element) the parent element
-    \*/
-    elproto.insertAfter = function (el) {
-        el = wrap(el);
-        var parent = this.parent();
-        el.node.parentNode.insertBefore(this.node, el.node.nextSibling);
-        this.paper = el.paper;
-        parent && parent.add();
-        el.parent() && el.parent().add();
-        return this;
-    };
-    /*\
-     * Element.remove
-     [ method ]
-     **
-     * Removes element from the DOM
-     = (Element) the detached element
-    \*/
-    elproto.remove = function () {
-        var parent = this.parent();
-        this.node.parentNode && this.node.parentNode.removeChild(this.node);
-        delete this.paper;
-        this.removed = true;
-        parent && parent.add();
-        return this;
-    };
-    /*\
-     * Element.select
-     [ method ]
-     **
-     * Gathers the nested @Element matching the given set of CSS selectors
-     **
-     - query (string) CSS selector
-     = (Element) result of query selection
-    \*/
-    elproto.select = function (query) {
-        return wrap(this.node.querySelector(query));
-    };
-    /*\
-     * Element.selectAll
-     [ method ]
-     **
-     * Gathers nested @Element objects matching the given set of CSS selectors
-     **
-     - query (string) CSS selector
-     = (Set|array) result of query selection
-    \*/
-    elproto.selectAll = function (query) {
-        var nodelist = this.node.querySelectorAll(query),
-            set = (Snap.set || Array)();
-        for (var i = 0; i < nodelist.length; i++) {
-            set.push(wrap(nodelist[i]));
-        }
-        return set;
-    };
-    /*\
-     * Element.asPX
-     [ method ]
-     **
-     * Returns given attribute of the element as a `px` value (not %, em, etc.)
-     **
-     - attr (string) attribute name
-     - value (string) #optional attribute value
-     = (Element) result of query selection
-    \*/
-    elproto.asPX = function (attr, value) {
-        if (value == null) {
-            value = this.attr(attr);
-        }
-        return +unit2px(this, attr, value);
-    };
-    // SIERRA Element.use(): I suggest adding a note about how to access the original element the returned <use> instantiates. It's a part of SVG with which ordinary web developers may be least familiar.
-    /*\
-     * Element.use
-     [ method ]
-     **
-     * Creates a `<use>` element linked to the current element
-     **
-     = (Element) the `<use>` element
-    \*/
-    elproto.use = function () {
-        var use,
-            id = this.node.id;
-        if (!id) {
-            id = this.id;
-            $(this.node, {
-                id: id
-            });
-        }
-        if (this.type == "linearGradient" || this.type == "radialGradient" ||
-            this.type == "pattern") {
-            use = make(this.type, this.node.parentNode);
-        } else {
-            use = make("use", this.node.parentNode);
-        }
-        $(use.node, {
-            "xlink:href": "#" + id
-        });
-        use.original = this;
-        return use;
-    };
-    function fixids(el) {
-        var els = el.selectAll("*"),
-            it,
-            url = /^\s*url\(("|'|)(.*)\1\)\s*$/,
-            ids = [],
-            uses = {};
-        function urltest(it, name) {
-            var val = $(it.node, name);
-            val = val && val.match(url);
-            val = val && val[2];
-            if (val && val.charAt() == "#") {
-                val = val.substring(1);
-            } else {
-                return;
-            }
-            if (val) {
-                uses[val] = (uses[val] || []).concat(function (id) {
-                    var attr = {};
-                    attr[name] = Snap.url(id);
-                    $(it.node, attr);
-                });
-            }
-        }
-        function linktest(it) {
-            var val = $(it.node, "xlink:href");
-            if (val && val.charAt() == "#") {
-                val = val.substring(1);
-            } else {
-                return;
-            }
-            if (val) {
-                uses[val] = (uses[val] || []).concat(function (id) {
-                    it.attr("xlink:href", "#" + id);
-                });
-            }
-        }
-        for (var i = 0, ii = els.length; i < ii; i++) {
-            it = els[i];
-            urltest(it, "fill");
-            urltest(it, "stroke");
-            urltest(it, "filter");
-            urltest(it, "mask");
-            urltest(it, "clip-path");
-            linktest(it);
-            var oldid = $(it.node, "id");
-            if (oldid) {
-                $(it.node, {id: it.id});
-                ids.push({
-                    old: oldid,
-                    id: it.id
-                });
-            }
-        }
-        for (i = 0, ii = ids.length; i < ii; i++) {
-            var fs = uses[ids[i].old];
-            if (fs) {
-                for (var j = 0, jj = fs.length; j < jj; j++) {
-                    fs[j](ids[i].id);
-                }
-            }
-        }
-    }
-    /*\
-     * Element.clone
-     [ method ]
-     **
-     * Creates a clone of the element and inserts it after the element
-     **
-     = (Element) the clone
-    \*/
-    elproto.clone = function () {
-        var clone = wrap(this.node.cloneNode(true));
-        if ($(clone.node, "id")) {
-            $(clone.node, {id: clone.id});
-        }
-        fixids(clone);
-        clone.insertAfter(this);
-        return clone;
-    };
-    /*\
-     * Element.toDefs
-     [ method ]
-     **
-     * Moves element to the shared `<defs>` area
-     **
-     = (Element) the element
-    \*/
-    elproto.toDefs = function () {
-        var defs = getSomeDefs(this);
-        defs.appendChild(this.node);
-        return this;
-    };
-    /*\
-     * Element.toPattern
-     [ method ]
-     **
-     * Creates a `<pattern>` element from the current element
-     **
-     * To create a pattern you have to specify the pattern rect:
-     - x (string|number)
-     - y (string|number)
-     - width (string|number)
-     - height (string|number)
-     = (Element) the `<pattern>` element
-     * You can use pattern later on as an argument for `fill` attribute:
-     | var p = paper.path("M10-5-10,15M15,0,0,15M0-5-20,15").attr({
-     |         fill: "none",
-     |         stroke: "#bada55",
-     |         strokeWidth: 5
-     |     }).pattern(0, 0, 10, 10),
-     |     c = paper.circle(200, 200, 100);
-     | c.attr({
-     |     fill: p
-     | });
-    \*/
-    elproto.pattern = elproto.toPattern = function (x, y, width, height) {
-        var p = make("pattern", getSomeDefs(this));
-        if (x == null) {
-            x = this.getBBox();
-        }
-        if (is(x, "object") && "x" in x) {
-            y = x.y;
-            width = x.width;
-            height = x.height;
-            x = x.x;
-        }
-        $(p.node, {
-            x: x,
-            y: y,
-            width: width,
-            height: height,
-            patternUnits: "userSpaceOnUse",
-            id: p.id,
-            viewBox: [x, y, width, height].join(" ")
-        });
-        p.node.appendChild(this.node);
-        return p;
-    };
-// SIERRA Element.marker(): clarify what a reference point is. E.g., helps you offset the object from its edge such as when centering it over a path.
-// SIERRA Element.marker(): I suggest the method should accept default reference point values.  Perhaps centered with (refX = width/2) and (refY = height/2)? Also, couldn't it assume the element's current _width_ and _height_? And please specify what _x_ and _y_ mean: offsets? If so, from where?  Couldn't they also be assigned default values?
-    /*\
-     * Element.marker
-     [ method ]
-     **
-     * Creates a `<marker>` element from the current element
-     **
-     * To create a marker you have to specify the bounding rect and reference point:
-     - x (number)
-     - y (number)
-     - width (number)
-     - height (number)
-     - refX (number)
-     - refY (number)
-     = (Element) the `<marker>` element
-     * You can specify the marker later as an argument for `marker-start`, `marker-end`, `marker-mid`, and `marker` attributes. The `marker` attribute places the marker at every point along the path, and `marker-mid` places them at every point except the start and end.
-    \*/
-    // TODO add usage for markers
-    elproto.marker = function (x, y, width, height, refX, refY) {
-        var p = make("marker", getSomeDefs(this));
-        if (x == null) {
-            x = this.getBBox();
-        }
-        if (is(x, "object") && "x" in x) {
-            y = x.y;
-            width = x.width;
-            height = x.height;
-            refX = x.refX || x.cx;
-            refY = x.refY || x.cy;
-            x = x.x;
-        }
-        $(p.node, {
-            viewBox: [x, y, width, height].join(" "),
-            markerWidth: width,
-            markerHeight: height,
-            orient: "auto",
-            refX: refX || 0,
-            refY: refY || 0,
-            id: p.id
-        });
-        p.node.appendChild(this.node);
-        return p;
-    };
-    var eldata = {};
-    /*\
-     * Element.data
-     [ method ]
-     **
-     * Adds or retrieves given value associated with given key. (Don’t confuse
-     * with `data-` attributes)
-     *
-     * See also @Element.removeData
-     - key (string) key to store data
-     - value (any) #optional value to store
-     = (object) @Element
-     * or, if value is not specified:
-     = (any) value
-     > Usage
-     | for (var i = 0, i < 5, i++) {
-     |     paper.circle(10 + 15 * i, 10, 10)
-     |          .attr({fill: "#000"})
-     |          .data("i", i)
-     |          .click(function () {
-     |             alert(this.data("i"));
-     |          });
-     | }
-    \*/
-    elproto.data = function (key, value) {
-        var data = eldata[this.id] = eldata[this.id] || {};
-        if (arguments.length == 0){
-            eve("snap.data.get." + this.id, this, data, null);
-            return data;
-        }
-        if (arguments.length == 1) {
-            if (Snap.is(key, "object")) {
-                for (var i in key) if (key[has](i)) {
-                    this.data(i, key[i]);
-                }
-                return this;
-            }
-            eve("snap.data.get." + this.id, this, data[key], key);
-            return data[key];
-        }
-        data[key] = value;
-        eve("snap.data.set." + this.id, this, value, key);
-        return this;
-    };
-    /*\
-     * Element.removeData
-     [ method ]
-     **
-     * Removes value associated with an element by given key.
-     * If key is not provided, removes all the data of the element.
-     - key (string) #optional key
-     = (object) @Element
-    \*/
-    elproto.removeData = function (key) {
-        if (key == null) {
-            eldata[this.id] = {};
-        } else {
-            eldata[this.id] && delete eldata[this.id][key];
-        }
-        return this;
-    };
-    /*\
-     * Element.outerSVG
-     [ method ]
-     **
-     * Returns SVG code for the element, equivalent to HTML's `outerHTML`.
-     *
-     * See also @Element.innerSVG
-     = (string) SVG code for the element
-    \*/
-    /*\
-     * Element.toString
-     [ method ]
-     **
-     * See @Element.outerSVG
-    \*/
-    elproto.outerSVG = elproto.toString = toString(1);
-    /*\
-     * Element.innerSVG
-     [ method ]
-     **
-     * Returns SVG code for the element's contents, equivalent to HTML's `innerHTML`
-     = (string) SVG code for the element
-    \*/
-    elproto.innerSVG = toString();
-    function toString(type) {
-        return function () {
-            var res = type ? "<" + this.type : "",
-                attr = this.node.attributes,
-                chld = this.node.childNodes;
-            if (type) {
-                for (var i = 0, ii = attr.length; i < ii; i++) {
-                    res += " " + attr[i].name + '="' +
-                            attr[i].value.replace(/"/g, '\\"') + '"';
-                }
-            }
-            if (chld.length) {
-                type && (res += ">");
-                for (i = 0, ii = chld.length; i < ii; i++) {
-                    if (chld[i].nodeType == 3) {
-                        res += chld[i].nodeValue;
-                    } else if (chld[i].nodeType == 1) {
-                        res += wrap(chld[i]).toString();
-                    }
-                }
-                type && (res += "</" + this.type + ">");
-            } else {
-                type && (res += "/>");
-            }
-            return res;
-        };
-    }
-    elproto.toDataURL = function () {
-        if (window && window.btoa) {
-            var bb = this.getBBox(),
-                svg = Snap.format('<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{width}" height="{height}" viewBox="{x} {y} {width} {height}">{contents}</svg>', {
-                x: +bb.x.toFixed(3),
-                y: +bb.y.toFixed(3),
-                width: +bb.width.toFixed(3),
-                height: +bb.height.toFixed(3),
-                contents: this.outerSVG()
-            });
-            return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
-        }
-    };
-    /*\
-     * Fragment.select
-     [ method ]
-     **
-     * See @Element.select
-    \*/
-    Fragment.prototype.select = elproto.select;
-    /*\
-     * Fragment.selectAll
-     [ method ]
-     **
-     * See @Element.selectAll
-    \*/
-    Fragment.prototype.selectAll = elproto.selectAll;
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var objectToString = Object.prototype.toString,
-        Str = String,
-        math = Math,
-        E = "";
-    function Matrix(a, b, c, d, e, f) {
-        if (b == null && objectToString.call(a) == "[object SVGMatrix]") {
-            this.a = a.a;
-            this.b = a.b;
-            this.c = a.c;
-            this.d = a.d;
-            this.e = a.e;
-            this.f = a.f;
-            return;
-        }
-        if (a != null) {
-            this.a = +a;
-            this.b = +b;
-            this.c = +c;
-            this.d = +d;
-            this.e = +e;
-            this.f = +f;
-        } else {
-            this.a = 1;
-            this.b = 0;
-            this.c = 0;
-            this.d = 1;
-            this.e = 0;
-            this.f = 0;
-        }
-    }
-    (function (matrixproto) {
-        /*\
-         * Matrix.add
-         [ method ]
-         **
-         * Adds the given matrix to existing one
-         - a (number)
-         - b (number)
-         - c (number)
-         - d (number)
-         - e (number)
-         - f (number)
-         * or
-         - matrix (object) @Matrix
-        \*/
-        matrixproto.add = function (a, b, c, d, e, f) {
-            if (a && a instanceof Matrix) {
-                return this.add(a.a, a.b, a.c, a.d, a.e, a.f);
-            }
-            var aNew = a * this.a + b * this.c,
-                bNew = a * this.b + b * this.d;
-            this.e += e * this.a + f * this.c;
-            this.f += e * this.b + f * this.d;
-            this.c = c * this.a + d * this.c;
-            this.d = c * this.b + d * this.d;
-
-            this.a = aNew;
-            this.b = bNew;
-            return this;
-        };
-        /*\
-         * Matrix.multLeft
-         [ method ]
-         **
-         * Multiplies a passed affine transform to the left: M * this.
-         - a (number)
-         - b (number)
-         - c (number)
-         - d (number)
-         - e (number)
-         - f (number)
-         * or
-         - matrix (object) @Matrix
-        \*/
-        Matrix.prototype.multLeft = function (a, b, c, d, e, f) {
-            if (a && a instanceof Matrix) {
-                return this.multLeft(a.a, a.b, a.c, a.d, a.e, a.f);
-            }
-            var aNew = a * this.a + c * this.b,
-                cNew = a * this.c + c * this.d,
-                eNew = a * this.e + c * this.f + e;
-            this.b = b * this.a + d * this.b;
-            this.d = b * this.c + d * this.d;
-            this.f = b * this.e + d * this.f + f;
-
-            this.a = aNew;
-            this.c = cNew;
-            this.e = eNew;
-            return this;
-        };
-        /*\
-         * Matrix.invert
-         [ method ]
-         **
-         * Returns an inverted version of the matrix
-         = (object) @Matrix
-        \*/
-        matrixproto.invert = function () {
-            var me = this,
-                x = me.a * me.d - me.b * me.c;
-            return new Matrix(me.d / x, -me.b / x, -me.c / x, me.a / x, (me.c * me.f - me.d * me.e) / x, (me.b * me.e - me.a * me.f) / x);
-        };
-        /*\
-         * Matrix.clone
-         [ method ]
-         **
-         * Returns a copy of the matrix
-         = (object) @Matrix
-        \*/
-        matrixproto.clone = function () {
-            return new Matrix(this.a, this.b, this.c, this.d, this.e, this.f);
-        };
-        /*\
-         * Matrix.translate
-         [ method ]
-         **
-         * Translate the matrix
-         - x (number) horizontal offset distance
-         - y (number) vertical offset distance
-        \*/
-        matrixproto.translate = function (x, y) {
-            this.e += x * this.a + y * this.c;
-            this.f += x * this.b + y * this.d;
-            return this;
-        };
-        /*\
-         * Matrix.scale
-         [ method ]
-         **
-         * Scales the matrix
-         - x (number) amount to be scaled, with `1` resulting in no change
-         - y (number) #optional amount to scale along the vertical axis. (Otherwise `x` applies to both axes.)
-         - cx (number) #optional horizontal origin point from which to scale
-         - cy (number) #optional vertical origin point from which to scale
-         * Default cx, cy is the middle point of the element.
-        \*/
-        matrixproto.scale = function (x, y, cx, cy) {
-            y == null && (y = x);
-            (cx || cy) && this.translate(cx, cy);
-            this.a *= x;
-            this.b *= x;
-            this.c *= y;
-            this.d *= y;
-            (cx || cy) && this.translate(-cx, -cy);
-            return this;
-        };
-        /*\
-         * Matrix.rotate
-         [ method ]
-         **
-         * Rotates the matrix
-         - a (number) angle of rotation, in degrees
-         - x (number) horizontal origin point from which to rotate
-         - y (number) vertical origin point from which to rotate
-        \*/
-        matrixproto.rotate = function (a, x, y) {
-            a = Snap.rad(a);
-            x = x || 0;
-            y = y || 0;
-            var cos = +math.cos(a).toFixed(9),
-                sin = +math.sin(a).toFixed(9);
-            this.add(cos, sin, -sin, cos, x, y);
-            return this.add(1, 0, 0, 1, -x, -y);
-        };
-        /*\
-         * Matrix.skewX
-         [ method ]
-         **
-         * Skews the matrix along the x-axis
-         - x (number) Angle to skew along the x-axis (in degrees).
-        \*/
-        matrixproto.skewX = function (x) {
-            return this.skew(x, 0);
-        };
-        /*\
-         * Matrix.skewY
-         [ method ]
-         **
-         * Skews the matrix along the y-axis
-         - y (number) Angle to skew along the y-axis (in degrees).
-        \*/
-        matrixproto.skewY = function (y) {
-            return this.skew(0, y);
-        };
-        /*\
-         * Matrix.skew
-         [ method ]
-         **
-         * Skews the matrix
-         - y (number) Angle to skew along the y-axis (in degrees).
-         - x (number) Angle to skew along the x-axis (in degrees).
-        \*/
-        matrixproto.skew = function (x, y) {
-            x = x || 0;
-            y = y || 0;
-            x = Snap.rad(x);
-            y = Snap.rad(y);
-            var c = math.tan(x).toFixed(9);
-            var b = math.tan(y).toFixed(9);
-            return this.add(1, b, c, 1, 0, 0);
-        };
-        /*\
-         * Matrix.x
-         [ method ]
-         **
-         * Returns x coordinate for given point after transformation described by the matrix. See also @Matrix.y
-         - x (number)
-         - y (number)
-         = (number) x
-        \*/
-        matrixproto.x = function (x, y) {
-            return x * this.a + y * this.c + this.e;
-        };
-        /*\
-         * Matrix.y
-         [ method ]
-         **
-         * Returns y coordinate for given point after transformation described by the matrix. See also @Matrix.x
-         - x (number)
-         - y (number)
-         = (number) y
-        \*/
-        matrixproto.y = function (x, y) {
-            return x * this.b + y * this.d + this.f;
-        };
-        matrixproto.get = function (i) {
-            return +this[Str.fromCharCode(97 + i)].toFixed(4);
-        };
-        matrixproto.toString = function () {
-            return "matrix(" + [this.get(0), this.get(1), this.get(2), this.get(3), this.get(4), this.get(5)].join() + ")";
-        };
-        matrixproto.offset = function () {
-            return [this.e.toFixed(4), this.f.toFixed(4)];
-        };
-        function norm(a) {
-            return a[0] * a[0] + a[1] * a[1];
-        }
-        function normalize(a) {
-            var mag = math.sqrt(norm(a));
-            a[0] && (a[0] /= mag);
-            a[1] && (a[1] /= mag);
-        }
-        /*\
-         * Matrix.determinant
-         [ method ]
-         **
-         * Finds determinant of the given matrix.
-         = (number) determinant
-        \*/
-        matrixproto.determinant = function () {
-            return this.a * this.d - this.b * this.c;
-        };
-        /*\
-         * Matrix.split
-         [ method ]
-         **
-         * Splits matrix into primitive transformations
-         = (object) in format:
-         o dx (number) translation by x
-         o dy (number) translation by y
-         o scalex (number) scale by x
-         o scaley (number) scale by y
-         o shear (number) shear
-         o rotate (number) rotation in deg
-         o isSimple (boolean) could it be represented via simple transformations
-        \*/
-        matrixproto.split = function () {
-            var out = {};
-            // translation
-            out.dx = this.e;
-            out.dy = this.f;
-
-            // scale and shear
-            var row = [[this.a, this.b], [this.c, this.d]];
-            out.scalex = math.sqrt(norm(row[0]));
-            normalize(row[0]);
-
-            out.shear = row[0][0] * row[1][0] + row[0][1] * row[1][1];
-            row[1] = [row[1][0] - row[0][0] * out.shear, row[1][1] - row[0][1] * out.shear];
-
-            out.scaley = math.sqrt(norm(row[1]));
-            normalize(row[1]);
-            out.shear /= out.scaley;
-
-            if (this.determinant() < 0) {
-                out.scalex = -out.scalex;
-            }
-
-            // rotation
-            var sin = row[0][1],
-                cos = row[1][1];
-            if (cos < 0) {
-                out.rotate = Snap.deg(math.acos(cos));
-                if (sin < 0) {
-                    out.rotate = 360 - out.rotate;
-                }
-            } else {
-                out.rotate = Snap.deg(math.asin(sin));
-            }
-
-            out.isSimple = !+out.shear.toFixed(9) && (out.scalex.toFixed(9) == out.scaley.toFixed(9) || !out.rotate);
-            out.isSuperSimple = !+out.shear.toFixed(9) && out.scalex.toFixed(9) == out.scaley.toFixed(9) && !out.rotate;
-            out.noRotation = !+out.shear.toFixed(9) && !out.rotate;
-            return out;
-        };
-        /*\
-         * Matrix.toTransformString
-         [ method ]
-         **
-         * Returns transform string that represents given matrix
-         = (string) transform string
-        \*/
-        matrixproto.toTransformString = function (shorter) {
-            var s = shorter || this.split();
-            if (!+s.shear.toFixed(9)) {
-                s.scalex = +s.scalex.toFixed(4);
-                s.scaley = +s.scaley.toFixed(4);
-                s.rotate = +s.rotate.toFixed(4);
-                return  (s.dx || s.dy ? "t" + [+s.dx.toFixed(4), +s.dy.toFixed(4)] : E) +
-                        (s.rotate ? "r" + [+s.rotate.toFixed(4), 0, 0] : E) +
-                        (s.scalex != 1 || s.scaley != 1 ? "s" + [s.scalex, s.scaley, 0, 0] : E);
-            } else {
-                return "m" + [this.get(0), this.get(1), this.get(2), this.get(3), this.get(4), this.get(5)];
-            }
-        };
-    })(Matrix.prototype);
-    /*\
-     * Snap.Matrix
-     [ method ]
-     **
-     * Matrix constructor, extend on your own risk.
-     * To create matrices use @Snap.matrix.
-    \*/
-    Snap.Matrix = Matrix;
-    /*\
-     * Snap.matrix
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns a matrix based on the given parameters
-     - a (number)
-     - b (number)
-     - c (number)
-     - d (number)
-     - e (number)
-     - f (number)
-     * or
-     - svgMatrix (SVGMatrix)
-     = (object) @Matrix
-    \*/
-    Snap.matrix = function (a, b, c, d, e, f) {
-        return new Matrix(a, b, c, d, e, f);
-    };
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var has = "hasOwnProperty",
-        make = Snap._.make,
-        wrap = Snap._.wrap,
-        is = Snap.is,
-        getSomeDefs = Snap._.getSomeDefs,
-        reURLValue = /^url\((['"]?)([^)]+)\1\)$/,
-        $ = Snap._.$,
-        URL = Snap.url,
-        Str = String,
-        separator = Snap._.separator,
-        E = "";
-    /*\
-     * Snap.deurl
-     [ method ]
-     **
-     * Unwraps path from `"url(<path>)"`.
-     - value (string) url path
-     = (string) unwrapped path
-    \*/
-    Snap.deurl = function (value) {
-        var res = String(value).match(reURLValue);
-        return res ? res[2] : value;
-    }
-    // Attributes event handlers
-    eve.on("snap.util.attr.mask", function (value) {
-        if (value instanceof Element || value instanceof Fragment) {
-            eve.stop();
-            if (value instanceof Fragment && value.node.childNodes.length == 1) {
-                value = value.node.firstChild;
-                getSomeDefs(this).appendChild(value);
-                value = wrap(value);
-            }
-            if (value.type == "mask") {
-                var mask = value;
-            } else {
-                mask = make("mask", getSomeDefs(this));
-                mask.node.appendChild(value.node);
-            }
-            !mask.node.id && $(mask.node, {
-                id: mask.id
-            });
-            $(this.node, {
-                mask: URL(mask.id)
-            });
-        }
-    });
-    (function (clipIt) {
-        eve.on("snap.util.attr.clip", clipIt);
-        eve.on("snap.util.attr.clip-path", clipIt);
-        eve.on("snap.util.attr.clipPath", clipIt);
-    }(function (value) {
-        if (value instanceof Element || value instanceof Fragment) {
-            eve.stop();
-            var clip,
-                node = value.node;
-            while (node) {
-                if (node.nodeName === "clipPath") {
-                    clip = new Element(node);
-                    break;
-                }
-                if (node.nodeName === "svg") {
-                    clip = undefined;
-                    break;
-                }
-                node = node.parentNode;
-            }
-            if (!clip) {
-                clip = make("clipPath", getSomeDefs(this));
-                clip.node.appendChild(value.node);
-                !clip.node.id && $(clip.node, {
-                    id: clip.id
-                });
-            }
-            $(this.node, {
-                "clip-path": URL(clip.node.id || clip.id)
-            });
-        }
-    }));
-    function fillStroke(name) {
-        return function (value) {
-            eve.stop();
-            if (value instanceof Fragment && value.node.childNodes.length == 1 &&
-                (value.node.firstChild.tagName == "radialGradient" ||
-                value.node.firstChild.tagName == "linearGradient" ||
-                value.node.firstChild.tagName == "pattern")) {
-                value = value.node.firstChild;
-                getSomeDefs(this).appendChild(value);
-                value = wrap(value);
-            }
-            if (value instanceof Element) {
-                if (value.type == "radialGradient" || value.type == "linearGradient"
-                   || value.type == "pattern") {
-                    if (!value.node.id) {
-                        $(value.node, {
-                            id: value.id
-                        });
-                    }
-                    var fill = URL(value.node.id);
-                } else {
-                    fill = value.attr(name);
-                }
-            } else {
-                fill = Snap.color(value);
-                if (fill.error) {
-                    var grad = Snap(getSomeDefs(this).ownerSVGElement).gradient(value);
-                    if (grad) {
-                        if (!grad.node.id) {
-                            $(grad.node, {
-                                id: grad.id
-                            });
-                        }
-                        fill = URL(grad.node.id);
-                    } else {
-                        fill = value;
-                    }
-                } else {
-                    fill = Str(fill);
-                }
-            }
-            var attrs = {};
-            attrs[name] = fill;
-            $(this.node, attrs);
-            this.node.style[name] = E;
-        };
-    }
-    eve.on("snap.util.attr.fill", fillStroke("fill"));
-    eve.on("snap.util.attr.stroke", fillStroke("stroke"));
-    var gradrg = /^([lr])(?:\(([^)]*)\))?(.*)$/i;
-    eve.on("snap.util.grad.parse", function parseGrad(string) {
-        string = Str(string);
-        var tokens = string.match(gradrg);
-        if (!tokens) {
-            return null;
-        }
-        var type = tokens[1],
-            params = tokens[2],
-            stops = tokens[3];
-        params = params.split(/\s*,\s*/).map(function (el) {
-            return +el == el ? +el : el;
-        });
-        if (params.length == 1 && params[0] == 0) {
-            params = [];
-        }
-        stops = stops.split("-");
-        stops = stops.map(function (el) {
-            el = el.split(":");
-            var out = {
-                color: el[0]
-            };
-            if (el[1]) {
-                out.offset = parseFloat(el[1]);
-            }
-            return out;
-        });
-        var len = stops.length,
-            start = 0,
-            j = 0;
-        function seed(i, end) {
-            var step = (end - start) / (i - j);
-            for (var k = j; k < i; k++) {
-                stops[k].offset = +(+start + step * (k - j)).toFixed(2);
-            }
-            j = i;
-            start = end;
-        }
-        len--;
-        for (var i = 0; i < len; i++) if ("offset" in stops[i]) {
-            seed(i, stops[i].offset);
-        }
-        stops[len].offset = stops[len].offset || 100;
-        seed(len, stops[len].offset);
-        return {
-            type: type,
-            params: params,
-            stops: stops
-        };
-    });
-
-    eve.on("snap.util.attr.d", function (value) {
-        eve.stop();
-        if (is(value, "array") && is(value[0], "array")) {
-            value = Snap.path.toString.call(value);
-        }
-        value = Str(value);
-        if (value.match(/[ruo]/i)) {
-            value = Snap.path.toAbsolute(value);
-        }
-        $(this.node, {d: value});
-    })(-1);
-    eve.on("snap.util.attr.#text", function (value) {
-        eve.stop();
-        value = Str(value);
-        var txt = glob.doc.createTextNode(value);
-        while (this.node.firstChild) {
-            this.node.removeChild(this.node.firstChild);
-        }
-        this.node.appendChild(txt);
-    })(-1);
-    eve.on("snap.util.attr.path", function (value) {
-        eve.stop();
-        this.attr({d: value});
-    })(-1);
-    eve.on("snap.util.attr.class", function (value) {
-        eve.stop();
-        this.node.className.baseVal = value;
-    })(-1);
-    eve.on("snap.util.attr.viewBox", function (value) {
-        var vb;
-        if (is(value, "object") && "x" in value) {
-            vb = [value.x, value.y, value.width, value.height].join(" ");
-        } else if (is(value, "array")) {
-            vb = value.join(" ");
-        } else {
-            vb = value;
-        }
-        $(this.node, {
-            viewBox: vb
-        });
-        eve.stop();
-    })(-1);
-    eve.on("snap.util.attr.transform", function (value) {
-        this.transform(value);
-        eve.stop();
-    })(-1);
-    eve.on("snap.util.attr.r", function (value) {
-        if (this.type == "rect") {
-            eve.stop();
-            $(this.node, {
-                rx: value,
-                ry: value
-            });
-        }
-    })(-1);
-    eve.on("snap.util.attr.textpath", function (value) {
-        eve.stop();
-        if (this.type == "text") {
-            var id, tp, node;
-            if (!value && this.textPath) {
-                tp = this.textPath;
-                while (tp.node.firstChild) {
-                    this.node.appendChild(tp.node.firstChild);
-                }
-                tp.remove();
-                delete this.textPath;
-                return;
-            }
-            if (is(value, "string")) {
-                var defs = getSomeDefs(this),
-                    path = wrap(defs.parentNode).path(value);
-                defs.appendChild(path.node);
-                id = path.id;
-                path.attr({id: id});
-            } else {
-                value = wrap(value);
-                if (value instanceof Element) {
-                    id = value.attr("id");
-                    if (!id) {
-                        id = value.id;
-                        value.attr({id: id});
-                    }
-                }
-            }
-            if (id) {
-                tp = this.textPath;
-                node = this.node;
-                if (tp) {
-                    tp.attr({"xlink:href": "#" + id});
-                } else {
-                    tp = $("textPath", {
-                        "xlink:href": "#" + id
-                    });
-                    while (node.firstChild) {
-                        tp.appendChild(node.firstChild);
-                    }
-                    node.appendChild(tp);
-                    this.textPath = wrap(tp);
-                }
-            }
-        }
-    })(-1);
-    eve.on("snap.util.attr.text", function (value) {
-        if (this.type == "text") {
-            var i = 0,
-                node = this.node,
-                tuner = function (chunk) {
-                    var out = $("tspan");
-                    if (is(chunk, "array")) {
-                        for (var i = 0; i < chunk.length; i++) {
-                            out.appendChild(tuner(chunk[i]));
-                        }
-                    } else {
-                        out.appendChild(glob.doc.createTextNode(chunk));
-                    }
-                    out.normalize && out.normalize();
-                    return out;
-                };
-            while (node.firstChild) {
-                node.removeChild(node.firstChild);
-            }
-            var tuned = tuner(value);
-            while (tuned.firstChild) {
-                node.appendChild(tuned.firstChild);
-            }
-        }
-        eve.stop();
-    })(-1);
-    function setFontSize(value) {
-        eve.stop();
-        if (value == +value) {
-            value += "px";
-        }
-        this.node.style.fontSize = value;
-    }
-    eve.on("snap.util.attr.fontSize", setFontSize)(-1);
-    eve.on("snap.util.attr.font-size", setFontSize)(-1);
-
-
-    eve.on("snap.util.getattr.transform", function () {
-        eve.stop();
-        return this.transform();
-    })(-1);
-    eve.on("snap.util.getattr.textpath", function () {
-        eve.stop();
-        return this.textPath;
-    })(-1);
-    // Markers
-    (function () {
-        function getter(end) {
-            return function () {
-                eve.stop();
-                var style = glob.doc.defaultView.getComputedStyle(this.node, null).getPropertyValue("marker-" + end);
-                if (style == "none") {
-                    return style;
-                } else {
-                    return Snap(glob.doc.getElementById(style.match(reURLValue)[1]));
-                }
-            };
-        }
-        function setter(end) {
-            return function (value) {
-                eve.stop();
-                var name = "marker" + end.charAt(0).toUpperCase() + end.substring(1);
-                if (value == "" || !value) {
-                    this.node.style[name] = "none";
-                    return;
-                }
-                if (value.type == "marker") {
-                    var id = value.node.id;
-                    if (!id) {
-                        $(value.node, {id: value.id});
-                    }
-                    this.node.style[name] = URL(id);
-                    return;
-                }
-            };
-        }
-        eve.on("snap.util.getattr.marker-end", getter("end"))(-1);
-        eve.on("snap.util.getattr.markerEnd", getter("end"))(-1);
-        eve.on("snap.util.getattr.marker-start", getter("start"))(-1);
-        eve.on("snap.util.getattr.markerStart", getter("start"))(-1);
-        eve.on("snap.util.getattr.marker-mid", getter("mid"))(-1);
-        eve.on("snap.util.getattr.markerMid", getter("mid"))(-1);
-        eve.on("snap.util.attr.marker-end", setter("end"))(-1);
-        eve.on("snap.util.attr.markerEnd", setter("end"))(-1);
-        eve.on("snap.util.attr.marker-start", setter("start"))(-1);
-        eve.on("snap.util.attr.markerStart", setter("start"))(-1);
-        eve.on("snap.util.attr.marker-mid", setter("mid"))(-1);
-        eve.on("snap.util.attr.markerMid", setter("mid"))(-1);
-    }());
-    eve.on("snap.util.getattr.r", function () {
-        if (this.type == "rect" && $(this.node, "rx") == $(this.node, "ry")) {
-            eve.stop();
-            return $(this.node, "rx");
-        }
-    })(-1);
-    function textExtract(node) {
-        var out = [];
-        var children = node.childNodes;
-        for (var i = 0, ii = children.length; i < ii; i++) {
-            var chi = children[i];
-            if (chi.nodeType == 3) {
-                out.push(chi.nodeValue);
-            }
-            if (chi.tagName == "tspan") {
-                if (chi.childNodes.length == 1 && chi.firstChild.nodeType == 3) {
-                    out.push(chi.firstChild.nodeValue);
-                } else {
-                    out.push(textExtract(chi));
-                }
-            }
-        }
-        return out;
-    }
-    eve.on("snap.util.getattr.text", function () {
-        if (this.type == "text" || this.type == "tspan") {
-            eve.stop();
-            var out = textExtract(this.node);
-            return out.length == 1 ? out[0] : out;
-        }
-    })(-1);
-    eve.on("snap.util.getattr.#text", function () {
-        return this.node.textContent;
-    })(-1);
-    eve.on("snap.util.getattr.fill", function (internal) {
-        if (internal) {
-            return;
-        }
-        eve.stop();
-        var value = eve("snap.util.getattr.fill", this, true).firstDefined();
-        return Snap(Snap.deurl(value)) || value;
-    })(-1);
-    eve.on("snap.util.getattr.stroke", function (internal) {
-        if (internal) {
-            return;
-        }
-        eve.stop();
-        var value = eve("snap.util.getattr.stroke", this, true).firstDefined();
-        return Snap(Snap.deurl(value)) || value;
-    })(-1);
-    eve.on("snap.util.getattr.viewBox", function () {
-        eve.stop();
-        var vb = $(this.node, "viewBox");
-        if (vb) {
-            vb = vb.split(separator);
-            return Snap._.box(+vb[0], +vb[1], +vb[2], +vb[3]);
-        } else {
-            return;
-        }
-    })(-1);
-    eve.on("snap.util.getattr.points", function () {
-        var p = $(this.node, "points");
-        eve.stop();
-        if (p) {
-            return p.split(separator);
-        } else {
-            return;
-        }
-    })(-1);
-    eve.on("snap.util.getattr.path", function () {
-        var p = $(this.node, "d");
-        eve.stop();
-        return p;
-    })(-1);
-    eve.on("snap.util.getattr.class", function () {
-        return this.node.className.baseVal;
-    })(-1);
-    function getFontSize() {
-        eve.stop();
-        return this.node.style.fontSize;
-    }
-    eve.on("snap.util.getattr.fontSize", getFontSize)(-1);
-    eve.on("snap.util.getattr.font-size", getFontSize)(-1);
-});
-
-// Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var rgNotSpace = /\S+/g,
-        rgBadSpace = /[\t\r\n\f]/g,
-        rgTrim = /(^\s+|\s+$)/g,
-        Str = String,
-        elproto = Element.prototype;
-    /*\
-     * Element.addClass
-     [ method ]
-     **
-     * Adds given class name or list of class names to the element.
-     - value (string) class name or space separated list of class names
-     **
-     = (Element) original element.
-    \*/
-    elproto.addClass = function (value) {
-        var classes = Str(value || "").match(rgNotSpace) || [],
-            elem = this.node,
-            className = elem.className.baseVal,
-            curClasses = className.match(rgNotSpace) || [],
-            j,
-            pos,
-            clazz,
-            finalValue;
-
-        if (classes.length) {
-            j = 0;
-            while (clazz = classes[j++]) {
-                pos = curClasses.indexOf(clazz);
-                if (!~pos) {
-                    curClasses.push(clazz);
-                }
-            }
-
-            finalValue = curClasses.join(" ");
-            if (className != finalValue) {
-                elem.className.baseVal = finalValue;
-            }
-        }
-        return this;
-    };
-    /*\
-     * Element.removeClass
-     [ method ]
-     **
-     * Removes given class name or list of class names from the element.
-     - value (string) class name or space separated list of class names
-     **
-     = (Element) original element.
-    \*/
-    elproto.removeClass = function (value) {
-        var classes = Str(value || "").match(rgNotSpace) || [],
-            elem = this.node,
-            className = elem.className.baseVal,
-            curClasses = className.match(rgNotSpace) || [],
-            j,
-            pos,
-            clazz,
-            finalValue;
-        if (curClasses.length) {
-            j = 0;
-            while (clazz = classes[j++]) {
-                pos = curClasses.indexOf(clazz);
-                if (~pos) {
-                    curClasses.splice(pos, 1);
-                }
-            }
-
-            finalValue = curClasses.join(" ");
-            if (className != finalValue) {
-                elem.className.baseVal = finalValue;
-            }
-        }
-        return this;
-    };
-    /*\
-     * Element.hasClass
-     [ method ]
-     **
-     * Checks if the element has a given class name in the list of class names applied to it.
-     - value (string) class name
-     **
-     = (boolean) `true` if the element has given class
-    \*/
-    elproto.hasClass = function (value) {
-        var elem = this.node,
-            className = elem.className.baseVal,
-            curClasses = className.match(rgNotSpace) || [];
-        return !!~curClasses.indexOf(value);
-    };
-    /*\
-     * Element.toggleClass
-     [ method ]
-     **
-     * Add or remove one or more classes from the element, depending on either
-     * the class’s presence or the value of the `flag` argument.
-     - value (string) class name or space separated list of class names
-     - flag (boolean) value to determine whether the class should be added or removed
-     **
-     = (Element) original element.
-    \*/
-    elproto.toggleClass = function (value, flag) {
-        if (flag != null) {
-            if (flag) {
-                return this.addClass(value);
-            } else {
-                return this.removeClass(value);
-            }
-        }
-        var classes = (value || "").match(rgNotSpace) || [],
-            elem = this.node,
-            className = elem.className.baseVal,
-            curClasses = className.match(rgNotSpace) || [],
-            j,
-            pos,
-            clazz,
-            finalValue;
-        j = 0;
-        while (clazz = classes[j++]) {
-            pos = curClasses.indexOf(clazz);
-            if (~pos) {
-                curClasses.splice(pos, 1);
-            } else {
-                curClasses.push(clazz);
-            }
-        }
-
-        finalValue = curClasses.join(" ");
-        if (className != finalValue) {
-            elem.className.baseVal = finalValue;
-        }
-        return this;
-    };
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var operators = {
-            "+": function (x, y) {
-                    return x + y;
-                },
-            "-": function (x, y) {
-                    return x - y;
-                },
-            "/": function (x, y) {
-                    return x / y;
-                },
-            "*": function (x, y) {
-                    return x * y;
-                }
-        },
-        Str = String,
-        reUnit = /[a-z]+$/i,
-        reAddon = /^\s*([+\-\/*])\s*=\s*([\d.eE+\-]+)\s*([^\d\s]+)?\s*$/;
-    function getNumber(val) {
-        return val;
-    }
-    function getUnit(unit) {
-        return function (val) {
-            return +val.toFixed(3) + unit;
-        };
-    }
-    eve.on("snap.util.attr", function (val) {
-        var plus = Str(val).match(reAddon);
-        if (plus) {
-            var evnt = eve.nt(),
-                name = evnt.substring(evnt.lastIndexOf(".") + 1),
-                a = this.attr(name),
-                atr = {};
-            eve.stop();
-            var unit = plus[3] || "",
-                aUnit = a.match(reUnit),
-                op = operators[plus[1]];
-            if (aUnit && aUnit == unit) {
-                val = op(parseFloat(a), +plus[2]);
-            } else {
-                a = this.asPX(name);
-                val = op(this.asPX(name), this.asPX(name, plus[2] + unit));
-            }
-            if (isNaN(a) || isNaN(val)) {
-                return;
-            }
-            atr[name] = val;
-            this.attr(atr);
-        }
-    })(-10);
-    eve.on("snap.util.equal", function (name, b) {
-        var A, B, a = Str(this.attr(name) || ""),
-            el = this,
-            bplus = Str(b).match(reAddon);
-        if (bplus) {
-            eve.stop();
-            var unit = bplus[3] || "",
-                aUnit = a.match(reUnit),
-                op = operators[bplus[1]];
-            if (aUnit && aUnit == unit) {
-                return {
-                    from: parseFloat(a),
-                    to: op(parseFloat(a), +bplus[2]),
-                    f: getUnit(aUnit)
-                };
-            } else {
-                a = this.asPX(name);
-                return {
-                    from: a,
-                    to: op(a, this.asPX(name, bplus[2] + unit)),
-                    f: getNumber
-                };
-            }
-        }
-    })(-10);
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var proto = Paper.prototype,
-        is = Snap.is;
-    /*\
-     * Paper.rect
-     [ method ]
-     *
-     * Draws a rectangle
-     **
-     - x (number) x coordinate of the top left corner
-     - y (number) y coordinate of the top left corner
-     - width (number) width
-     - height (number) height
-     - rx (number) #optional horizontal radius for rounded corners, default is 0
-     - ry (number) #optional vertical radius for rounded corners, default is rx or 0
-     = (object) the `rect` element
-     **
-     > Usage
-     | // regular rectangle
-     | var c = paper.rect(10, 10, 50, 50);
-     | // rectangle with rounded corners
-     | var c = paper.rect(40, 40, 50, 50, 10);
-    \*/
-    proto.rect = function (x, y, w, h, rx, ry) {
-        var attr;
-        if (ry == null) {
-            ry = rx;
-        }
-        if (is(x, "object") && x == "[object Object]") {
-            attr = x;
-        } else if (x != null) {
-            attr = {
-                x: x,
-                y: y,
-                width: w,
-                height: h
-            };
-            if (rx != null) {
-                attr.rx = rx;
-                attr.ry = ry;
-            }
-        }
-        return this.el("rect", attr);
-    };
-    /*\
-     * Paper.circle
-     [ method ]
-     **
-     * Draws a circle
-     **
-     - x (number) x coordinate of the centre
-     - y (number) y coordinate of the centre
-     - r (number) radius
-     = (object) the `circle` element
-     **
-     > Usage
-     | var c = paper.circle(50, 50, 40);
-    \*/
-    proto.circle = function (cx, cy, r) {
-        var attr;
-        if (is(cx, "object") && cx == "[object Object]") {
-            attr = cx;
-        } else if (cx != null) {
-            attr = {
-                cx: cx,
-                cy: cy,
-                r: r
-            };
-        }
-        return this.el("circle", attr);
-    };
-
-    var preload = (function () {
-        function onerror() {
-            this.parentNode.removeChild(this);
-        }
-        return function (src, f) {
-            var img = glob.doc.createElement("img"),
-                body = glob.doc.body;
-            img.style.cssText = "position:absolute;left:-9999em;top:-9999em";
-            img.onload = function () {
-                f.call(img);
-                img.onload = img.onerror = null;
-                body.removeChild(img);
-            };
-            img.onerror = onerror;
-            body.appendChild(img);
-            img.src = src;
-        };
-    }());
-
-    /*\
-     * Paper.image
-     [ method ]
-     **
-     * Places an image on the surface
-     **
-     - src (string) URI of the source image
-     - x (number) x offset position
-     - y (number) y offset position
-     - width (number) width of the image
-     - height (number) height of the image
-     = (object) the `image` element
-     * or
-     = (object) Snap element object with type `image`
-     **
-     > Usage
-     | var c = paper.image("apple.png", 10, 10, 80, 80);
-    \*/
-    proto.image = function (src, x, y, width, height) {
-        var el = this.el("image");
-        if (is(src, "object") && "src" in src) {
-            el.attr(src);
-        } else if (src != null) {
-            var set = {
-                "xlink:href": src,
-                preserveAspectRatio: "none"
-            };
-            if (x != null && y != null) {
-                set.x = x;
-                set.y = y;
-            }
-            if (width != null && height != null) {
-                set.width = width;
-                set.height = height;
-            } else {
-                preload(src, function () {
-                    Snap._.$(el.node, {
-                        width: this.offsetWidth,
-                        height: this.offsetHeight
-                    });
-                });
-            }
-            Snap._.$(el.node, set);
-        }
-        return el;
-    };
-    /*\
-     * Paper.ellipse
-     [ method ]
-     **
-     * Draws an ellipse
-     **
-     - x (number) x coordinate of the centre
-     - y (number) y coordinate of the centre
-     - rx (number) horizontal radius
-     - ry (number) vertical radius
-     = (object) the `ellipse` element
-     **
-     > Usage
-     | var c = paper.ellipse(50, 50, 40, 20);
-    \*/
-    proto.ellipse = function (cx, cy, rx, ry) {
-        var attr;
-        if (is(cx, "object") && cx == "[object Object]") {
-            attr = cx;
-        } else if (cx != null) {
-            attr ={
-                cx: cx,
-                cy: cy,
-                rx: rx,
-                ry: ry
-            };
-        }
-        return this.el("ellipse", attr);
-    };
-    // SIERRA Paper.path(): Unclear from the link what a Catmull-Rom curveto is, and why it would make life any easier.
-    /*\
-     * Paper.path
-     [ method ]
-     **
-     * Creates a `<path>` element using the given string as the path's definition
-     - pathString (string) #optional path string in SVG format
-     * Path string consists of one-letter commands, followed by comma seprarated arguments in numerical form. Example:
-     | "M10,20L30,40"
-     * This example features two commands: `M`, with arguments `(10, 20)` and `L` with arguments `(30, 40)`. Uppercase letter commands express coordinates in absolute terms, while lowercase commands express them in relative terms from the most recently declared coordinates.
-     *
-     # <p>Here is short list of commands available, for more details see <a href="http://www.w3.org/TR/SVG/paths.html#PathData" title="Details of a path's data attribute's format are described in the SVG specification.">SVG path string format</a> or <a href="https://developer.mozilla.org/en/SVG/Tutorial/Paths">article about path strings at MDN</a>.</p>
-     # <table><thead><tr><th>Command</th><th>Name</th><th>Parameters</th></tr></thead><tbody>
-     # <tr><td>M</td><td>moveto</td><td>(x y)+</td></tr>
-     # <tr><td>Z</td><td>closepath</td><td>(none)</td></tr>
-     # <tr><td>L</td><td>lineto</td><td>(x y)+</td></tr>
-     # <tr><td>H</td><td>horizontal lineto</td><td>x+</td></tr>
-     # <tr><td>V</td><td>vertical lineto</td><td>y+</td></tr>
-     # <tr><td>C</td><td>curveto</td><td>(x1 y1 x2 y2 x y)+</td></tr>
-     # <tr><td>S</td><td>smooth curveto</td><td>(x2 y2 x y)+</td></tr>
-     # <tr><td>Q</td><td>quadratic Bézier curveto</td><td>(x1 y1 x y)+</td></tr>
-     # <tr><td>T</td><td>smooth quadratic Bézier curveto</td><td>(x y)+</td></tr>
-     # <tr><td>A</td><td>elliptical arc</td><td>(rx ry x-axis-rotation large-arc-flag sweep-flag x y)+</td></tr>
-     # <tr><td>R</td><td><a href="http://en.wikipedia.org/wiki/Catmull–Rom_spline#Catmull.E2.80.93Rom_spline">Catmull-Rom curveto</a>*</td><td>x1 y1 (x y)+</td></tr></tbody></table>
-     * * _Catmull-Rom curveto_ is a not standard SVG command and added to make life easier.
-     * Note: there is a special case when a path consists of only three commands: `M10,10R…z`. In this case the path connects back to its starting point.
-     > Usage
-     | var c = paper.path("M10 10L90 90");
-     | // draw a diagonal line:
-     | // move to 10,10, line to 90,90
-    \*/
-    proto.path = function (d) {
-        var attr;
-        if (is(d, "object") && !is(d, "array")) {
-            attr = d;
-        } else if (d) {
-            attr = {d: d};
-        }
-        return this.el("path", attr);
-    };
-    /*\
-     * Paper.g
-     [ method ]
-     **
-     * Creates a group element
-     **
-     - varargs (…) #optional elements to nest within the group
-     = (object) the `g` element
-     **
-     > Usage
-     | var c1 = paper.circle(),
-     |     c2 = paper.rect(),
-     |     g = paper.g(c2, c1); // note that the order of elements is different
-     * or
-     | var c1 = paper.circle(),
-     |     c2 = paper.rect(),
-     |     g = paper.g();
-     | g.add(c2, c1);
-    \*/
-    /*\
-     * Paper.group
-     [ method ]
-     **
-     * See @Paper.g
-    \*/
-    proto.group = proto.g = function (first) {
-        var attr,
-            el = this.el("g");
-        if (arguments.length == 1 && first && !first.type) {
-            el.attr(first);
-        } else if (arguments.length) {
-            el.add(Array.prototype.slice.call(arguments, 0));
-        }
-        return el;
-    };
-    /*\
-     * Paper.svg
-     [ method ]
-     **
-     * Creates a nested SVG element.
-     - x (number) @optional X of the element
-     - y (number) @optional Y of the element
-     - width (number) @optional width of the element
-     - height (number) @optional height of the element
-     - vbx (number) @optional viewbox X
-     - vby (number) @optional viewbox Y
-     - vbw (number) @optional viewbox width
-     - vbh (number) @optional viewbox height
-     **
-     = (object) the `svg` element
-     **
-    \*/
-    proto.svg = function (x, y, width, height, vbx, vby, vbw, vbh) {
-        var attrs = {};
-        if (is(x, "object") && y == null) {
-            attrs = x;
-        } else {
-            if (x != null) {
-                attrs.x = x;
-            }
-            if (y != null) {
-                attrs.y = y;
-            }
-            if (width != null) {
-                attrs.width = width;
-            }
-            if (height != null) {
-                attrs.height = height;
-            }
-            if (vbx != null && vby != null && vbw != null && vbh != null) {
-                attrs.viewBox = [vbx, vby, vbw, vbh];
-            }
-        }
-        return this.el("svg", attrs);
-    };
-    /*\
-     * Paper.mask
-     [ method ]
-     **
-     * Equivalent in behaviour to @Paper.g, except it’s a mask.
-     **
-     = (object) the `mask` element
-     **
-    \*/
-    proto.mask = function (first) {
-        var attr,
-            el = this.el("mask");
-        if (arguments.length == 1 && first && !first.type) {
-            el.attr(first);
-        } else if (arguments.length) {
-            el.add(Array.prototype.slice.call(arguments, 0));
-        }
-        return el;
-    };
-    /*\
-     * Paper.ptrn
-     [ method ]
-     **
-     * Equivalent in behaviour to @Paper.g, except it’s a pattern.
-     - x (number) @optional X of the element
-     - y (number) @optional Y of the element
-     - width (number) @optional width of the element
-     - height (number) @optional height of the element
-     - vbx (number) @optional viewbox X
-     - vby (number) @optional viewbox Y
-     - vbw (number) @optional viewbox width
-     - vbh (number) @optional viewbox height
-     **
-     = (object) the `pattern` element
-     **
-    \*/
-    proto.ptrn = function (x, y, width, height, vx, vy, vw, vh) {
-        if (is(x, "object")) {
-            var attr = x;
-        } else {
-            attr = {patternUnits: "userSpaceOnUse"};
-            if (x) {
-                attr.x = x;
-            }
-            if (y) {
-                attr.y = y;
-            }
-            if (width != null) {
-                attr.width = width;
-            }
-            if (height != null) {
-                attr.height = height;
-            }
-            if (vx != null && vy != null && vw != null && vh != null) {
-                attr.viewBox = [vx, vy, vw, vh];
-            } else {
-                attr.viewBox = [x || 0, y || 0, width || 0, height || 0];
-            }
-        }
-        return this.el("pattern", attr);
-    };
-    /*\
-     * Paper.use
-     [ method ]
-     **
-     * Creates a <use> element.
-     - id (string) @optional id of element to link
-     * or
-     - id (Element) @optional element to link
-     **
-     = (object) the `use` element
-     **
-    \*/
-    proto.use = function (id) {
-        if (id != null) {
-            if (id instanceof Element) {
-                if (!id.attr("id")) {
-                    id.attr({id: Snap._.id(id)});
-                }
-                id = id.attr("id");
-            }
-            if (String(id).charAt() == "#") {
-                id = id.substring(1);
-            }
-            return this.el("use", {"xlink:href": "#" + id});
-        } else {
-            return Element.prototype.use.call(this);
-        }
-    };
-    /*\
-     * Paper.symbol
-     [ method ]
-     **
-     * Creates a <symbol> element.
-     - vbx (number) @optional viewbox X
-     - vby (number) @optional viewbox Y
-     - vbw (number) @optional viewbox width
-     - vbh (number) @optional viewbox height
-     = (object) the `symbol` element
-     **
-    \*/
-    proto.symbol = function (vx, vy, vw, vh) {
-        var attr = {};
-        if (vx != null && vy != null && vw != null && vh != null) {
-            attr.viewBox = [vx, vy, vw, vh];
-        }
-
-        return this.el("symbol", attr);
-    };
-    /*\
-     * Paper.text
-     [ method ]
-     **
-     * Draws a text string
-     **
-     - x (number) x coordinate position
-     - y (number) y coordinate position
-     - text (string|array) The text string to draw or array of strings to nest within separate `<tspan>` elements
-     = (object) the `text` element
-     **
-     > Usage
-     | var t1 = paper.text(50, 50, "Snap");
-     | var t2 = paper.text(50, 50, ["S","n","a","p"]);
-     | // Text path usage
-     | t1.attr({textpath: "M10,10L100,100"});
-     | // or
-     | var pth = paper.path("M10,10L100,100");
-     | t1.attr({textpath: pth});
-    \*/
-    proto.text = function (x, y, text) {
-        var attr = {};
-        if (is(x, "object")) {
-            attr = x;
-        } else if (x != null) {
-            attr = {
-                x: x,
-                y: y,
-                text: text || ""
-            };
-        }
-        return this.el("text", attr);
-    };
-    /*\
-     * Paper.line
-     [ method ]
-     **
-     * Draws a line
-     **
-     - x1 (number) x coordinate position of the start
-     - y1 (number) y coordinate position of the start
-     - x2 (number) x coordinate position of the end
-     - y2 (number) y coordinate position of the end
-     = (object) the `line` element
-     **
-     > Usage
-     | var t1 = paper.line(50, 50, 100, 100);
-    \*/
-    proto.line = function (x1, y1, x2, y2) {
-        var attr = {};
-        if (is(x1, "object")) {
-            attr = x1;
-        } else if (x1 != null) {
-            attr = {
-                x1: x1,
-                x2: x2,
-                y1: y1,
-                y2: y2
-            };
-        }
-        return this.el("line", attr);
-    };
-    /*\
-     * Paper.polyline
-     [ method ]
-     **
-     * Draws a polyline
-     **
-     - points (array) array of points
-     * or
-     - varargs (…) points
-     = (object) the `polyline` element
-     **
-     > Usage
-     | var p1 = paper.polyline([10, 10, 100, 100]);
-     | var p2 = paper.polyline(10, 10, 100, 100);
-    \*/
-    proto.polyline = function (points) {
-        if (arguments.length > 1) {
-            points = Array.prototype.slice.call(arguments, 0);
-        }
-        var attr = {};
-        if (is(points, "object") && !is(points, "array")) {
-            attr = points;
-        } else if (points != null) {
-            attr = {points: points};
-        }
-        return this.el("polyline", attr);
-    };
-    /*\
-     * Paper.polygon
-     [ method ]
-     **
-     * Draws a polygon. See @Paper.polyline
-    \*/
-    proto.polygon = function (points) {
-        if (arguments.length > 1) {
-            points = Array.prototype.slice.call(arguments, 0);
-        }
-        var attr = {};
-        if (is(points, "object") && !is(points, "array")) {
-            attr = points;
-        } else if (points != null) {
-            attr = {points: points};
-        }
-        return this.el("polygon", attr);
-    };
-    // gradients
-    (function () {
-        var $ = Snap._.$;
-        // gradients' helpers
-        /*\
-         * Element.stops
-         [ method ]
-         **
-         * Only for gradients!
-         * Returns array of gradient stops elements.
-         = (array) the stops array.
-        \*/
-        function Gstops() {
-            return this.selectAll("stop");
-        }
-        /*\
-         * Element.addStop
-         [ method ]
-         **
-         * Only for gradients!
-         * Adds another stop to the gradient.
-         - color (string) stops color
-         - offset (number) stops offset 0..100
-         = (object) gradient element
-        \*/
-        function GaddStop(color, offset) {
-            var stop = $("stop"),
-                attr = {
-                    offset: +offset + "%"
-                };
-            color = Snap.color(color);
-            attr["stop-color"] = color.hex;
-            if (color.opacity < 1) {
-                attr["stop-opacity"] = color.opacity;
-            }
-            $(stop, attr);
-            var stops = this.stops(),
-                inserted;
-            for (var i = 0; i < stops.length; i++) {
-                var stopOffset = parseFloat(stops[i].attr("offset"));
-                if (stopOffset > offset) {
-                    this.node.insertBefore(stop, stops[i].node);
-                    inserted = true;
-                    break;
-                }
-            }
-            if (!inserted) {
-                this.node.appendChild(stop);
-            }
-            return this;
-        }
-        function GgetBBox() {
-            if (this.type == "linearGradient") {
-                var x1 = $(this.node, "x1") || 0,
-                    x2 = $(this.node, "x2") || 1,
-                    y1 = $(this.node, "y1") || 0,
-                    y2 = $(this.node, "y2") || 0;
-                return Snap._.box(x1, y1, math.abs(x2 - x1), math.abs(y2 - y1));
-            } else {
-                var cx = this.node.cx || .5,
-                    cy = this.node.cy || .5,
-                    r = this.node.r || 0;
-                return Snap._.box(cx - r, cy - r, r * 2, r * 2);
-            }
-        }
-        /*\
-         * Element.setStops
-         [ method ]
-         **
-         * Only for gradients!
-         * Updates stops of the gradient based on passed gradient descriptor. See @Ppaer.gradient
-         - str (string) gradient descriptor part after `()`.
-         = (object) gradient element
-         | var g = paper.gradient("l(0, 0, 1, 1)#000-#f00-#fff");
-         | g.setStops("#fff-#000-#f00-#fc0");
-        \*/
-        function GsetStops(str) {
-            var grad = str,
-                stops = this.stops();
-            if (typeof str == "string") {
-                grad = eve("snap.util.grad.parse", null, "l(0,0,0,1)" + str).firstDefined().stops;
-            }
-            if (!Snap.is(grad, "array")) {
-                return;
-            }
-            for (var i = 0; i < stops.length; i++) {
-                if (grad[i]) {
-                    var color = Snap.color(grad[i].color),
-                        attr = {"offset": grad[i].offset + "%"};
-                    attr["stop-color"] = color.hex;
-                    if (color.opacity < 1) {
-                        attr["stop-opacity"] = color.opacity;
-                    }
-                    stops[i].attr(attr);
-                } else {
-                    stops[i].remove();
-                }
-            }
-            for (i = stops.length; i < grad.length; i++) {
-                this.addStop(grad[i].color, grad[i].offset);
-            }
-            return this;
-        }
-        function gradient(defs, str) {
-            var grad = eve("snap.util.grad.parse", null, str).firstDefined(),
-                el;
-            if (!grad) {
-                return null;
-            }
-            grad.params.unshift(defs);
-            if (grad.type.toLowerCase() == "l") {
-                el = gradientLinear.apply(0, grad.params);
-            } else {
-                el = gradientRadial.apply(0, grad.params);
-            }
-            if (grad.type != grad.type.toLowerCase()) {
-                $(el.node, {
-                    gradientUnits: "userSpaceOnUse"
-                });
-            }
-            var stops = grad.stops,
-                len = stops.length;
-            for (var i = 0; i < len; i++) {
-                var stop = stops[i];
-                el.addStop(stop.color, stop.offset);
-            }
-            return el;
-        }
-        function gradientLinear(defs, x1, y1, x2, y2) {
-            var el = Snap._.make("linearGradient", defs);
-            el.stops = Gstops;
-            el.addStop = GaddStop;
-            el.getBBox = GgetBBox;
-            el.setStops = GsetStops;
-            if (x1 != null) {
-                $(el.node, {
-                    x1: x1,
-                    y1: y1,
-                    x2: x2,
-                    y2: y2
-                });
-            }
-            return el;
-        }
-        function gradientRadial(defs, cx, cy, r, fx, fy) {
-            var el = Snap._.make("radialGradient", defs);
-            el.stops = Gstops;
-            el.addStop = GaddStop;
-            el.getBBox = GgetBBox;
-            if (cx != null) {
-                $(el.node, {
-                    cx: cx,
-                    cy: cy,
-                    r: r
-                });
-            }
-            if (fx != null && fy != null) {
-                $(el.node, {
-                    fx: fx,
-                    fy: fy
-                });
-            }
-            return el;
-        }
-        /*\
-         * Paper.gradient
-         [ method ]
-         **
-         * Creates a gradient element
-         **
-         - gradient (string) gradient descriptor
-         > Gradient Descriptor
-         * The gradient descriptor is an expression formatted as
-         * follows: `<type>(<coords>)<colors>`.  The `<type>` can be
-         * either linear or radial.  The uppercase `L` or `R` letters
-         * indicate absolute coordinates offset from the SVG surface.
-         * Lowercase `l` or `r` letters indicate coordinates
-         * calculated relative to the element to which the gradient is
-         * applied.  Coordinates specify a linear gradient vector as
-         * `x1`, `y1`, `x2`, `y2`, or a radial gradient as `cx`, `cy`,
-         * `r` and optional `fx`, `fy` specifying a focal point away
-         * from the center of the circle. Specify `<colors>` as a list
-         * of dash-separated CSS color values.  Each color may be
-         * followed by a custom offset value, separated with a colon
-         * character.
-         > Examples
-         * Linear gradient, relative from top-left corner to bottom-right
-         * corner, from black through red to white:
-         | var g = paper.gradient("l(0, 0, 1, 1)#000-#f00-#fff");
-         * Linear gradient, absolute from (0, 0) to (100, 100), from black
-         * through red at 25% to white:
-         | var g = paper.gradient("L(0, 0, 100, 100)#000-#f00:25-#fff");
-         * Radial gradient, relative from the center of the element with radius
-         * half the width, from black to white:
-         | var g = paper.gradient("r(0.5, 0.5, 0.5)#000-#fff");
-         * To apply the gradient:
-         | paper.circle(50, 50, 40).attr({
-         |     fill: g
-         | });
-         = (object) the `gradient` element
-        \*/
-        proto.gradient = function (str) {
-            return gradient(this.defs, str);
-        };
-        proto.gradientLinear = function (x1, y1, x2, y2) {
-            return gradientLinear(this.defs, x1, y1, x2, y2);
-        };
-        proto.gradientRadial = function (cx, cy, r, fx, fy) {
-            return gradientRadial(this.defs, cx, cy, r, fx, fy);
-        };
-        /*\
-         * Paper.toString
-         [ method ]
-         **
-         * Returns SVG code for the @Paper
-         = (string) SVG code for the @Paper
-        \*/
-        proto.toString = function () {
-            var doc = this.node.ownerDocument,
-                f = doc.createDocumentFragment(),
-                d = doc.createElement("div"),
-                svg = this.node.cloneNode(true),
-                res;
-            f.appendChild(d);
-            d.appendChild(svg);
-            Snap._.$(svg, {xmlns: "http://www.w3.org/2000/svg"});
-            res = d.innerHTML;
-            f.removeChild(f.firstChild);
-            return res;
-        };
-        /*\
-         * Paper.toDataURL
-         [ method ]
-         **
-         * Returns SVG code for the @Paper as Data URI string.
-         = (string) Data URI string
-        \*/
-        proto.toDataURL = function () {
-            if (window && window.btoa) {
-                return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(this)));
-            }
-        };
-        /*\
-         * Paper.clear
-         [ method ]
-         **
-         * Removes all child nodes of the paper, except <defs>.
-        \*/
-        proto.clear = function () {
-            var node = this.node.firstChild,
-                next;
-            while (node) {
-                next = node.nextSibling;
-                if (node.tagName != "defs") {
-                    node.parentNode.removeChild(node);
-                } else {
-                    proto.clear.call({node: node});
-                }
-                node = next;
-            }
-        };
-    }());
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob) {
-    var elproto = Element.prototype,
-        is = Snap.is,
-        clone = Snap._.clone,
-        has = "hasOwnProperty",
-        p2s = /,?([a-z]),?/gi,
-        toFloat = parseFloat,
-        math = Math,
-        PI = math.PI,
-        mmin = math.min,
-        mmax = math.max,
-        pow = math.pow,
-        abs = math.abs;
-    function paths(ps) {
-        var p = paths.ps = paths.ps || {};
-        if (p[ps]) {
-            p[ps].sleep = 100;
-        } else {
-            p[ps] = {
-                sleep: 100
-            };
-        }
-        setTimeout(function () {
-            for (var key in p) if (p[has](key) && key != ps) {
-                p[key].sleep--;
-                !p[key].sleep && delete p[key];
-            }
-        });
-        return p[ps];
-    }
-    function box(x, y, width, height) {
-        if (x == null) {
-            x = y = width = height = 0;
-        }
-        if (y == null) {
-            y = x.y;
-            width = x.width;
-            height = x.height;
-            x = x.x;
-        }
-        return {
-            x: x,
-            y: y,
-            width: width,
-            w: width,
-            height: height,
-            h: height,
-            x2: x + width,
-            y2: y + height,
-            cx: x + width / 2,
-            cy: y + height / 2,
-            r1: math.min(width, height) / 2,
-            r2: math.max(width, height) / 2,
-            r0: math.sqrt(width * width + height * height) / 2,
-            path: rectPath(x, y, width, height),
-            vb: [x, y, width, height].join(" ")
-        };
-    }
-    function toString() {
-        return this.join(",").replace(p2s, "$1");
-    }
-    function pathClone(pathArray) {
-        var res = clone(pathArray);
-        res.toString = toString;
-        return res;
-    }
-    function getPointAtSegmentLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, length) {
-        if (length == null) {
-            return bezlen(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y);
-        } else {
-            return findDotsAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y,
-                getTotLen(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, length));
-        }
-    }
-    function getLengthFactory(istotal, subpath) {
-        function O(val) {
-            return +(+val).toFixed(3);
-        }
-        return Snap._.cacher(function (path, length, onlystart) {
-            if (path instanceof Element) {
-                path = path.attr("d");
-            }
-            path = path2curve(path);
-            var x, y, p, l, sp = "", subpaths = {}, point,
-                len = 0;
-            for (var i = 0, ii = path.length; i < ii; i++) {
-                p = path[i];
-                if (p[0] == "M") {
-                    x = +p[1];
-                    y = +p[2];
-                } else {
-                    l = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6]);
-                    if (len + l > length) {
-                        if (subpath && !subpaths.start) {
-                            point = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6], length - len);
-                            sp += [
-                                "C" + O(point.start.x),
-                                O(point.start.y),
-                                O(point.m.x),
-                                O(point.m.y),
-                                O(point.x),
-                                O(point.y)
-                            ];
-                            if (onlystart) {return sp;}
-                            subpaths.start = sp;
-                            sp = [
-                                "M" + O(point.x),
-                                O(point.y) + "C" + O(point.n.x),
-                                O(point.n.y),
-                                O(point.end.x),
-                                O(point.end.y),
-                                O(p[5]),
-                                O(p[6])
-                            ].join();
-                            len += l;
-                            x = +p[5];
-                            y = +p[6];
-                            continue;
-                        }
-                        if (!istotal && !subpath) {
-                            point = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6], length - len);
-                            return point;
-                        }
-                    }
-                    len += l;
-                    x = +p[5];
-                    y = +p[6];
-                }
-                sp += p.shift() + p;
-            }
-            subpaths.end = sp;
-            point = istotal ? len : subpath ? subpaths : findDotsAtSegment(x, y, p[0], p[1], p[2], p[3], p[4], p[5], 1);
-            return point;
-        }, null, Snap._.clone);
-    }
-    var getTotalLength = getLengthFactory(1),
-        getPointAtLength = getLengthFactory(),
-        getSubpathsAtLength = getLengthFactory(0, 1);
-    function findDotsAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
-        var t1 = 1 - t,
-            t13 = pow(t1, 3),
-            t12 = pow(t1, 2),
-            t2 = t * t,
-            t3 = t2 * t,
-            x = t13 * p1x + t12 * 3 * t * c1x + t1 * 3 * t * t * c2x + t3 * p2x,
-            y = t13 * p1y + t12 * 3 * t * c1y + t1 * 3 * t * t * c2y + t3 * p2y,
-            mx = p1x + 2 * t * (c1x - p1x) + t2 * (c2x - 2 * c1x + p1x),
-            my = p1y + 2 * t * (c1y - p1y) + t2 * (c2y - 2 * c1y + p1y),
-            nx = c1x + 2 * t * (c2x - c1x) + t2 * (p2x - 2 * c2x + c1x),
-            ny = c1y + 2 * t * (c2y - c1y) + t2 * (p2y - 2 * c2y + c1y),
-            ax = t1 * p1x + t * c1x,
-            ay = t1 * p1y + t * c1y,
-            cx = t1 * c2x + t * p2x,
-            cy = t1 * c2y + t * p2y,
-            alpha = 90 - math.atan2(mx - nx, my - ny) * 180 / PI;
-        // (mx > nx || my < ny) && (alpha += 180);
-        return {
-            x: x,
-            y: y,
-            m: {x: mx, y: my},
-            n: {x: nx, y: ny},
-            start: {x: ax, y: ay},
-            end: {x: cx, y: cy},
-            alpha: alpha
-        };
-    }
-    function bezierBBox(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
-        if (!Snap.is(p1x, "array")) {
-            p1x = [p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y];
-        }
-        var bbox = curveDim.apply(null, p1x);
-        return box(
-            bbox.min.x,
-            bbox.min.y,
-            bbox.max.x - bbox.min.x,
-            bbox.max.y - bbox.min.y
-        );
-    }
-    function isPointInsideBBox(bbox, x, y) {
-        return  x >= bbox.x &&
-                x <= bbox.x + bbox.width &&
-                y >= bbox.y &&
-                y <= bbox.y + bbox.height;
-    }
-    function isBBoxIntersect(bbox1, bbox2) {
-        bbox1 = box(bbox1);
-        bbox2 = box(bbox2);
-        return isPointInsideBBox(bbox2, bbox1.x, bbox1.y)
-            || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y)
-            || isPointInsideBBox(bbox2, bbox1.x, bbox1.y2)
-            || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y2)
-            || isPointInsideBBox(bbox1, bbox2.x, bbox2.y)
-            || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y)
-            || isPointInsideBBox(bbox1, bbox2.x, bbox2.y2)
-            || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y2)
-            || (bbox1.x < bbox2.x2 && bbox1.x > bbox2.x
-                || bbox2.x < bbox1.x2 && bbox2.x > bbox1.x)
-            && (bbox1.y < bbox2.y2 && bbox1.y > bbox2.y
-                || bbox2.y < bbox1.y2 && bbox2.y > bbox1.y);
-    }
-    function base3(t, p1, p2, p3, p4) {
-        var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4,
-            t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
-        return t * t2 - 3 * p1 + 3 * p2;
-    }
-    function bezlen(x1, y1, x2, y2, x3, y3, x4, y4, z) {
-        if (z == null) {
-            z = 1;
-        }
-        z = z > 1 ? 1 : z < 0 ? 0 : z;
-        var z2 = z / 2,
-            n = 12,
-            Tvalues = [-.1252,.1252,-.3678,.3678,-.5873,.5873,-.7699,.7699,-.9041,.9041,-.9816,.9816],
-            Cvalues = [0.2491,0.2491,0.2335,0.2335,0.2032,0.2032,0.1601,0.1601,0.1069,0.1069,0.0472,0.0472],
-            sum = 0;
-        for (var i = 0; i < n; i++) {
-            var ct = z2 * Tvalues[i] + z2,
-                xbase = base3(ct, x1, x2, x3, x4),
-                ybase = base3(ct, y1, y2, y3, y4),
-                comb = xbase * xbase + ybase * ybase;
-            sum += Cvalues[i] * math.sqrt(comb);
-        }
-        return z2 * sum;
-    }
-    function getTotLen(x1, y1, x2, y2, x3, y3, x4, y4, ll) {
-        if (ll < 0 || bezlen(x1, y1, x2, y2, x3, y3, x4, y4) < ll) {
-            return;
-        }
-        var t = 1,
-            step = t / 2,
-            t2 = t - step,
-            l,
-            e = .01;
-        l = bezlen(x1, y1, x2, y2, x3, y3, x4, y4, t2);
-        while (abs(l - ll) > e) {
-            step /= 2;
-            t2 += (l < ll ? 1 : -1) * step;
-            l = bezlen(x1, y1, x2, y2, x3, y3, x4, y4, t2);
-        }
-        return t2;
-    }
-    function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-        if (
-            mmax(x1, x2) < mmin(x3, x4) ||
-            mmin(x1, x2) > mmax(x3, x4) ||
-            mmax(y1, y2) < mmin(y3, y4) ||
-            mmin(y1, y2) > mmax(y3, y4)
-        ) {
-            return;
-        }
-        var nx = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4),
-            ny = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4),
-            denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-
-        if (!denominator) {
-            return;
-        }
-        var px = nx / denominator,
-            py = ny / denominator,
-            px2 = +px.toFixed(2),
-            py2 = +py.toFixed(2);
-        if (
-            px2 < +mmin(x1, x2).toFixed(2) ||
-            px2 > +mmax(x1, x2).toFixed(2) ||
-            px2 < +mmin(x3, x4).toFixed(2) ||
-            px2 > +mmax(x3, x4).toFixed(2) ||
-            py2 < +mmin(y1, y2).toFixed(2) ||
-            py2 > +mmax(y1, y2).toFixed(2) ||
-            py2 < +mmin(y3, y4).toFixed(2) ||
-            py2 > +mmax(y3, y4).toFixed(2)
-        ) {
-            return;
-        }
-        return {x: px, y: py};
-    }
-    function inter(bez1, bez2) {
-        return interHelper(bez1, bez2);
-    }
-    function interCount(bez1, bez2) {
-        return interHelper(bez1, bez2, 1);
-    }
-    function interHelper(bez1, bez2, justCount) {
-        var bbox1 = bezierBBox(bez1),
-            bbox2 = bezierBBox(bez2);
-        if (!isBBoxIntersect(bbox1, bbox2)) {
-            return justCount ? 0 : [];
-        }
-        var l1 = bezlen.apply(0, bez1),
-            l2 = bezlen.apply(0, bez2),
-            n1 = ~~(l1 / 8),
-            n2 = ~~(l2 / 8),
-            dots1 = [],
-            dots2 = [],
-            xy = {},
-            res = justCount ? 0 : [];
-        for (var i = 0; i < n1 + 1; i++) {
-            var p = findDotsAtSegment.apply(0, bez1.concat(i / n1));
-            dots1.push({x: p.x, y: p.y, t: i / n1});
-        }
-        for (i = 0; i < n2 + 1; i++) {
-            p = findDotsAtSegment.apply(0, bez2.concat(i / n2));
-            dots2.push({x: p.x, y: p.y, t: i / n2});
-        }
-        for (i = 0; i < n1; i++) {
-            for (var j = 0; j < n2; j++) {
-                var di = dots1[i],
-                    di1 = dots1[i + 1],
-                    dj = dots2[j],
-                    dj1 = dots2[j + 1],
-                    ci = abs(di1.x - di.x) < .001 ? "y" : "x",
-                    cj = abs(dj1.x - dj.x) < .001 ? "y" : "x",
-                    is = intersect(di.x, di.y, di1.x, di1.y, dj.x, dj.y, dj1.x, dj1.y);
-                if (is) {
-                    if (xy[is.x.toFixed(4)] == is.y.toFixed(4)) {
-                        continue;
-                    }
-                    xy[is.x.toFixed(4)] = is.y.toFixed(4);
-                    var t1 = di.t + abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t),
-                        t2 = dj.t + abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
-                    if (t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1) {
-                        if (justCount) {
-                            res++;
-                        } else {
-                            res.push({
-                                x: is.x,
-                                y: is.y,
-                                t1: t1,
-                                t2: t2
-                            });
-                        }
-                    }
-                }
-            }
-        }
-        return res;
-    }
-    function pathIntersection(path1, path2) {
-        return interPathHelper(path1, path2);
-    }
-    function pathIntersectionNumber(path1, path2) {
-        return interPathHelper(path1, path2, 1);
-    }
-    function interPathHelper(path1, path2, justCount) {
-        path1 = path2curve(path1);
-        path2 = path2curve(path2);
-        var x1, y1, x2, y2, x1m, y1m, x2m, y2m, bez1, bez2,
-            res = justCount ? 0 : [];
-        for (var i = 0, ii = path1.length; i < ii; i++) {
-            var pi = path1[i];
-            if (pi[0] == "M") {
-                x1 = x1m = pi[1];
-                y1 = y1m = pi[2];
-            } else {
-                if (pi[0] == "C") {
-                    bez1 = [x1, y1].concat(pi.slice(1));
-                    x1 = bez1[6];
-                    y1 = bez1[7];
-                } else {
-                    bez1 = [x1, y1, x1, y1, x1m, y1m, x1m, y1m];
-                    x1 = x1m;
-                    y1 = y1m;
-                }
-                for (var j = 0, jj = path2.length; j < jj; j++) {
-                    var pj = path2[j];
-                    if (pj[0] == "M") {
-                        x2 = x2m = pj[1];
-                        y2 = y2m = pj[2];
-                    } else {
-                        if (pj[0] == "C") {
-                            bez2 = [x2, y2].concat(pj.slice(1));
-                            x2 = bez2[6];
-                            y2 = bez2[7];
-                        } else {
-                            bez2 = [x2, y2, x2, y2, x2m, y2m, x2m, y2m];
-                            x2 = x2m;
-                            y2 = y2m;
-                        }
-                        var intr = interHelper(bez1, bez2, justCount);
-                        if (justCount) {
-                            res += intr;
-                        } else {
-                            for (var k = 0, kk = intr.length; k < kk; k++) {
-                                intr[k].segment1 = i;
-                                intr[k].segment2 = j;
-                                intr[k].bez1 = bez1;
-                                intr[k].bez2 = bez2;
-                            }
-                            res = res.concat(intr);
-                        }
-                    }
-                }
-            }
-        }
-        return res;
-    }
-    function isPointInsidePath(path, x, y) {
-        var bbox = pathBBox(path);
-        return isPointInsideBBox(bbox, x, y) &&
-               interPathHelper(path, [["M", x, y], ["H", bbox.x2 + 10]], 1) % 2 == 1;
-    }
-    function pathBBox(path) {
-        var pth = paths(path);
-        if (pth.bbox) {
-            return clone(pth.bbox);
-        }
-        if (!path) {
-            return box();
-        }
-        path = path2curve(path);
-        var x = 0,
-            y = 0,
-            X = [],
-            Y = [],
-            p;
-        for (var i = 0, ii = path.length; i < ii; i++) {
-            p = path[i];
-            if (p[0] == "M") {
-                x = p[1];
-                y = p[2];
-                X.push(x);
-                Y.push(y);
-            } else {
-                var dim = curveDim(x, y, p[1], p[2], p[3], p[4], p[5], p[6]);
-                X = X.concat(dim.min.x, dim.max.x);
-                Y = Y.concat(dim.min.y, dim.max.y);
-                x = p[5];
-                y = p[6];
-            }
-        }
-        var xmin = mmin.apply(0, X),
-            ymin = mmin.apply(0, Y),
-            xmax = mmax.apply(0, X),
-            ymax = mmax.apply(0, Y),
-            bb = box(xmin, ymin, xmax - xmin, ymax - ymin);
-        pth.bbox = clone(bb);
-        return bb;
-    }
-    function rectPath(x, y, w, h, r) {
-        if (r) {
-            return [
-                ["M", +x + +r, y],
-                ["l", w - r * 2, 0],
-                ["a", r, r, 0, 0, 1, r, r],
-                ["l", 0, h - r * 2],
-                ["a", r, r, 0, 0, 1, -r, r],
-                ["l", r * 2 - w, 0],
-                ["a", r, r, 0, 0, 1, -r, -r],
-                ["l", 0, r * 2 - h],
-                ["a", r, r, 0, 0, 1, r, -r],
-                ["z"]
-            ];
-        }
-        var res = [["M", x, y], ["l", w, 0], ["l", 0, h], ["l", -w, 0], ["z"]];
-        res.toString = toString;
-        return res;
-    }
-    function ellipsePath(x, y, rx, ry, a) {
-        if (a == null && ry == null) {
-            ry = rx;
-        }
-        x = +x;
-        y = +y;
-        rx = +rx;
-        ry = +ry;
-        if (a != null) {
-            var rad = Math.PI / 180,
-                x1 = x + rx * Math.cos(-ry * rad),
-                x2 = x + rx * Math.cos(-a * rad),
-                y1 = y + rx * Math.sin(-ry * rad),
-                y2 = y + rx * Math.sin(-a * rad),
-                res = [["M", x1, y1], ["A", rx, rx, 0, +(a - ry > 180), 0, x2, y2]];
-        } else {
-            res = [
-                ["M", x, y],
-                ["m", 0, -ry],
-                ["a", rx, ry, 0, 1, 1, 0, 2 * ry],
-                ["a", rx, ry, 0, 1, 1, 0, -2 * ry],
-                ["z"]
-            ];
-        }
-        res.toString = toString;
-        return res;
-    }
-    var unit2px = Snap._unit2px,
-        getPath = {
-        path: function (el) {
-            return el.attr("path");
-        },
-        circle: function (el) {
-            var attr = unit2px(el);
-            return ellipsePath(attr.cx, attr.cy, attr.r);
-        },
-        ellipse: function (el) {
-            var attr = unit2px(el);
-            return ellipsePath(attr.cx || 0, attr.cy || 0, attr.rx, attr.ry);
-        },
-        rect: function (el) {
-            var attr = unit2px(el);
-            return rectPath(attr.x || 0, attr.y || 0, attr.width, attr.height, attr.rx, attr.ry);
-        },
-        image: function (el) {
-            var attr = unit2px(el);
-            return rectPath(attr.x || 0, attr.y || 0, attr.width, attr.height);
-        },
-        line: function (el) {
-            return "M" + [el.attr("x1") || 0, el.attr("y1") || 0, el.attr("x2"), el.attr("y2")];
-        },
-        polyline: function (el) {
-            return "M" + el.attr("points");
-        },
-        polygon: function (el) {
-            return "M" + el.attr("points") + "z";
-        },
-        deflt: function (el) {
-            var bbox = el.node.getBBox();
-            return rectPath(bbox.x, bbox.y, bbox.width, bbox.height);
-        }
-    };
-    function pathToRelative(pathArray) {
-        var pth = paths(pathArray),
-            lowerCase = String.prototype.toLowerCase;
-        if (pth.rel) {
-            return pathClone(pth.rel);
-        }
-        if (!Snap.is(pathArray, "array") || !Snap.is(pathArray && pathArray[0], "array")) {
-            pathArray = Snap.parsePathString(pathArray);
-        }
-        var res = [],
-            x = 0,
-            y = 0,
-            mx = 0,
-            my = 0,
-            start = 0;
-        if (pathArray[0][0] == "M") {
-            x = pathArray[0][1];
-            y = pathArray[0][2];
-            mx = x;
-            my = y;
-            start++;
-            res.push(["M", x, y]);
-        }
-        for (var i = start, ii = pathArray.length; i < ii; i++) {
-            var r = res[i] = [],
-                pa = pathArray[i];
-            if (pa[0] != lowerCase.call(pa[0])) {
-                r[0] = lowerCase.call(pa[0]);
-                switch (r[0]) {
-                    case "a":
-                        r[1] = pa[1];
-                        r[2] = pa[2];
-                        r[3] = pa[3];
-                        r[4] = pa[4];
-                        r[5] = pa[5];
-                        r[6] = +(pa[6] - x).toFixed(3);
-                        r[7] = +(pa[7] - y).toFixed(3);
-                        break;
-                    case "v":
-                        r[1] = +(pa[1] - y).toFixed(3);
-                        break;
-                    case "m":
-                        mx = pa[1];
-                        my = pa[2];
-                    default:
-                        for (var j = 1, jj = pa.length; j < jj; j++) {
-                            r[j] = +(pa[j] - (j % 2 ? x : y)).toFixed(3);
-                        }
-                }
-            } else {
-                r = res[i] = [];
-                if (pa[0] == "m") {
-                    mx = pa[1] + x;
-                    my = pa[2] + y;
-                }
-                for (var k = 0, kk = pa.length; k < kk; k++) {
-                    res[i][k] = pa[k];
-                }
-            }
-            var len = res[i].length;
-            switch (res[i][0]) {
-                case "z":
-                    x = mx;
-                    y = my;
-                    break;
-                case "h":
-                    x += +res[i][len - 1];
-                    break;
-                case "v":
-                    y += +res[i][len - 1];
-                    break;
-                default:
-                    x += +res[i][len - 2];
-                    y += +res[i][len - 1];
-            }
-        }
-        res.toString = toString;
-        pth.rel = pathClone(res);
-        return res;
-    }
-    function pathToAbsolute(pathArray) {
-        var pth = paths(pathArray);
-        if (pth.abs) {
-            return pathClone(pth.abs);
-        }
-        if (!is(pathArray, "array") || !is(pathArray && pathArray[0], "array")) { // rough assumption
-            pathArray = Snap.parsePathString(pathArray);
-        }
-        if (!pathArray || !pathArray.length) {
-            return [["M", 0, 0]];
-        }
-        var res = [],
-            x = 0,
-            y = 0,
-            mx = 0,
-            my = 0,
-            start = 0,
-            pa0;
-        if (pathArray[0][0] == "M") {
-            x = +pathArray[0][1];
-            y = +pathArray[0][2];
-            mx = x;
-            my = y;
-            start++;
-            res[0] = ["M", x, y];
-        }
-        var crz = pathArray.length == 3 &&
-            pathArray[0][0] == "M" &&
-            pathArray[1][0].toUpperCase() == "R" &&
-            pathArray[2][0].toUpperCase() == "Z";
-        for (var r, pa, i = start, ii = pathArray.length; i < ii; i++) {
-            res.push(r = []);
-            pa = pathArray[i];
-            pa0 = pa[0];
-            if (pa0 != pa0.toUpperCase()) {
-                r[0] = pa0.toUpperCase();
-                switch (r[0]) {
-                    case "A":
-                        r[1] = pa[1];
-                        r[2] = pa[2];
-                        r[3] = pa[3];
-                        r[4] = pa[4];
-                        r[5] = pa[5];
-                        r[6] = +pa[6] + x;
-                        r[7] = +pa[7] + y;
-                        break;
-                    case "V":
-                        r[1] = +pa[1] + y;
-                        break;
-                    case "H":
-                        r[1] = +pa[1] + x;
-                        break;
-                    case "R":
-                        var dots = [x, y].concat(pa.slice(1));
-                        for (var j = 2, jj = dots.length; j < jj; j++) {
-                            dots[j] = +dots[j] + x;
-                            dots[++j] = +dots[j] + y;
-                        }
-                        res.pop();
-                        res = res.concat(catmullRom2bezier(dots, crz));
-                        break;
-                    case "O":
-                        res.pop();
-                        dots = ellipsePath(x, y, pa[1], pa[2]);
-                        dots.push(dots[0]);
-                        res = res.concat(dots);
-                        break;
-                    case "U":
-                        res.pop();
-                        res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
-                        r = ["U"].concat(res[res.length - 1].slice(-2));
-                        break;
-                    case "M":
-                        mx = +pa[1] + x;
-                        my = +pa[2] + y;
-                    default:
-                        for (j = 1, jj = pa.length; j < jj; j++) {
-                            r[j] = +pa[j] + (j % 2 ? x : y);
-                        }
-                }
-            } else if (pa0 == "R") {
-                dots = [x, y].concat(pa.slice(1));
-                res.pop();
-                res = res.concat(catmullRom2bezier(dots, crz));
-                r = ["R"].concat(pa.slice(-2));
-            } else if (pa0 == "O") {
-                res.pop();
-                dots = ellipsePath(x, y, pa[1], pa[2]);
-                dots.push(dots[0]);
-                res = res.concat(dots);
-            } else if (pa0 == "U") {
-                res.pop();
-                res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
-                r = ["U"].concat(res[res.length - 1].slice(-2));
-            } else {
-                for (var k = 0, kk = pa.length; k < kk; k++) {
-                    r[k] = pa[k];
-                }
-            }
-            pa0 = pa0.toUpperCase();
-            if (pa0 != "O") {
-                switch (r[0]) {
-                    case "Z":
-                        x = +mx;
-                        y = +my;
-                        break;
-                    case "H":
-                        x = r[1];
-                        break;
-                    case "V":
-                        y = r[1];
-                        break;
-                    case "M":
-                        mx = r[r.length - 2];
-                        my = r[r.length - 1];
-                    default:
-                        x = r[r.length - 2];
-                        y = r[r.length - 1];
-                }
-            }
-        }
-        res.toString = toString;
-        pth.abs = pathClone(res);
-        return res;
-    }
-    function l2c(x1, y1, x2, y2) {
-        return [x1, y1, x2, y2, x2, y2];
-    }
-    function q2c(x1, y1, ax, ay, x2, y2) {
-        var _13 = 1 / 3,
-            _23 = 2 / 3;
-        return [
-                _13 * x1 + _23 * ax,
-                _13 * y1 + _23 * ay,
-                _13 * x2 + _23 * ax,
-                _13 * y2 + _23 * ay,
-                x2,
-                y2
-            ];
-    }
-    function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
-        // for more information of where this math came from visit:
-        // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-        var _120 = PI * 120 / 180,
-            rad = PI / 180 * (+angle || 0),
-            res = [],
-            xy,
-            rotate = Snap._.cacher(function (x, y, rad) {
-                var X = x * math.cos(rad) - y * math.sin(rad),
-                    Y = x * math.sin(rad) + y * math.cos(rad);
-                return {x: X, y: Y};
-            });
-        if (!rx || !ry) {
-            return [x1, y1, x2, y2, x2, y2];
-        }
-        if (!recursive) {
-            xy = rotate(x1, y1, -rad);
-            x1 = xy.x;
-            y1 = xy.y;
-            xy = rotate(x2, y2, -rad);
-            x2 = xy.x;
-            y2 = xy.y;
-            var cos = math.cos(PI / 180 * angle),
-                sin = math.sin(PI / 180 * angle),
-                x = (x1 - x2) / 2,
-                y = (y1 - y2) / 2;
-            var h = x * x / (rx * rx) + y * y / (ry * ry);
-            if (h > 1) {
-                h = math.sqrt(h);
-                rx = h * rx;
-                ry = h * ry;
-            }
-            var rx2 = rx * rx,
-                ry2 = ry * ry,
-                k = (large_arc_flag == sweep_flag ? -1 : 1) *
-                    math.sqrt(abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x) / (rx2 * y * y + ry2 * x * x))),
-                cx = k * rx * y / ry + (x1 + x2) / 2,
-                cy = k * -ry * x / rx + (y1 + y2) / 2,
-                f1 = math.asin(((y1 - cy) / ry).toFixed(9)),
-                f2 = math.asin(((y2 - cy) / ry).toFixed(9));
-
-            f1 = x1 < cx ? PI - f1 : f1;
-            f2 = x2 < cx ? PI - f2 : f2;
-            f1 < 0 && (f1 = PI * 2 + f1);
-            f2 < 0 && (f2 = PI * 2 + f2);
-            if (sweep_flag && f1 > f2) {
-                f1 = f1 - PI * 2;
-            }
-            if (!sweep_flag && f2 > f1) {
-                f2 = f2 - PI * 2;
-            }
-        } else {
-            f1 = recursive[0];
-            f2 = recursive[1];
-            cx = recursive[2];
-            cy = recursive[3];
-        }
-        var df = f2 - f1;
-        if (abs(df) > _120) {
-            var f2old = f2,
-                x2old = x2,
-                y2old = y2;
-            f2 = f1 + _120 * (sweep_flag && f2 > f1 ? 1 : -1);
-            x2 = cx + rx * math.cos(f2);
-            y2 = cy + ry * math.sin(f2);
-            res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
-        }
-        df = f2 - f1;
-        var c1 = math.cos(f1),
-            s1 = math.sin(f1),
-            c2 = math.cos(f2),
-            s2 = math.sin(f2),
-            t = math.tan(df / 4),
-            hx = 4 / 3 * rx * t,
-            hy = 4 / 3 * ry * t,
-            m1 = [x1, y1],
-            m2 = [x1 + hx * s1, y1 - hy * c1],
-            m3 = [x2 + hx * s2, y2 - hy * c2],
-            m4 = [x2, y2];
-        m2[0] = 2 * m1[0] - m2[0];
-        m2[1] = 2 * m1[1] - m2[1];
-        if (recursive) {
-            return [m2, m3, m4].concat(res);
-        } else {
-            res = [m2, m3, m4].concat(res).join().split(",");
-            var newres = [];
-            for (var i = 0, ii = res.length; i < ii; i++) {
-                newres[i] = i % 2 ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
-            }
-            return newres;
-        }
-    }
-    function findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
-        var t1 = 1 - t;
-        return {
-            x: pow(t1, 3) * p1x + pow(t1, 2) * 3 * t * c1x + t1 * 3 * t * t * c2x + pow(t, 3) * p2x,
-            y: pow(t1, 3) * p1y + pow(t1, 2) * 3 * t * c1y + t1 * 3 * t * t * c2y + pow(t, 3) * p2y
-        };
-    }
-
-    // Returns bounding box of cubic bezier curve.
-    // Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
-    // Original version: NISHIO Hirokazu
-    // Modifications: https://github.com/timo22345
-    function curveDim(x0, y0, x1, y1, x2, y2, x3, y3) {
-        var tvalues = [],
-            bounds = [[], []],
-            a, b, c, t, t1, t2, b2ac, sqrtb2ac;
-        for (var i = 0; i < 2; ++i) {
-            if (i == 0) {
-                b = 6 * x0 - 12 * x1 + 6 * x2;
-                a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
-                c = 3 * x1 - 3 * x0;
-            } else {
-                b = 6 * y0 - 12 * y1 + 6 * y2;
-                a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
-                c = 3 * y1 - 3 * y0;
-            }
-            if (abs(a) < 1e-12) {
-                if (abs(b) < 1e-12) {
-                    continue;
-                }
-                t = -c / b;
-                if (0 < t && t < 1) {
-                    tvalues.push(t);
-                }
-                continue;
-            }
-            b2ac = b * b - 4 * c * a;
-            sqrtb2ac = math.sqrt(b2ac);
-            if (b2ac < 0) {
-                continue;
-            }
-            t1 = (-b + sqrtb2ac) / (2 * a);
-            if (0 < t1 && t1 < 1) {
-                tvalues.push(t1);
-            }
-            t2 = (-b - sqrtb2ac) / (2 * a);
-            if (0 < t2 && t2 < 1) {
-                tvalues.push(t2);
-            }
-        }
-
-        var x, y, j = tvalues.length,
-            jlen = j,
-            mt;
-        while (j--) {
-            t = tvalues[j];
-            mt = 1 - t;
-            bounds[0][j] = mt * mt * mt * x0 + 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t * x3;
-            bounds[1][j] = mt * mt * mt * y0 + 3 * mt * mt * t * y1 + 3 * mt * t * t * y2 + t * t * t * y3;
-        }
-
-        bounds[0][jlen] = x0;
-        bounds[1][jlen] = y0;
-        bounds[0][jlen + 1] = x3;
-        bounds[1][jlen + 1] = y3;
-        bounds[0].length = bounds[1].length = jlen + 2;
-
-
-        return {
-          min: {x: mmin.apply(0, bounds[0]), y: mmin.apply(0, bounds[1])},
-          max: {x: mmax.apply(0, bounds[0]), y: mmax.apply(0, bounds[1])}
-        };
-    }
-
-    function path2curve(path, path2) {
-        var pth = !path2 && paths(path);
-        if (!path2 && pth.curve) {
-            return pathClone(pth.curve);
-        }
-        var p = pathToAbsolute(path),
-            p2 = path2 && pathToAbsolute(path2),
-            attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
-            attrs2 = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
-            processPath = function (path, d, pcom) {
-                var nx, ny;
-                if (!path) {
-                    return ["C", d.x, d.y, d.x, d.y, d.x, d.y];
-                }
-                !(path[0] in {T: 1, Q: 1}) && (d.qx = d.qy = null);
-                switch (path[0]) {
-                    case "M":
-                        d.X = path[1];
-                        d.Y = path[2];
-                        break;
-                    case "A":
-                        path = ["C"].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
-                        break;
-                    case "S":
-                        if (pcom == "C" || pcom == "S") { // In "S" case we have to take into account, if the previous command is C/S.
-                            nx = d.x * 2 - d.bx;          // And reflect the previous
-                            ny = d.y * 2 - d.by;          // command's control point relative to the current point.
-                        }
-                        else {                            // or some else or nothing
-                            nx = d.x;
-                            ny = d.y;
-                        }
-                        path = ["C", nx, ny].concat(path.slice(1));
-                        break;
-                    case "T":
-                        if (pcom == "Q" || pcom == "T") { // In "T" case we have to take into account, if the previous command is Q/T.
-                            d.qx = d.x * 2 - d.qx;        // And make a reflection similar
-                            d.qy = d.y * 2 - d.qy;        // to case "S".
-                        }
-                        else {                            // or something else or nothing
-                            d.qx = d.x;
-                            d.qy = d.y;
-                        }
-                        path = ["C"].concat(q2c(d.x, d.y, d.qx, d.qy, path[1], path[2]));
-                        break;
-                    case "Q":
-                        d.qx = path[1];
-                        d.qy = path[2];
-                        path = ["C"].concat(q2c(d.x, d.y, path[1], path[2], path[3], path[4]));
-                        break;
-                    case "L":
-                        path = ["C"].concat(l2c(d.x, d.y, path[1], path[2]));
-                        break;
-                    case "H":
-                        path = ["C"].concat(l2c(d.x, d.y, path[1], d.y));
-                        break;
-                    case "V":
-                        path = ["C"].concat(l2c(d.x, d.y, d.x, path[1]));
-                        break;
-                    case "Z":
-                        path = ["C"].concat(l2c(d.x, d.y, d.X, d.Y));
-                        break;
-                }
-                return path;
-            },
-            fixArc = function (pp, i) {
-                if (pp[i].length > 7) {
-                    pp[i].shift();
-                    var pi = pp[i];
-                    while (pi.length) {
-                        pcoms1[i] = "A"; // if created multiple C:s, their original seg is saved
-                        p2 && (pcoms2[i] = "A"); // the same as above
-                        pp.splice(i++, 0, ["C"].concat(pi.splice(0, 6)));
-                    }
-                    pp.splice(i, 1);
-                    ii = mmax(p.length, p2 && p2.length || 0);
-                }
-            },
-            fixM = function (path1, path2, a1, a2, i) {
-                if (path1 && path2 && path1[i][0] == "M" && path2[i][0] != "M") {
-                    path2.splice(i, 0, ["M", a2.x, a2.y]);
-                    a1.bx = 0;
-                    a1.by = 0;
-                    a1.x = path1[i][1];
-                    a1.y = path1[i][2];
-                    ii = mmax(p.length, p2 && p2.length || 0);
-                }
-            },
-            pcoms1 = [], // path commands of original path p
-            pcoms2 = [], // path commands of original path p2
-            pfirst = "", // temporary holder for original path command
-            pcom = ""; // holder for previous path command of original path
-        for (var i = 0, ii = mmax(p.length, p2 && p2.length || 0); i < ii; i++) {
-            p[i] && (pfirst = p[i][0]); // save current path command
-
-            if (pfirst != "C") // C is not saved yet, because it may be result of conversion
-            {
-                pcoms1[i] = pfirst; // Save current path command
-                i && ( pcom = pcoms1[i - 1]); // Get previous path command pcom
-            }
-            p[i] = processPath(p[i], attrs, pcom); // Previous path command is inputted to processPath
-
-            if (pcoms1[i] != "A" && pfirst == "C") pcoms1[i] = "C"; // A is the only command
-            // which may produce multiple C:s
-            // so we have to make sure that C is also C in original path
-
-            fixArc(p, i); // fixArc adds also the right amount of A:s to pcoms1
-
-            if (p2) { // the same procedures is done to p2
-                p2[i] && (pfirst = p2[i][0]);
-                if (pfirst != "C") {
-                    pcoms2[i] = pfirst;
-                    i && (pcom = pcoms2[i - 1]);
-                }
-                p2[i] = processPath(p2[i], attrs2, pcom);
-
-                if (pcoms2[i] != "A" && pfirst == "C") {
-                    pcoms2[i] = "C";
-                }
-
-                fixArc(p2, i);
-            }
-            fixM(p, p2, attrs, attrs2, i);
-            fixM(p2, p, attrs2, attrs, i);
-            var seg = p[i],
-                seg2 = p2 && p2[i],
-                seglen = seg.length,
-                seg2len = p2 && seg2.length;
-            attrs.x = seg[seglen - 2];
-            attrs.y = seg[seglen - 1];
-            attrs.bx = toFloat(seg[seglen - 4]) || attrs.x;
-            attrs.by = toFloat(seg[seglen - 3]) || attrs.y;
-            attrs2.bx = p2 && (toFloat(seg2[seg2len - 4]) || attrs2.x);
-            attrs2.by = p2 && (toFloat(seg2[seg2len - 3]) || attrs2.y);
-            attrs2.x = p2 && seg2[seg2len - 2];
-            attrs2.y = p2 && seg2[seg2len - 1];
-        }
-        if (!p2) {
-            pth.curve = pathClone(p);
-        }
-        return p2 ? [p, p2] : p;
-    }
-    function mapPath(path, matrix) {
-        if (!matrix) {
-            return path;
-        }
-        var x, y, i, j, ii, jj, pathi;
-        path = path2curve(path);
-        for (i = 0, ii = path.length; i < ii; i++) {
-            pathi = path[i];
-            for (j = 1, jj = pathi.length; j < jj; j += 2) {
-                x = matrix.x(pathi[j], pathi[j + 1]);
-                y = matrix.y(pathi[j], pathi[j + 1]);
-                pathi[j] = x;
-                pathi[j + 1] = y;
-            }
-        }
-        return path;
-    }
-
-    // http://schepers.cc/getting-to-the-point
-    function catmullRom2bezier(crp, z) {
-        var d = [];
-        for (var i = 0, iLen = crp.length; iLen - 2 * !z > i; i += 2) {
-            var p = [
-                        {x: +crp[i - 2], y: +crp[i - 1]},
-                        {x: +crp[i],     y: +crp[i + 1]},
-                        {x: +crp[i + 2], y: +crp[i + 3]},
-                        {x: +crp[i + 4], y: +crp[i + 5]}
-                    ];
-            if (z) {
-                if (!i) {
-                    p[0] = {x: +crp[iLen - 2], y: +crp[iLen - 1]};
-                } else if (iLen - 4 == i) {
-                    p[3] = {x: +crp[0], y: +crp[1]};
-                } else if (iLen - 2 == i) {
-                    p[2] = {x: +crp[0], y: +crp[1]};
-                    p[3] = {x: +crp[2], y: +crp[3]};
-                }
-            } else {
-                if (iLen - 4 == i) {
-                    p[3] = p[2];
-                } else if (!i) {
-                    p[0] = {x: +crp[i], y: +crp[i + 1]};
-                }
-            }
-            d.push(["C",
-                  (-p[0].x + 6 * p[1].x + p[2].x) / 6,
-                  (-p[0].y + 6 * p[1].y + p[2].y) / 6,
-                  (p[1].x + 6 * p[2].x - p[3].x) / 6,
-                  (p[1].y + 6*p[2].y - p[3].y) / 6,
-                  p[2].x,
-                  p[2].y
-            ]);
-        }
-
-        return d;
-    }
-
-    // export
-    Snap.path = paths;
-
-    /*\
-     * Snap.path.getTotalLength
-     [ method ]
-     **
-     * Returns the length of the given path in pixels
-     **
-     - path (string) SVG path string
-     **
-     = (number) length
-    \*/
-    Snap.path.getTotalLength = getTotalLength;
-    /*\
-     * Snap.path.getPointAtLength
-     [ method ]
-     **
-     * Returns the coordinates of the point located at the given length along the given path
-     **
-     - path (string) SVG path string
-     - length (number) length, in pixels, from the start of the path, excluding non-rendering jumps
-     **
-     = (object) representation of the point:
-     o {
-     o     x: (number) x coordinate,
-     o     y: (number) y coordinate,
-     o     alpha: (number) angle of derivative
-     o }
-    \*/
-    Snap.path.getPointAtLength = getPointAtLength;
-    /*\
-     * Snap.path.getSubpath
-     [ method ]
-     **
-     * Returns the subpath of a given path between given start and end lengths
-     **
-     - path (string) SVG path string
-     - from (number) length, in pixels, from the start of the path to the start of the segment
-     - to (number) length, in pixels, from the start of the path to the end of the segment
-     **
-     = (string) path string definition for the segment
-    \*/
-    Snap.path.getSubpath = function (path, from, to) {
-        if (this.getTotalLength(path) - to < 1e-6) {
-            return getSubpathsAtLength(path, from).end;
-        }
-        var a = getSubpathsAtLength(path, to, 1);
-        return from ? getSubpathsAtLength(a, from).end : a;
-    };
-    /*\
-     * Element.getTotalLength
-     [ method ]
-     **
-     * Returns the length of the path in pixels (only works for `path` elements)
-     = (number) length
-    \*/
-    elproto.getTotalLength = function () {
-        if (this.node.getTotalLength) {
-            return this.node.getTotalLength();
-        }
-    };
-    // SIERRA Element.getPointAtLength()/Element.getTotalLength(): If a <path> is broken into different segments, is the jump distance to the new coordinates set by the _M_ or _m_ commands calculated as part of the path's total length?
-    /*\
-     * Element.getPointAtLength
-     [ method ]
-     **
-     * Returns coordinates of the point located at the given length on the given path (only works for `path` elements)
-     **
-     - length (number) length, in pixels, from the start of the path, excluding non-rendering jumps
-     **
-     = (object) representation of the point:
-     o {
-     o     x: (number) x coordinate,
-     o     y: (number) y coordinate,
-     o     alpha: (number) angle of derivative
-     o }
-    \*/
-    elproto.getPointAtLength = function (length) {
-        return getPointAtLength(this.attr("d"), length);
-    };
-    // SIERRA Element.getSubpath(): Similar to the problem for Element.getPointAtLength(). Unclear how this would work for a segmented path. Overall, the concept of _subpath_ and what I'm calling a _segment_ (series of non-_M_ or _Z_ commands) is unclear.
-    /*\
-     * Element.getSubpath
-     [ method ]
-     **
-     * Returns subpath of a given element from given start and end lengths (only works for `path` elements)
-     **
-     - from (number) length, in pixels, from the start of the path to the start of the segment
-     - to (number) length, in pixels, from the start of the path to the end of the segment
-     **
-     = (string) path string definition for the segment
-    \*/
-    elproto.getSubpath = function (from, to) {
-        return Snap.path.getSubpath(this.attr("d"), from, to);
-    };
-    Snap._.box = box;
-    /*\
-     * Snap.path.findDotsAtSegment
-     [ method ]
-     **
-     * Utility method
-     **
-     * Finds dot coordinates on the given cubic beziér curve at the given t
-     - p1x (number) x of the first point of the curve
-     - p1y (number) y of the first point of the curve
-     - c1x (number) x of the first anchor of the curve
-     - c1y (number) y of the first anchor of the curve
-     - c2x (number) x of the second anchor of the curve
-     - c2y (number) y of the second anchor of the curve
-     - p2x (number) x of the second point of the curve
-     - p2y (number) y of the second point of the curve
-     - t (number) position on the curve (0..1)
-     = (object) point information in format:
-     o {
-     o     x: (number) x coordinate of the point,
-     o     y: (number) y coordinate of the point,
-     o     m: {
-     o         x: (number) x coordinate of the left anchor,
-     o         y: (number) y coordinate of the left anchor
-     o     },
-     o     n: {
-     o         x: (number) x coordinate of the right anchor,
-     o         y: (number) y coordinate of the right anchor
-     o     },
-     o     start: {
-     o         x: (number) x coordinate of the start of the curve,
-     o         y: (number) y coordinate of the start of the curve
-     o     },
-     o     end: {
-     o         x: (number) x coordinate of the end of the curve,
-     o         y: (number) y coordinate of the end of the curve
-     o     },
-     o     alpha: (number) angle of the curve derivative at the point
-     o }
-    \*/
-    Snap.path.findDotsAtSegment = findDotsAtSegment;
-    /*\
-     * Snap.path.bezierBBox
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns the bounding box of a given cubic beziér curve
-     - p1x (number) x of the first point of the curve
-     - p1y (number) y of the first point of the curve
-     - c1x (number) x of the first anchor of the curve
-     - c1y (number) y of the first anchor of the curve
-     - c2x (number) x of the second anchor of the curve
-     - c2y (number) y of the second anchor of the curve
-     - p2x (number) x of the second point of the curve
-     - p2y (number) y of the second point of the curve
-     * or
-     - bez (array) array of six points for beziér curve
-     = (object) bounding box
-     o {
-     o     x: (number) x coordinate of the left top point of the box,
-     o     y: (number) y coordinate of the left top point of the box,
-     o     x2: (number) x coordinate of the right bottom point of the box,
-     o     y2: (number) y coordinate of the right bottom point of the box,
-     o     width: (number) width of the box,
-     o     height: (number) height of the box
-     o }
-    \*/
-    Snap.path.bezierBBox = bezierBBox;
-    /*\
-     * Snap.path.isPointInsideBBox
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns `true` if given point is inside bounding box
-     - bbox (string) bounding box
-     - x (string) x coordinate of the point
-     - y (string) y coordinate of the point
-     = (boolean) `true` if point is inside
-    \*/
-    Snap.path.isPointInsideBBox = isPointInsideBBox;
-    Snap.closest = function (x, y, X, Y) {
-        var r = 100,
-            b = box(x - r / 2, y - r / 2, r, r),
-            inside = [],
-            getter = X[0].hasOwnProperty("x") ? function (i) {
-                return {
-                    x: X[i].x,
-                    y: X[i].y
-                };
-            } : function (i) {
-                return {
-                    x: X[i],
-                    y: Y[i]
-                };
-            },
-            found = 0;
-        while (r <= 1e6 && !found) {
-            for (var i = 0, ii = X.length; i < ii; i++) {
-                var xy = getter(i);
-                if (isPointInsideBBox(b, xy.x, xy.y)) {
-                    found++;
-                    inside.push(xy);
-                    break;
-                }
-            }
-            if (!found) {
-                r *= 2;
-                b = box(x - r / 2, y - r / 2, r, r)
-            }
-        }
-        if (r == 1e6) {
-            return;
-        }
-        var len = Infinity,
-            res;
-        for (i = 0, ii = inside.length; i < ii; i++) {
-            var l = Snap.len(x, y, inside[i].x, inside[i].y);
-            if (len > l) {
-                len = l;
-                inside[i].len = l;
-                res = inside[i];
-            }
-        }
-        return res;
-    };
-    /*\
-     * Snap.path.isBBoxIntersect
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns `true` if two bounding boxes intersect
-     - bbox1 (string) first bounding box
-     - bbox2 (string) second bounding box
-     = (boolean) `true` if bounding boxes intersect
-    \*/
-    Snap.path.isBBoxIntersect = isBBoxIntersect;
-    /*\
-     * Snap.path.intersection
-     [ method ]
-     **
-     * Utility method
-     **
-     * Finds intersections of two paths
-     - path1 (string) path string
-     - path2 (string) path string
-     = (array) dots of intersection
-     o [
-     o     {
-     o         x: (number) x coordinate of the point,
-     o         y: (number) y coordinate of the point,
-     o         t1: (number) t value for segment of path1,
-     o         t2: (number) t value for segment of path2,
-     o         segment1: (number) order number for segment of path1,
-     o         segment2: (number) order number for segment of path2,
-     o         bez1: (array) eight coordinates representing beziér curve for the segment of path1,
-     o         bez2: (array) eight coordinates representing beziér curve for the segment of path2
-     o     }
-     o ]
-    \*/
-    Snap.path.intersection = pathIntersection;
-    Snap.path.intersectionNumber = pathIntersectionNumber;
-    /*\
-     * Snap.path.isPointInside
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns `true` if given point is inside a given closed path.
-     *
-     * Note: fill mode doesn’t affect the result of this method.
-     - path (string) path string
-     - x (number) x of the point
-     - y (number) y of the point
-     = (boolean) `true` if point is inside the path
-    \*/
-    Snap.path.isPointInside = isPointInsidePath;
-    /*\
-     * Snap.path.getBBox
-     [ method ]
-     **
-     * Utility method
-     **
-     * Returns the bounding box of a given path
-     - path (string) path string
-     = (object) bounding box
-     o {
-     o     x: (number) x coordinate of the left top point of the box,
-     o     y: (number) y coordinate of the left top point of the box,
-     o     x2: (number) x coordinate of the right bottom point of the box,
-     o     y2: (number) y coordinate of the right bottom point of the box,
-     o     width: (number) width of the box,
-     o     height: (number) height of the box
-     o }
-    \*/
-    Snap.path.getBBox = pathBBox;
-    Snap.path.get = getPath;
-    /*\
-     * Snap.path.toRelative
-     [ method ]
-     **
-     * Utility method
-     **
-     * Converts path coordinates into relative values
-     - path (string) path string
-     = (array) path string
-    \*/
-    Snap.path.toRelative = pathToRelative;
-    /*\
-     * Snap.path.toAbsolute
-     [ method ]
-     **
-     * Utility method
-     **
-     * Converts path coordinates into absolute values
-     - path (string) path string
-     = (array) path string
-    \*/
-    Snap.path.toAbsolute = pathToAbsolute;
-    /*\
-     * Snap.path.toCubic
-     [ method ]
-     **
-     * Utility method
-     **
-     * Converts path to a new path where all segments are cubic beziér curves
-     - pathString (string|array) path string or array of segments
-     = (array) array of segments
-    \*/
-    Snap.path.toCubic = path2curve;
-    /*\
-     * Snap.path.map
-     [ method ]
-     **
-     * Transform the path string with the given matrix
-     - path (string) path string
-     - matrix (object) see @Matrix
-     = (string) transformed path string
-    \*/
-    Snap.path.map = mapPath;
-    Snap.path.toString = toString;
-    Snap.path.clone = pathClone;
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob) {
-    var mmax = Math.max,
-        mmin = Math.min;
-
-    // Set
-    var Set = function (items) {
-        this.items = [];
-	this.bindings = {};
-        this.length = 0;
-        this.type = "set";
-        if (items) {
-            for (var i = 0, ii = items.length; i < ii; i++) {
-                if (items[i]) {
-                    this[this.items.length] = this.items[this.items.length] = items[i];
-                    this.length++;
-                }
-            }
-        }
-    },
-    setproto = Set.prototype;
-    /*\
-     * Set.push
-     [ method ]
-     **
-     * Adds each argument to the current set
-     = (object) original element
-    \*/
-    setproto.push = function () {
-        var item,
-            len;
-        for (var i = 0, ii = arguments.length; i < ii; i++) {
-            item = arguments[i];
-            if (item) {
-                len = this.items.length;
-                this[len] = this.items[len] = item;
-                this.length++;
-            }
-        }
-        return this;
-    };
-    /*\
-     * Set.pop
-     [ method ]
-     **
-     * Removes last element and returns it
-     = (object) element
-    \*/
-    setproto.pop = function () {
-        this.length && delete this[this.length--];
-        return this.items.pop();
-    };
-    /*\
-     * Set.forEach
-     [ method ]
-     **
-     * Executes given function for each element in the set
-     *
-     * If the function returns `false`, the loop stops running.
-     **
-     - callback (function) function to run
-     - thisArg (object) context object for the callback
-     = (object) Set object
-    \*/
-    setproto.forEach = function (callback, thisArg) {
-        for (var i = 0, ii = this.items.length; i < ii; i++) {
-            if (callback.call(thisArg, this.items[i], i) === false) {
-                return this;
-            }
-        }
-        return this;
-    };
-    /*\
-     * Set.animate
-     [ method ]
-     **
-     * Animates each element in set in sync.
-     *
-     **
-     - attrs (object) key-value pairs of destination attributes
-     - duration (number) duration of the animation in milliseconds
-     - easing (function) #optional easing function from @mina or custom
-     - callback (function) #optional callback function that executes when the animation ends
-     * or
-     - animation (array) array of animation parameter for each element in set in format `[attrs, duration, easing, callback]`
-     > Usage
-     | // animate all elements in set to radius 10
-     | set.animate({r: 10}, 500, mina.easein);
-     | // or
-     | // animate first element to radius 10, but second to radius 20 and in different time
-     | set.animate([{r: 10}, 500, mina.easein], [{r: 20}, 1500, mina.easein]);
-     = (Element) the current element
-    \*/
-    setproto.animate = function (attrs, ms, easing, callback) {
-        if (typeof easing == "function" && !easing.length) {
-            callback = easing;
-            easing = mina.linear;
-        }
-        if (attrs instanceof Snap._.Animation) {
-            callback = attrs.callback;
-            easing = attrs.easing;
-            ms = easing.dur;
-            attrs = attrs.attr;
-        }
-        var args = arguments;
-        if (Snap.is(attrs, "array") && Snap.is(args[args.length - 1], "array")) {
-            var each = true;
-        }
-        var begin,
-            handler = function () {
-                if (begin) {
-                    this.b = begin;
-                } else {
-                    begin = this.b;
-                }
-            },
-            cb = 0,
-            set = this,
-            callbacker = callback && function () {
-                if (++cb == set.length) {
-                    callback.call(this);
-                }
-            };
-        return this.forEach(function (el, i) {
-            eve.once("snap.animcreated." + el.id, handler);
-            if (each) {
-                args[i] && el.animate.apply(el, args[i]);
-            } else {
-                el.animate(attrs, ms, easing, callbacker);
-            }
-        });
-    };
-    /*\
-     * Set.remove
-     [ method ]
-     **
-     * Removes all children of the set.
-     *
-     = (object) Set object
-    \*/
-    setproto.remove = function () {
-        while (this.length) {
-            this.pop().remove();
-        }
-        return this;
-    };
-    /*\
-     * Set.bind
-     [ method ]
-     **
-     * Specifies how to handle a specific attribute when applied
-     * to a set.
-     *
-     **
-     - attr (string) attribute name
-     - callback (function) function to run
-     * or
-     - attr (string) attribute name
-     - element (Element) specific element in the set to apply the attribute to
-     * or
-     - attr (string) attribute name
-     - element (Element) specific element in the set to apply the attribute to
-     - eattr (string) attribute on the element to bind the attribute to
-     = (object) Set object
-    \*/
-    setproto.bind = function (attr, a, b) {
-        var data = {};
-        if (typeof a == "function") {
-            this.bindings[attr] = a;
-        } else {
-            var aname = b || attr;
-            this.bindings[attr] = function (v) {
-                data[aname] = v;
-                a.attr(data);
-            };
-        }
-        return this;
-    };
-    /*\
-     * Set.attr
-     [ method ]
-     **
-     * Equivalent of @Element.attr.
-     = (object) Set object
-    \*/
-    setproto.attr = function (value) {
-        var unbound = {};
-        for (var k in value) {
-            if (this.bindings[k]) {
-                this.bindings[k](value[k]);
-            } else {
-                unbound[k] = value[k];
-            }
-        }
-        for (var i = 0, ii = this.items.length; i < ii; i++) {
-            this.items[i].attr(unbound);
-        }
-        return this;
-    };
-    /*\
-     * Set.clear
-     [ method ]
-     **
-     * Removes all elements from the set
-    \*/
-    setproto.clear = function () {
-        while (this.length) {
-            this.pop();
-        }
-    };
-    /*\
-     * Set.splice
-     [ method ]
-     **
-     * Removes range of elements from the set
-     **
-     - index (number) position of the deletion
-     - count (number) number of element to remove
-     - insertion… (object) #optional elements to insert
-     = (object) set elements that were deleted
-    \*/
-    setproto.splice = function (index, count, insertion) {
-        index = index < 0 ? mmax(this.length + index, 0) : index;
-        count = mmax(0, mmin(this.length - index, count));
-        var tail = [],
-            todel = [],
-            args = [],
-            i;
-        for (i = 2; i < arguments.length; i++) {
-            args.push(arguments[i]);
-        }
-        for (i = 0; i < count; i++) {
-            todel.push(this[index + i]);
-        }
-        for (; i < this.length - index; i++) {
-            tail.push(this[index + i]);
-        }
-        var arglen = args.length;
-        for (i = 0; i < arglen + tail.length; i++) {
-            this.items[index + i] = this[index + i] = i < arglen ? args[i] : tail[i - arglen];
-        }
-        i = this.items.length = this.length -= count - arglen;
-        while (this[i]) {
-            delete this[i++];
-        }
-        return new Set(todel);
-    };
-    /*\
-     * Set.exclude
-     [ method ]
-     **
-     * Removes given element from the set
-     **
-     - element (object) element to remove
-     = (boolean) `true` if object was found and removed from the set
-    \*/
-    setproto.exclude = function (el) {
-        for (var i = 0, ii = this.length; i < ii; i++) if (this[i] == el) {
-            this.splice(i, 1);
-            return true;
-        }
-        return false;
-    };
-    /*\
-     * Set.insertAfter
-     [ method ]
-     **
-     * Inserts set elements after given element.
-     **
-     - element (object) set will be inserted after this element
-     = (object) Set object
-    \*/
-    setproto.insertAfter = function (el) {
-        var i = this.items.length;
-        while (i--) {
-            this.items[i].insertAfter(el);
-        }
-        return this;
-    };
-    /*\
-     * Set.getBBox
-     [ method ]
-     **
-     * Union of all bboxes of the set. See @Element.getBBox.
-     = (object) bounding box descriptor. See @Element.getBBox.
-    \*/
-    setproto.getBBox = function () {
-        var x = [],
-            y = [],
-            x2 = [],
-            y2 = [];
-        for (var i = this.items.length; i--;) if (!this.items[i].removed) {
-            var box = this.items[i].getBBox();
-            x.push(box.x);
-            y.push(box.y);
-            x2.push(box.x + box.width);
-            y2.push(box.y + box.height);
-        }
-        x = mmin.apply(0, x);
-        y = mmin.apply(0, y);
-        x2 = mmax.apply(0, x2);
-        y2 = mmax.apply(0, y2);
-        return {
-            x: x,
-            y: y,
-            x2: x2,
-            y2: y2,
-            width: x2 - x,
-            height: y2 - y,
-            cx: x + (x2 - x) / 2,
-            cy: y + (y2 - y) / 2
-        };
-    };
-    /*\
-     * Set.insertAfter
-     [ method ]
-     **
-     * Creates a clone of the set.
-     **
-     = (object) New Set object
-    \*/
-    setproto.clone = function (s) {
-        s = new Set;
-        for (var i = 0, ii = this.items.length; i < ii; i++) {
-            s.push(this.items[i].clone());
-        }
-        return s;
-    };
-    setproto.toString = function () {
-        return "Snap\u2018s set";
-    };
-    setproto.type = "set";
-    // export
-    /*\
-     * Snap.Set
-     [ property ]
-     **
-     * Set constructor.
-    \*/
-    Snap.Set = Set;
-    /*\
-     * Snap.set
-     [ method ]
-     **
-     * Creates a set and fills it with list of arguments.
-     **
-     = (object) New Set object
-     | var r = paper.rect(0, 0, 10, 10),
-     |     s1 = Snap.set(), // empty set
-     |     s2 = Snap.set(r, paper.circle(100, 100, 20)); // prefilled set
-    \*/
-    Snap.set = function () {
-        var set = new Set;
-        if (arguments.length) {
-            set.push.apply(set, Array.prototype.slice.call(arguments, 0));
-        }
-        return set;
-    };
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob) {
-    var names = {},
-        reUnit = /[%a-z]+$/i,
-        Str = String;
-    names.stroke = names.fill = "colour";
-    function getEmpty(item) {
-        var l = item[0];
-        switch (l.toLowerCase()) {
-            case "t": return [l, 0, 0];
-            case "m": return [l, 1, 0, 0, 1, 0, 0];
-            case "r": if (item.length == 4) {
-                return [l, 0, item[2], item[3]];
-            } else {
-                return [l, 0];
-            }
-            case "s": if (item.length == 5) {
-                return [l, 1, 1, item[3], item[4]];
-            } else if (item.length == 3) {
-                return [l, 1, 1];
-            } else {
-                return [l, 1];
-            }
-        }
-    }
-    function equaliseTransform(t1, t2, getBBox) {
-        t1 = t1 || new Snap.Matrix;
-        t2 = t2 || new Snap.Matrix;
-        t1 = Snap.parseTransformString(t1.toTransformString()) || [];
-        t2 = Snap.parseTransformString(t2.toTransformString()) || [];
-        var maxlength = Math.max(t1.length, t2.length),
-            from = [],
-            to = [],
-            i = 0, j, jj,
-            tt1, tt2;
-        for (; i < maxlength; i++) {
-            tt1 = t1[i] || getEmpty(t2[i]);
-            tt2 = t2[i] || getEmpty(tt1);
-            if (tt1[0] != tt2[0] ||
-                tt1[0].toLowerCase() == "r" && (tt1[2] != tt2[2] || tt1[3] != tt2[3]) ||
-                tt1[0].toLowerCase() == "s" && (tt1[3] != tt2[3] || tt1[4] != tt2[4])
-                ) {
-                    t1 = Snap._.transform2matrix(t1, getBBox());
-                    t2 = Snap._.transform2matrix(t2, getBBox());
-                    from = [["m", t1.a, t1.b, t1.c, t1.d, t1.e, t1.f]];
-                    to = [["m", t2.a, t2.b, t2.c, t2.d, t2.e, t2.f]];
-                    break;
-            }
-            from[i] = [];
-            to[i] = [];
-            for (j = 0, jj = Math.max(tt1.length, tt2.length); j < jj; j++) {
-                j in tt1 && (from[i][j] = tt1[j]);
-                j in tt2 && (to[i][j] = tt2[j]);
-            }
-        }
-        return {
-            from: path2array(from),
-            to: path2array(to),
-            f: getPath(from)
-        };
-    }
-    function getNumber(val) {
-        return val;
-    }
-    function getUnit(unit) {
-        return function (val) {
-            return +val.toFixed(3) + unit;
-        };
-    }
-    function getViewBox(val) {
-        return val.join(" ");
-    }
-    function getColour(clr) {
-        return Snap.rgb(clr[0], clr[1], clr[2], clr[3]);
-    }
-    function getPath(path) {
-        var k = 0, i, ii, j, jj, out, a, b = [];
-        for (i = 0, ii = path.length; i < ii; i++) {
-            out = "[";
-            a = ['"' + path[i][0] + '"'];
-            for (j = 1, jj = path[i].length; j < jj; j++) {
-                a[j] = "val[" + k++ + "]";
-            }
-            out += a + "]";
-            b[i] = out;
-        }
-        return Function("val", "return Snap.path.toString.call([" + b + "])");
-    }
-    function path2array(path) {
-        var out = [];
-        for (var i = 0, ii = path.length; i < ii; i++) {
-            for (var j = 1, jj = path[i].length; j < jj; j++) {
-                out.push(path[i][j]);
-            }
-        }
-        return out;
-    }
-    function isNumeric(obj) {
-        return isFinite(obj);
-    }
-    function arrayEqual(arr1, arr2) {
-        if (!Snap.is(arr1, "array") || !Snap.is(arr2, "array")) {
-            return false;
-        }
-        return arr1.toString() == arr2.toString();
-    }
-    Element.prototype.equal = function (name, b) {
-        return eve("snap.util.equal", this, name, b).firstDefined();
-    };
-    eve.on("snap.util.equal", function (name, b) {
-        var A, B, a = Str(this.attr(name) || ""),
-            el = this;
-        if (names[name] == "colour") {
-            A = Snap.color(a);
-            B = Snap.color(b);
-            return {
-                from: [A.r, A.g, A.b, A.opacity],
-                to: [B.r, B.g, B.b, B.opacity],
-                f: getColour
-            };
-        }
-        if (name == "viewBox") {
-            A = this.attr(name).vb.split(" ").map(Number);
-            B = b.split(" ").map(Number);
-            return {
-                from: A,
-                to: B,
-                f: getViewBox
-            };
-        }
-        if (name == "transform" || name == "gradientTransform" || name == "patternTransform") {
-            if (typeof b == "string") {
-                b = Str(b).replace(/\.{3}|\u2026/g, a);
-            }
-            a = this.matrix;
-            if (!Snap._.rgTransform.test(b)) {
-                b = Snap._.transform2matrix(Snap._.svgTransform2string(b), this.getBBox());
-            } else {
-                b = Snap._.transform2matrix(b, this.getBBox());
-            }
-            return equaliseTransform(a, b, function () {
-                return el.getBBox(1);
-            });
-        }
-        if (name == "d" || name == "path") {
-            A = Snap.path.toCubic(a, b);
-            return {
-                from: path2array(A[0]),
-                to: path2array(A[1]),
-                f: getPath(A[0])
-            };
-        }
-        if (name == "points") {
-            A = Str(a).split(Snap._.separator);
-            B = Str(b).split(Snap._.separator);
-            return {
-                from: A,
-                to: B,
-                f: function (val) { return val; }
-            };
-        }
-        if (isNumeric(a) && isNumeric(b)) {
-            return {
-                from: parseFloat(a),
-                to: parseFloat(b),
-                f: getNumber
-            };
-        }
-        var aUnit = a.match(reUnit),
-            bUnit = Str(b).match(reUnit);
-        if (aUnit && arrayEqual(aUnit, bUnit)) {
-            return {
-                from: parseFloat(a),
-                to: parseFloat(b),
-                f: getUnit(aUnit)
-            };
-        } else {
-            return {
-                from: this.asPX(name),
-                to: this.asPX(name, b),
-                f: getNumber
-            };
-        }
-    });
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob) {
-    var elproto = Element.prototype,
-    has = "hasOwnProperty",
-    supportsTouch = "createTouch" in glob.doc,
-    events = [
-        "click", "dblclick", "mousedown", "mousemove", "mouseout",
-        "mouseover", "mouseup", "touchstart", "touchmove", "touchend",
-        "touchcancel"
-    ],
-    touchMap = {
-        mousedown: "touchstart",
-        mousemove: "touchmove",
-        mouseup: "touchend"
-    },
-    getScroll = function (xy, el) {
-        var name = xy == "y" ? "scrollTop" : "scrollLeft",
-            doc = el && el.node ? el.node.ownerDocument : glob.doc;
-        return doc[name in doc.documentElement ? "documentElement" : "body"][name];
-    },
-    preventDefault = function () {
-        this.returnValue = false;
-    },
-    preventTouch = function () {
-        return this.originalEvent.preventDefault();
-    },
-    stopPropagation = function () {
-        this.cancelBubble = true;
-    },
-    stopTouch = function () {
-        return this.originalEvent.stopPropagation();
-    },
-    addEvent = function (obj, type, fn, element) {
-        var realName = supportsTouch && touchMap[type] ? touchMap[type] : type,
-            f = function (e) {
-                var scrollY = getScroll("y", element),
-                    scrollX = getScroll("x", element);
-                if (supportsTouch && touchMap[has](type)) {
-                    for (var i = 0, ii = e.targetTouches && e.targetTouches.length; i < ii; i++) {
-                        if (e.targetTouches[i].target == obj || obj.contains(e.targetTouches[i].target)) {
-                            var olde = e;
-                            e = e.targetTouches[i];
-                            e.originalEvent = olde;
-                            e.preventDefault = preventTouch;
-                            e.stopPropagation = stopTouch;
-                            break;
-                        }
-                    }
-                }
-                var x = e.clientX + scrollX,
-                    y = e.clientY + scrollY;
-                return fn.call(element, e, x, y);
-            };
-
-        if (type !== realName) {
-            obj.addEventListener(type, f, false);
-        }
-
-        obj.addEventListener(realName, f, false);
-
-        return function () {
-            if (type !== realName) {
-                obj.removeEventListener(type, f, false);
-            }
-
-            obj.removeEventListener(realName, f, false);
-            return true;
-        };
-    },
-    drag = [],
-    dragMove = function (e) {
-        var x = e.clientX,
-            y = e.clientY,
-            scrollY = getScroll("y"),
-            scrollX = getScroll("x"),
-            dragi,
-            j = drag.length;
-        while (j--) {
-            dragi = drag[j];
-            if (supportsTouch) {
-                var i = e.touches && e.touches.length,
-                    touch;
-                while (i--) {
-                    touch = e.touches[i];
-                    if (touch.identifier == dragi.el._drag.id || dragi.el.node.contains(touch.target)) {
-                        x = touch.clientX;
-                        y = touch.clientY;
-                        (e.originalEvent ? e.originalEvent : e).preventDefault();
-                        break;
-                    }
-                }
-            } else {
-                e.preventDefault();
-            }
-            var node = dragi.el.node,
-                o,
-                next = node.nextSibling,
-                parent = node.parentNode,
-                display = node.style.display;
-            // glob.win.opera && parent.removeChild(node);
-            // node.style.display = "none";
-            // o = dragi.el.paper.getElementByPoint(x, y);
-            // node.style.display = display;
-            // glob.win.opera && (next ? parent.insertBefore(node, next) : parent.appendChild(node));
-            // o && eve("snap.drag.over." + dragi.el.id, dragi.el, o);
-            x += scrollX;
-            y += scrollY;
-            eve("snap.drag.move." + dragi.el.id, dragi.move_scope || dragi.el, x - dragi.el._drag.x, y - dragi.el._drag.y, x, y, e);
-        }
-    },
-    dragUp = function (e) {
-        Snap.unmousemove(dragMove).unmouseup(dragUp);
-        var i = drag.length,
-            dragi;
-        while (i--) {
-            dragi = drag[i];
-            dragi.el._drag = {};
-            eve("snap.drag.end." + dragi.el.id, dragi.end_scope || dragi.start_scope || dragi.move_scope || dragi.el, e);
-            eve.off("snap.drag.*." + dragi.el.id);
-        }
-        drag = [];
-    };
-    /*\
-     * Element.click
-     [ method ]
-     **
-     * Adds a click event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unclick
-     [ method ]
-     **
-     * Removes a click event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.dblclick
-     [ method ]
-     **
-     * Adds a double click event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.undblclick
-     [ method ]
-     **
-     * Removes a double click event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mousedown
-     [ method ]
-     **
-     * Adds a mousedown event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmousedown
-     [ method ]
-     **
-     * Removes a mousedown event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mousemove
-     [ method ]
-     **
-     * Adds a mousemove event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmousemove
-     [ method ]
-     **
-     * Removes a mousemove event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mouseout
-     [ method ]
-     **
-     * Adds a mouseout event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmouseout
-     [ method ]
-     **
-     * Removes a mouseout event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mouseover
-     [ method ]
-     **
-     * Adds a mouseover event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmouseover
-     [ method ]
-     **
-     * Removes a mouseover event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.mouseup
-     [ method ]
-     **
-     * Adds a mouseup event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.unmouseup
-     [ method ]
-     **
-     * Removes a mouseup event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.touchstart
-     [ method ]
-     **
-     * Adds a touchstart event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.untouchstart
-     [ method ]
-     **
-     * Removes a touchstart event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.touchmove
-     [ method ]
-     **
-     * Adds a touchmove event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.untouchmove
-     [ method ]
-     **
-     * Removes a touchmove event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.touchend
-     [ method ]
-     **
-     * Adds a touchend event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.untouchend
-     [ method ]
-     **
-     * Removes a touchend event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    
-    /*\
-     * Element.touchcancel
-     [ method ]
-     **
-     * Adds a touchcancel event handler to the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    /*\
-     * Element.untouchcancel
-     [ method ]
-     **
-     * Removes a touchcancel event handler from the element
-     - handler (function) handler for the event
-     = (object) @Element
-    \*/
-    for (var i = events.length; i--;) {
-        (function (eventName) {
-            Snap[eventName] = elproto[eventName] = function (fn, scope) {
-                if (Snap.is(fn, "function")) {
-                    this.events = this.events || [];
-                    this.events.push({
-                        name: eventName,
-                        f: fn,
-                        unbind: addEvent(this.node || document, eventName, fn, scope || this)
-                    });
-                } else {
-                    for (var i = 0, ii = this.events.length; i < ii; i++) if (this.events[i].name == eventName) {
-                        try {
-                            this.events[i].f.call(this);
-                        } catch (e) {}
-                    }
-                }
-                return this;
-            };
-            Snap["un" + eventName] =
-            elproto["un" + eventName] = function (fn) {
-                var events = this.events || [],
-                    l = events.length;
-                while (l--) if (events[l].name == eventName &&
-                               (events[l].f == fn || !fn)) {
-                    events[l].unbind();
-                    events.splice(l, 1);
-                    !events.length && delete this.events;
-                    return this;
-                }
-                return this;
-            };
-        })(events[i]);
-    }
-    /*\
-     * Element.hover
-     [ method ]
-     **
-     * Adds hover event handlers to the element
-     - f_in (function) handler for hover in
-     - f_out (function) handler for hover out
-     - icontext (object) #optional context for hover in handler
-     - ocontext (object) #optional context for hover out handler
-     = (object) @Element
-    \*/
-    elproto.hover = function (f_in, f_out, scope_in, scope_out) {
-        return this.mouseover(f_in, scope_in).mouseout(f_out, scope_out || scope_in);
-    };
-    /*\
-     * Element.unhover
-     [ method ]
-     **
-     * Removes hover event handlers from the element
-     - f_in (function) handler for hover in
-     - f_out (function) handler for hover out
-     = (object) @Element
-    \*/
-    elproto.unhover = function (f_in, f_out) {
-        return this.unmouseover(f_in).unmouseout(f_out);
-    };
-    var draggable = [];
-    // SIERRA unclear what _context_ refers to for starting, ending, moving the drag gesture.
-    // SIERRA Element.drag(): _x position of the mouse_: Where are the x/y values offset from?
-    // SIERRA Element.drag(): much of this member's doc appears to be duplicated for some reason.
-    // SIERRA Unclear about this sentence: _Additionally following drag events will be triggered: drag.start.<id> on start, drag.end.<id> on end and drag.move.<id> on every move._ Is there a global _drag_ object to which you can assign handlers keyed by an element's ID?
-    /*\
-     * Element.drag
-     [ method ]
-     **
-     * Adds event handlers for an element's drag gesture
-     **
-     - onmove (function) handler for moving
-     - onstart (function) handler for drag start
-     - onend (function) handler for drag end
-     - mcontext (object) #optional context for moving handler
-     - scontext (object) #optional context for drag start handler
-     - econtext (object) #optional context for drag end handler
-     * Additionaly following `drag` events are triggered: `drag.start.<id>` on start, 
-     * `drag.end.<id>` on end and `drag.move.<id>` on every move. When element is dragged over another element 
-     * `drag.over.<id>` fires as well.
-     *
-     * Start event and start handler are called in specified context or in context of the element with following parameters:
-     o x (number) x position of the mouse
-     o y (number) y position of the mouse
-     o event (object) DOM event object
-     * Move event and move handler are called in specified context or in context of the element with following parameters:
-     o dx (number) shift by x from the start point
-     o dy (number) shift by y from the start point
-     o x (number) x position of the mouse
-     o y (number) y position of the mouse
-     o event (object) DOM event object
-     * End event and end handler are called in specified context or in context of the element with following parameters:
-     o event (object) DOM event object
-     = (object) @Element
-    \*/
-    elproto.drag = function (onmove, onstart, onend, move_scope, start_scope, end_scope) {
-        var el = this;
-        if (!arguments.length) {
-            var origTransform;
-            return el.drag(function (dx, dy) {
-                this.attr({
-                    transform: origTransform + (origTransform ? "T" : "t") + [dx, dy]
-                });
-            }, function () {
-                origTransform = this.transform().local;
-            });
-        }
-        function start(e, x, y) {
-            (e.originalEvent || e).preventDefault();
-            el._drag.x = x;
-            el._drag.y = y;
-            el._drag.id = e.identifier;
-            !drag.length && Snap.mousemove(dragMove).mouseup(dragUp);
-            drag.push({el: el, move_scope: move_scope, start_scope: start_scope, end_scope: end_scope});
-            onstart && eve.on("snap.drag.start." + el.id, onstart);
-            onmove && eve.on("snap.drag.move." + el.id, onmove);
-            onend && eve.on("snap.drag.end." + el.id, onend);
-            eve("snap.drag.start." + el.id, start_scope || move_scope || el, x, y, e);
-        }
-        function init(e, x, y) {
-            eve("snap.draginit." + el.id, el, e, x, y);
-        }
-        eve.on("snap.draginit." + el.id, start);
-        el._drag = {};
-        draggable.push({el: el, start: start, init: init});
-        el.mousedown(init);
-        return el;
-    };
-    /*
-     * Element.onDragOver
-     [ method ]
-     **
-     * Shortcut to assign event handler for `drag.over.<id>` event, where `id` is the element's `id` (see @Element.id)
-     - f (function) handler for event, first argument would be the element you are dragging over
-    \*/
-    // elproto.onDragOver = function (f) {
-    //     f ? eve.on("snap.drag.over." + this.id, f) : eve.unbind("snap.drag.over." + this.id);
-    // };
-    /*\
-     * Element.undrag
-     [ method ]
-     **
-     * Removes all drag event handlers from the given element
-    \*/
-    elproto.undrag = function () {
-        var i = draggable.length;
-        while (i--) if (draggable[i].el == this) {
-            this.unmousedown(draggable[i].init);
-            draggable.splice(i, 1);
-            eve.unbind("snap.drag.*." + this.id);
-            eve.unbind("snap.draginit." + this.id);
-        }
-        !draggable.length && Snap.unmousemove(dragMove).unmouseup(dragUp);
-        return this;
-    };
-});
-
-// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob) {
-    var elproto = Element.prototype,
-        pproto = Paper.prototype,
-        rgurl = /^\s*url\((.+)\)/,
-        Str = String,
-        $ = Snap._.$;
-    Snap.filter = {};
-    /*\
-     * Paper.filter
-     [ method ]
-     **
-     * Creates a `<filter>` element
-     **
-     - filstr (string) SVG fragment of filter provided as a string
-     = (object) @Element
-     * Note: It is recommended to use filters embedded into the page inside an empty SVG element.
-     > Usage
-     | var f = paper.filter('<feGaussianBlur stdDeviation="2"/>'),
-     |     c = paper.circle(10, 10, 10).attr({
-     |         filter: f
-     |     });
-    \*/
-    pproto.filter = function (filstr) {
-        var paper = this;
-        if (paper.type != "svg") {
-            paper = paper.paper;
-        }
-        var f = Snap.parse(Str(filstr)),
-            id = Snap._.id(),
-            width = paper.node.offsetWidth,
-            height = paper.node.offsetHeight,
-            filter = $("filter");
-        $(filter, {
-            id: id,
-            filterUnits: "userSpaceOnUse"
-        });
-        filter.appendChild(f.node);
-        paper.defs.appendChild(filter);
-        return new Element(filter);
-    };
-
-    eve.on("snap.util.getattr.filter", function () {
-        eve.stop();
-        var p = $(this.node, "filter");
-        if (p) {
-            var match = Str(p).match(rgurl);
-            return match && Snap.select(match[1]);
-        }
-    });
-    eve.on("snap.util.attr.filter", function (value) {
-        if (value instanceof Element && value.type == "filter") {
-            eve.stop();
-            var id = value.node.id;
-            if (!id) {
-                $(value.node, {id: value.id});
-                id = value.id;
-            }
-            $(this.node, {
-                filter: Snap.url(id)
-            });
-        }
-        if (!value || value == "none") {
-            eve.stop();
-            this.node.removeAttribute("filter");
-        }
-    });
-    /*\
-     * Snap.filter.blur
-     [ method ]
-     **
-     * Returns an SVG markup string for the blur filter
-     **
-     - x (number) amount of horizontal blur, in pixels
-     - y (number) #optional amount of vertical blur, in pixels
-     = (string) filter representation
-     > Usage
-     | var f = paper.filter(Snap.filter.blur(5, 10)),
-     |     c = paper.circle(10, 10, 10).attr({
-     |         filter: f
-     |     });
-    \*/
-    Snap.filter.blur = function (x, y) {
-        if (x == null) {
-            x = 2;
-        }
-        var def = y == null ? x : [x, y];
-        return Snap.format('\<feGaussianBlur stdDeviation="{def}"/>', {
-            def: def
-        });
-    };
-    Snap.filter.blur.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.shadow
-     [ method ]
-     **
-     * Returns an SVG markup string for the shadow filter
-     **
-     - dx (number) #optional horizontal shift of the shadow, in pixels
-     - dy (number) #optional vertical shift of the shadow, in pixels
-     - blur (number) #optional amount of blur
-     - color (string) #optional color of the shadow
-     - opacity (number) #optional `0..1` opacity of the shadow
-     * or
-     - dx (number) #optional horizontal shift of the shadow, in pixels
-     - dy (number) #optional vertical shift of the shadow, in pixels
-     - color (string) #optional color of the shadow
-     - opacity (number) #optional `0..1` opacity of the shadow
-     * which makes blur default to `4`. Or
-     - dx (number) #optional horizontal shift of the shadow, in pixels
-     - dy (number) #optional vertical shift of the shadow, in pixels
-     - opacity (number) #optional `0..1` opacity of the shadow
-     = (string) filter representation
-     > Usage
-     | var f = paper.filter(Snap.filter.shadow(0, 2, .3)),
-     |     c = paper.circle(10, 10, 10).attr({
-     |         filter: f
-     |     });
-    \*/
-    Snap.filter.shadow = function (dx, dy, blur, color, opacity) {
-        if (opacity == null) {
-            if (color == null) {
-                opacity = blur;
-                blur = 4;
-                color = "#000";
-            } else {
-                opacity = color;
-                color = blur;
-                blur = 4;
-            }
-        }
-        if (blur == null) {
-            blur = 4;
-        }
-        if (opacity == null) {
-            opacity = 1;
-        }
-        if (dx == null) {
-            dx = 0;
-            dy = 2;
-        }
-        if (dy == null) {
-            dy = dx;
-        }
-        color = Snap.color(color);
-        return Snap.format('<feGaussianBlur in="SourceAlpha" stdDeviation="{blur}"/><feOffset dx="{dx}" dy="{dy}" result="offsetblur"/><feFlood flood-color="{color}"/><feComposite in2="offsetblur" operator="in"/><feComponentTransfer><feFuncA type="linear" slope="{opacity}"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>', {
-            color: color,
-            dx: dx,
-            dy: dy,
-            blur: blur,
-            opacity: opacity
-        });
-    };
-    Snap.filter.shadow.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.grayscale
-     [ method ]
-     **
-     * Returns an SVG markup string for the grayscale filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.grayscale = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feColorMatrix type="matrix" values="{a} {b} {c} 0 0 {d} {e} {f} 0 0 {g} {b} {h} 0 0 0 0 0 1 0"/>', {
-            a: 0.2126 + 0.7874 * (1 - amount),
-            b: 0.7152 - 0.7152 * (1 - amount),
-            c: 0.0722 - 0.0722 * (1 - amount),
-            d: 0.2126 - 0.2126 * (1 - amount),
-            e: 0.7152 + 0.2848 * (1 - amount),
-            f: 0.0722 - 0.0722 * (1 - amount),
-            g: 0.2126 - 0.2126 * (1 - amount),
-            h: 0.0722 + 0.9278 * (1 - amount)
-        });
-    };
-    Snap.filter.grayscale.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.sepia
-     [ method ]
-     **
-     * Returns an SVG markup string for the sepia filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.sepia = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feColorMatrix type="matrix" values="{a} {b} {c} 0 0 {d} {e} {f} 0 0 {g} {h} {i} 0 0 0 0 0 1 0"/>', {
-            a: 0.393 + 0.607 * (1 - amount),
-            b: 0.769 - 0.769 * (1 - amount),
-            c: 0.189 - 0.189 * (1 - amount),
-            d: 0.349 - 0.349 * (1 - amount),
-            e: 0.686 + 0.314 * (1 - amount),
-            f: 0.168 - 0.168 * (1 - amount),
-            g: 0.272 - 0.272 * (1 - amount),
-            h: 0.534 - 0.534 * (1 - amount),
-            i: 0.131 + 0.869 * (1 - amount)
-        });
-    };
-    Snap.filter.sepia.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.saturate
-     [ method ]
-     **
-     * Returns an SVG markup string for the saturate filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.saturate = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feColorMatrix type="saturate" values="{amount}"/>', {
-            amount: 1 - amount
-        });
-    };
-    Snap.filter.saturate.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.hueRotate
-     [ method ]
-     **
-     * Returns an SVG markup string for the hue-rotate filter
-     **
-     - angle (number) angle of rotation
-     = (string) filter representation
-    \*/
-    Snap.filter.hueRotate = function (angle) {
-        angle = angle || 0;
-        return Snap.format('<feColorMatrix type="hueRotate" values="{angle}"/>', {
-            angle: angle
-        });
-    };
-    Snap.filter.hueRotate.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.invert
-     [ method ]
-     **
-     * Returns an SVG markup string for the invert filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.invert = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-//        <feColorMatrix type="matrix" values="-1 0 0 0 1  0 -1 0 0 1  0 0 -1 0 1  0 0 0 1 0" color-interpolation-filters="sRGB"/>
-        return Snap.format('<feComponentTransfer><feFuncR type="table" tableValues="{amount} {amount2}"/><feFuncG type="table" tableValues="{amount} {amount2}"/><feFuncB type="table" tableValues="{amount} {amount2}"/></feComponentTransfer>', {
-            amount: amount,
-            amount2: 1 - amount
-        });
-    };
-    Snap.filter.invert.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.brightness
-     [ method ]
-     **
-     * Returns an SVG markup string for the brightness filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.brightness = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feComponentTransfer><feFuncR type="linear" slope="{amount}"/><feFuncG type="linear" slope="{amount}"/><feFuncB type="linear" slope="{amount}"/></feComponentTransfer>', {
-            amount: amount
-        });
-    };
-    Snap.filter.brightness.toString = function () {
-        return this();
-    };
-    /*\
-     * Snap.filter.contrast
-     [ method ]
-     **
-     * Returns an SVG markup string for the contrast filter
-     **
-     - amount (number) amount of filter (`0..1`)
-     = (string) filter representation
-    \*/
-    Snap.filter.contrast = function (amount) {
-        if (amount == null) {
-            amount = 1;
-        }
-        return Snap.format('<feComponentTransfer><feFuncR type="linear" slope="{amount}" intercept="{amount2}"/><feFuncG type="linear" slope="{amount}" intercept="{amount2}"/><feFuncB type="linear" slope="{amount}" intercept="{amount2}"/></feComponentTransfer>', {
-            amount: amount,
-            amount2: .5 - amount / 2
-        });
-    };
-    Snap.filter.contrast.toString = function () {
-        return this();
-    };
-});
-
-// Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var box = Snap._.box,
-        is = Snap.is,
-        firstLetter = /^[^a-z]*([tbmlrc])/i,
-        toString = function () {
-            return "T" + this.dx + "," + this.dy;
-        };
-    /*\
-     * Element.getAlign
-     [ method ]
-     **
-     * Returns shift needed to align the element relatively to given element.
-     * If no elements specified, parent `<svg>` container will be used.
-     - el (object) @optional alignment element
-     - way (string) one of six values: `"top"`, `"middle"`, `"bottom"`, `"left"`, `"center"`, `"right"`
-     = (object|string) Object in format `{dx: , dy: }` also has a string representation as a transformation string
-     > Usage
-     | el.transform(el.getAlign(el2, "top"));
-     * or
-     | var dy = el.getAlign(el2, "top").dy;
-    \*/
-    Element.prototype.getAlign = function (el, way) {
-        if (way == null && is(el, "string")) {
-            way = el;
-            el = null;
-        }
-        el = el || this.paper;
-        var bx = el.getBBox ? el.getBBox() : box(el),
-            bb = this.getBBox(),
-            out = {};
-        way = way && way.match(firstLetter);
-        way = way ? way[1].toLowerCase() : "c";
-        switch (way) {
-            case "t":
-                out.dx = 0;
-                out.dy = bx.y - bb.y;
-            break;
-            case "b":
-                out.dx = 0;
-                out.dy = bx.y2 - bb.y2;
-            break;
-            case "m":
-                out.dx = 0;
-                out.dy = bx.cy - bb.cy;
-            break;
-            case "l":
-                out.dx = bx.x - bb.x;
-                out.dy = 0;
-            break;
-            case "r":
-                out.dx = bx.x2 - bb.x2;
-                out.dy = 0;
-            break;
-            default:
-                out.dx = bx.cx - bb.cx;
-                out.dy = 0;
-            break;
-        }
-        out.toString = toString;
-        return out;
-    };
-    /*\
-     * Element.align
-     [ method ]
-     **
-     * Aligns the element relatively to given one via transformation.
-     * If no elements specified, parent `<svg>` container will be used.
-     - el (object) @optional alignment element
-     - way (string) one of six values: `"top"`, `"middle"`, `"bottom"`, `"left"`, `"center"`, `"right"`
-     = (object) this element
-     > Usage
-     | el.align(el2, "top");
-     * or
-     | el.align("middle");
-    \*/
-    Element.prototype.align = function (el, way) {
-        return this.transform("..." + this.getAlign(el, way));
-    };
-});
-
-// Copyright (c) 2016 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
-    var elproto = Element.prototype,
-        is = Snap.is,
-        Str = String,
-        has = "hasOwnProperty";
-    function slice(from, to, f) {
-        return function (arr) {
-            var res = arr.slice(from, to);
-            if (res.length == 1) {
-                res = res[0];
-            }
-            return f ? f(res) : res;
-        };
-    }
-    var Animation = function (attr, ms, easing, callback) {
-        if (typeof easing == "function" && !easing.length) {
-            callback = easing;
-            easing = mina.linear;
-        }
-        this.attr = attr;
-        this.dur = ms;
-        easing && (this.easing = easing);
-        callback && (this.callback = callback);
-    };
-    Snap._.Animation = Animation;
-    /*\
-     * Snap.animation
-     [ method ]
-     **
-     * Creates an animation object
-     **
-     - attr (object) attributes of final destination
-     - duration (number) duration of the animation, in milliseconds
-     - easing (function) #optional one of easing functions of @mina or custom one
-     - callback (function) #optional callback function that fires when animation ends
-     = (object) animation object
-    \*/
-    Snap.animation = function (attr, ms, easing, callback) {
-        return new Animation(attr, ms, easing, callback);
-    };
-    /*\
-     * Element.inAnim
-     [ method ]
-     **
-     * Returns a set of animations that may be able to manipulate the current element
-     **
-     = (object) in format:
-     o {
-     o     anim (object) animation object,
-     o     mina (object) @mina object,
-     o     curStatus (number) 0..1 — status of the animation: 0 — just started, 1 — just finished,
-     o     status (function) gets or sets the status of the animation,
-     o     stop (function) stops the animation
-     o }
-    \*/
-    elproto.inAnim = function () {
-        var el = this,
-            res = [];
-        for (var id in el.anims) if (el.anims[has](id)) {
-            (function (a) {
-                res.push({
-                    anim: new Animation(a._attrs, a.dur, a.easing, a._callback),
-                    mina: a,
-                    curStatus: a.status(),
-                    status: function (val) {
-                        return a.status(val);
-                    },
-                    stop: function () {
-                        a.stop();
-                    }
-                });
-            }(el.anims[id]));
-        }
-        return res;
-    };
-    /*\
-     * Snap.animate
-     [ method ]
-     **
-     * Runs generic animation of one number into another with a caring function
-     **
-     - from (number|array) number or array of numbers
-     - to (number|array) number or array of numbers
-     - setter (function) caring function that accepts one number argument
-     - duration (number) duration, in milliseconds
-     - easing (function) #optional easing function from @mina or custom
-     - callback (function) #optional callback function to execute when animation ends
-     = (object) animation object in @mina format
-     o {
-     o     id (string) animation id, consider it read-only,
-     o     duration (function) gets or sets the duration of the animation,
-     o     easing (function) easing,
-     o     speed (function) gets or sets the speed of the animation,
-     o     status (function) gets or sets the status of the animation,
-     o     stop (function) stops the animation
-     o }
-     | var rect = Snap().rect(0, 0, 10, 10);
-     | Snap.animate(0, 10, function (val) {
-     |     rect.attr({
-     |         x: val
-     |     });
-     | }, 1000);
-     | // in given context is equivalent to
-     | rect.animate({x: 10}, 1000);
-    \*/
-    Snap.animate = function (from, to, setter, ms, easing, callback) {
-        if (typeof easing == "function" && !easing.length) {
-            callback = easing;
-            easing = mina.linear;
-        }
-        var now = mina.time(),
-            anim = mina(from, to, now, now + ms, mina.time, setter, easing);
-        callback && eve.once("mina.finish." + anim.id, callback);
-        return anim;
-    };
-    /*\
-     * Element.stop
-     [ method ]
-     **
-     * Stops all the animations for the current element
-     **
-     = (Element) the current element
-    \*/
-    elproto.stop = function () {
-        var anims = this.inAnim();
-        for (var i = 0, ii = anims.length; i < ii; i++) {
-            anims[i].stop();
-        }
-        return this;
-    };
-    /*\
-     * Element.animate
-     [ method ]
-     **
-     * Animates the given attributes of the element
-     **
-     - attrs (object) key-value pairs of destination attributes
-     - duration (number) duration of the animation in milliseconds
-     - easing (function) #optional easing function from @mina or custom
-     - callback (function) #optional callback function that executes when the animation ends
-     = (Element) the current element
-    \*/
-    elproto.animate = function (attrs, ms, easing, callback) {
-        if (typeof easing == "function" && !easing.length) {
-            callback = easing;
-            easing = mina.linear;
-        }
-        if (attrs instanceof Animation) {
-            callback = attrs.callback;
-            easing = attrs.easing;
-            ms = attrs.dur;
-            attrs = attrs.attr;
-        }
-        var fkeys = [], tkeys = [], keys = {}, from, to, f, eq,
-            el = this;
-        for (var key in attrs) if (attrs[has](key)) {
-            if (el.equal) {
-                eq = el.equal(key, Str(attrs[key]));
-                from = eq.from;
-                to = eq.to;
-                f = eq.f;
-            } else {
-                from = +el.attr(key);
-                to = +attrs[key];
-            }
-            var len = is(from, "array") ? from.length : 1;
-            keys[key] = slice(fkeys.length, fkeys.length + len, f);
-            fkeys = fkeys.concat(from);
-            tkeys = tkeys.concat(to);
-        }
-        var now = mina.time(),
-            anim = mina(fkeys, tkeys, now, now + ms, mina.time, function (val) {
-                var attr = {};
-                for (var key in keys) if (keys[has](key)) {
-                    attr[key] = keys[key](val);
-                }
-                el.attr(attr);
-            }, easing);
-        el.anims[anim.id] = anim;
-        anim._attrs = attrs;
-        anim._callback = callback;
-        eve("snap.animcreated." + el.id, anim);
-        eve.once("mina.finish." + anim.id, function () {
-            eve.off("mina.*." + anim.id);
-            delete el.anims[anim.id];
-            callback && callback.call(el);
-        });
-        eve.once("mina.stop." + anim.id, function () {
-            eve.off("mina.*." + anim.id);
-            delete el.anims[anim.id];
-        });
-        return el;
-    };
-});
-
-// Copyright (c) 2017 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-Snap.plugin(function (Snap, Element, Paper, glob) {
-    // Colours are from https://www.materialui.co
-    var red         = "#ffebee#ffcdd2#ef9a9a#e57373#ef5350#f44336#e53935#d32f2f#c62828#b71c1c#ff8a80#ff5252#ff1744#d50000",
-        pink        = "#FCE4EC#F8BBD0#F48FB1#F06292#EC407A#E91E63#D81B60#C2185B#AD1457#880E4F#FF80AB#FF4081#F50057#C51162",
-        purple      = "#F3E5F5#E1BEE7#CE93D8#BA68C8#AB47BC#9C27B0#8E24AA#7B1FA2#6A1B9A#4A148C#EA80FC#E040FB#D500F9#AA00FF",
-        deeppurple  = "#EDE7F6#D1C4E9#B39DDB#9575CD#7E57C2#673AB7#5E35B1#512DA8#4527A0#311B92#B388FF#7C4DFF#651FFF#6200EA",
-        indigo      = "#E8EAF6#C5CAE9#9FA8DA#7986CB#5C6BC0#3F51B5#3949AB#303F9F#283593#1A237E#8C9EFF#536DFE#3D5AFE#304FFE",
-        blue        = "#E3F2FD#BBDEFB#90CAF9#64B5F6#64B5F6#2196F3#1E88E5#1976D2#1565C0#0D47A1#82B1FF#448AFF#2979FF#2962FF",
-        lightblue   = "#E1F5FE#B3E5FC#81D4FA#4FC3F7#29B6F6#03A9F4#039BE5#0288D1#0277BD#01579B#80D8FF#40C4FF#00B0FF#0091EA",
-        cyan        = "#E0F7FA#B2EBF2#80DEEA#4DD0E1#26C6DA#00BCD4#00ACC1#0097A7#00838F#006064#84FFFF#18FFFF#00E5FF#00B8D4",
-        teal        = "#E0F2F1#B2DFDB#80CBC4#4DB6AC#26A69A#009688#00897B#00796B#00695C#004D40#A7FFEB#64FFDA#1DE9B6#00BFA5",
-        green       = "#E8F5E9#C8E6C9#A5D6A7#81C784#66BB6A#4CAF50#43A047#388E3C#2E7D32#1B5E20#B9F6CA#69F0AE#00E676#00C853",
-        lightgreen  = "#F1F8E9#DCEDC8#C5E1A5#AED581#9CCC65#8BC34A#7CB342#689F38#558B2F#33691E#CCFF90#B2FF59#76FF03#64DD17",
-        lime        = "#F9FBE7#F0F4C3#E6EE9C#DCE775#D4E157#CDDC39#C0CA33#AFB42B#9E9D24#827717#F4FF81#EEFF41#C6FF00#AEEA00",
-        yellow      = "#FFFDE7#FFF9C4#FFF59D#FFF176#FFEE58#FFEB3B#FDD835#FBC02D#F9A825#F57F17#FFFF8D#FFFF00#FFEA00#FFD600",
-        amber       = "#FFF8E1#FFECB3#FFE082#FFD54F#FFCA28#FFC107#FFB300#FFA000#FF8F00#FF6F00#FFE57F#FFD740#FFC400#FFAB00",
-        orange      = "#FFF3E0#FFE0B2#FFCC80#FFB74D#FFA726#FF9800#FB8C00#F57C00#EF6C00#E65100#FFD180#FFAB40#FF9100#FF6D00",
-        deeporange  = "#FBE9E7#FFCCBC#FFAB91#FF8A65#FF7043#FF5722#F4511E#E64A19#D84315#BF360C#FF9E80#FF6E40#FF3D00#DD2C00",
-        brown       = "#EFEBE9#D7CCC8#BCAAA4#A1887F#8D6E63#795548#6D4C41#5D4037#4E342E#3E2723",
-        grey        = "#FAFAFA#F5F5F5#EEEEEE#E0E0E0#BDBDBD#9E9E9E#757575#616161#424242#212121",
-        bluegrey    = "#ECEFF1#CFD8DC#B0BEC5#90A4AE#78909C#607D8B#546E7A#455A64#37474F#263238";
-    /*\
-     * Snap.mui
-     [ property ]
-     **
-     * Contain Material UI colours.
-     | Snap().rect(0, 0, 10, 10).attr({fill: Snap.mui.deeppurple, stroke: Snap.mui.amber[600]});
-     # For colour reference: <a href="https://www.materialui.co">https://www.materialui.co</a>.
-    \*/
-    Snap.mui = {};
-    /*\
-     * Snap.flat
-     [ property ]
-     **
-     * Contain Flat UI colours.
-     | Snap().rect(0, 0, 10, 10).attr({fill: Snap.flat.carrot, stroke: Snap.flat.wetasphalt});
-     # For colour reference: <a href="https://www.materialui.co">https://www.materialui.co</a>.
-    \*/
-    Snap.flat = {};
-    function saveColor(colors) {
-        colors = colors.split(/(?=#)/);
-        var color = new String(colors[5]);
-        color[50] = colors[0];
-        color[100] = colors[1];
-        color[200] = colors[2];
-        color[300] = colors[3];
-        color[400] = colors[4];
-        color[500] = colors[5];
-        color[600] = colors[6];
-        color[700] = colors[7];
-        color[800] = colors[8];
-        color[900] = colors[9];
-        if (colors[10]) {
-            color.A100 = colors[10];
-            color.A200 = colors[11];
-            color.A400 = colors[12];
-            color.A700 = colors[13];
-        }
-        return color;
-    }
-    Snap.mui.red = saveColor(red);
-    Snap.mui.pink = saveColor(pink);
-    Snap.mui.purple = saveColor(purple);
-    Snap.mui.deeppurple = saveColor(deeppurple);
-    Snap.mui.indigo = saveColor(indigo);
-    Snap.mui.blue = saveColor(blue);
-    Snap.mui.lightblue = saveColor(lightblue);
-    Snap.mui.cyan = saveColor(cyan);
-    Snap.mui.teal = saveColor(teal);
-    Snap.mui.green = saveColor(green);
-    Snap.mui.lightgreen = saveColor(lightgreen);
-    Snap.mui.lime = saveColor(lime);
-    Snap.mui.yellow = saveColor(yellow);
-    Snap.mui.amber = saveColor(amber);
-    Snap.mui.orange = saveColor(orange);
-    Snap.mui.deeporange = saveColor(deeporange);
-    Snap.mui.brown = saveColor(brown);
-    Snap.mui.grey = saveColor(grey);
-    Snap.mui.bluegrey = saveColor(bluegrey);
-    Snap.flat.turquoise = "#1abc9c";
-    Snap.flat.greensea = "#16a085";
-    Snap.flat.sunflower = "#f1c40f";
-    Snap.flat.orange = "#f39c12";
-    Snap.flat.emerland = "#2ecc71";
-    Snap.flat.nephritis = "#27ae60";
-    Snap.flat.carrot = "#e67e22";
-    Snap.flat.pumpkin = "#d35400";
-    Snap.flat.peterriver = "#3498db";
-    Snap.flat.belizehole = "#2980b9";
-    Snap.flat.alizarin = "#e74c3c";
-    Snap.flat.pomegranate = "#c0392b";
-    Snap.flat.amethyst = "#9b59b6";
-    Snap.flat.wisteria = "#8e44ad";
-    Snap.flat.clouds = "#ecf0f1";
-    Snap.flat.silver = "#bdc3c7";
-    Snap.flat.wetasphalt = "#34495e";
-    Snap.flat.midnightblue = "#2c3e50";
-    Snap.flat.concrete = "#95a5a6";
-    Snap.flat.asbestos = "#7f8c8d";
-    /*\
-     * Snap.importMUIColors
-     [ method ]
-     **
-     * Imports Material UI colours into global object.
-     | Snap.importMUIColors();
-     | Snap().rect(0, 0, 10, 10).attr({fill: deeppurple, stroke: amber[600]});
-     # For colour reference: <a href="https://www.materialui.co">https://www.materialui.co</a>.
-    \*/
-    Snap.importMUIColors = function () {
-        for (var color in Snap.mui) {
-            if (Snap.mui.hasOwnProperty(color)) {
-                window[color] = Snap.mui[color];
-            }
-        }
-    };
-});
-
-module.exports = Snap
-
-
-/***/ }),
-/* 28 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// Copyright (c) 2017 Adobe Systems Incorporated. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// ┌────────────────────────────────────────────────────────────┐ \\
-// │ Eve 0.5.4 - JavaScript Events Library                      │ \\
-// ├────────────────────────────────────────────────────────────┤ \\
-// │ Author Dmitry Baranovskiy (http://dmitry.baranovskiy.com/) │ \\
-// └────────────────────────────────────────────────────────────┘ \\
-
-(function (glob) {
-    var version = "0.5.4",
-        has = "hasOwnProperty",
-        separator = /[\.\/]/,
-        comaseparator = /\s*,\s*/,
-        wildcard = "*",
-        numsort = function (a, b) {
-            return a - b;
-        },
-        current_event,
-        stop,
-        events = {n: {}},
-        firstDefined = function () {
-            for (var i = 0, ii = this.length; i < ii; i++) {
-                if (typeof this[i] != "undefined") {
-                    return this[i];
-                }
-            }
-        },
-        lastDefined = function () {
-            var i = this.length;
-            while (--i) {
-                if (typeof this[i] != "undefined") {
-                    return this[i];
-                }
-            }
-        },
-        objtos = Object.prototype.toString,
-        Str = String,
-        isArray = Array.isArray || function (ar) {
-            return ar instanceof Array || objtos.call(ar) == "[object Array]";
-        },
-    /*\
-     * eve
-     [ method ]
-
-     * Fires event with given `name`, given scope and other parameters.
-
-     - name (string) name of the *event*, dot (`.`) or slash (`/`) separated
-     - scope (object) context for the event handlers
-     - varargs (...) the rest of arguments will be sent to event handlers
-
-     = (object) array of returned values from the listeners. Array has two methods `.firstDefined()` and `.lastDefined()` to get first or last not `undefined` value.
-    \*/
-        eve = function (name, scope) {
-            var oldstop = stop,
-                args = Array.prototype.slice.call(arguments, 2),
-                listeners = eve.listeners(name),
-                z = 0,
-                l,
-                indexed = [],
-                queue = {},
-                out = [],
-                ce = current_event;
-            out.firstDefined = firstDefined;
-            out.lastDefined = lastDefined;
-            current_event = name;
-            stop = 0;
-            for (var i = 0, ii = listeners.length; i < ii; i++) if ("zIndex" in listeners[i]) {
-                indexed.push(listeners[i].zIndex);
-                if (listeners[i].zIndex < 0) {
-                    queue[listeners[i].zIndex] = listeners[i];
-                }
-            }
-            indexed.sort(numsort);
-            while (indexed[z] < 0) {
-                l = queue[indexed[z++]];
-                out.push(l.apply(scope, args));
-                if (stop) {
-                    stop = oldstop;
-                    return out;
-                }
-            }
-            for (i = 0; i < ii; i++) {
-                l = listeners[i];
-                if ("zIndex" in l) {
-                    if (l.zIndex == indexed[z]) {
-                        out.push(l.apply(scope, args));
-                        if (stop) {
-                            break;
-                        }
-                        do {
-                            z++;
-                            l = queue[indexed[z]];
-                            l && out.push(l.apply(scope, args));
-                            if (stop) {
-                                break;
-                            }
-                        } while (l)
-                    } else {
-                        queue[l.zIndex] = l;
-                    }
-                } else {
-                    out.push(l.apply(scope, args));
-                    if (stop) {
-                        break;
-                    }
-                }
-            }
-            stop = oldstop;
-            current_event = ce;
-            return out;
-        };
-    // Undocumented. Debug only.
-    eve._events = events;
-    /*\
-     * eve.listeners
-     [ method ]
-
-     * Internal method which gives you array of all event handlers that will be triggered by the given `name`.
-
-     - name (string) name of the event, dot (`.`) or slash (`/`) separated
-
-     = (array) array of event handlers
-    \*/
-    eve.listeners = function (name) {
-        var names = isArray(name) ? name : name.split(separator),
-            e = events,
-            item,
-            items,
-            k,
-            i,
-            ii,
-            j,
-            jj,
-            nes,
-            es = [e],
-            out = [];
-        for (i = 0, ii = names.length; i < ii; i++) {
-            nes = [];
-            for (j = 0, jj = es.length; j < jj; j++) {
-                e = es[j].n;
-                items = [e[names[i]], e[wildcard]];
-                k = 2;
-                while (k--) {
-                    item = items[k];
-                    if (item) {
-                        nes.push(item);
-                        out = out.concat(item.f || []);
-                    }
-                }
-            }
-            es = nes;
-        }
-        return out;
-    };
-    /*\
-     * eve.separator
-     [ method ]
-
-     * If for some reasons you don’t like default separators (`.` or `/`) you can specify yours
-     * here. Be aware that if you pass a string longer than one character it will be treated as
-     * a list of characters.
-
-     - separator (string) new separator. Empty string resets to default: `.` or `/`.
-    \*/
-    eve.separator = function (sep) {
-        if (sep) {
-            sep = Str(sep).replace(/(?=[\.\^\]\[\-])/g, "\\");
-            sep = "[" + sep + "]";
-            separator = new RegExp(sep);
-        } else {
-            separator = /[\.\/]/;
-        }
-    };
-    /*\
-     * eve.on
-     [ method ]
-     **
-     * Binds given event handler with a given name. You can use wildcards “`*`” for the names:
-     | eve.on("*.under.*", f);
-     | eve("mouse.under.floor"); // triggers f
-     * Use @eve to trigger the listener.
-     **
-     - name (string) name of the event, dot (`.`) or slash (`/`) separated, with optional wildcards
-     - f (function) event handler function
-     **
-     - name (array) if you don’t want to use separators, you can use array of strings
-     - f (function) event handler function
-     **
-     = (function) returned function accepts a single numeric parameter that represents z-index of the handler. It is an optional feature and only used when you need to ensure that some subset of handlers will be invoked in a given order, despite of the order of assignment.
-     > Example:
-     | eve.on("mouse", eatIt)(2);
-     | eve.on("mouse", scream);
-     | eve.on("mouse", catchIt)(1);
-     * This will ensure that `catchIt` function will be called before `eatIt`.
-     *
-     * If you want to put your handler before non-indexed handlers, specify a negative value.
-     * Note: I assume most of the time you don’t need to worry about z-index, but it’s nice to have this feature “just in case”.
-    \*/
-    eve.on = function (name, f) {
-        if (typeof f != "function") {
-            return function () {};
-        }
-        var names = isArray(name) ? isArray(name[0]) ? name : [name] : Str(name).split(comaseparator);
-        for (var i = 0, ii = names.length; i < ii; i++) {
-            (function (name) {
-                var names = isArray(name) ? name : Str(name).split(separator),
-                    e = events,
-                    exist;
-                for (var i = 0, ii = names.length; i < ii; i++) {
-                    e = e.n;
-                    e = e.hasOwnProperty(names[i]) && e[names[i]] || (e[names[i]] = {n: {}});
-                }
-                e.f = e.f || [];
-                for (i = 0, ii = e.f.length; i < ii; i++) if (e.f[i] == f) {
-                    exist = true;
-                    break;
-                }
-                !exist && e.f.push(f);
-            }(names[i]));
-        }
-        return function (zIndex) {
-            if (+zIndex == +zIndex) {
-                f.zIndex = +zIndex;
-            }
-        };
-    };
-    /*\
-     * eve.f
-     [ method ]
-     **
-     * Returns function that will fire given event with optional arguments.
-     * Arguments that will be passed to the result function will be also
-     * concated to the list of final arguments.
-     | el.onclick = eve.f("click", 1, 2);
-     | eve.on("click", function (a, b, c) {
-     |     console.log(a, b, c); // 1, 2, [event object]
-     | });
-     - event (string) event name
-     - varargs (…) and any other arguments
-     = (function) possible event handler function
-    \*/
-    eve.f = function (event) {
-        var attrs = [].slice.call(arguments, 1);
-        return function () {
-            eve.apply(null, [event, null].concat(attrs).concat([].slice.call(arguments, 0)));
-        };
-    };
-    /*\
-     * eve.stop
-     [ method ]
-     **
-     * Is used inside an event handler to stop the event, preventing any subsequent listeners from firing.
-    \*/
-    eve.stop = function () {
-        stop = 1;
-    };
-    /*\
-     * eve.nt
-     [ method ]
-     **
-     * Could be used inside event handler to figure out actual name of the event.
-     **
-     - subname (string) #optional subname of the event
-     **
-     = (string) name of the event, if `subname` is not specified
-     * or
-     = (boolean) `true`, if current event’s name contains `subname`
-    \*/
-    eve.nt = function (subname) {
-        var cur = isArray(current_event) ? current_event.join(".") : current_event;
-        if (subname) {
-            return new RegExp("(?:\\.|\\/|^)" + subname + "(?:\\.|\\/|$)").test(cur);
-        }
-        return cur;
-    };
-    /*\
-     * eve.nts
-     [ method ]
-     **
-     * Could be used inside event handler to figure out actual name of the event.
-     **
-     **
-     = (array) names of the event
-    \*/
-    eve.nts = function () {
-        return isArray(current_event) ? current_event : current_event.split(separator);
-    };
-    /*\
-     * eve.off
-     [ method ]
-     **
-     * Removes given function from the list of event listeners assigned to given name.
-     * If no arguments specified all the events will be cleared.
-     **
-     - name (string) name of the event, dot (`.`) or slash (`/`) separated, with optional wildcards
-     - f (function) event handler function
-    \*/
-    /*\
-     * eve.unbind
-     [ method ]
-     **
-     * See @eve.off
-    \*/
-    eve.off = eve.unbind = function (name, f) {
-        if (!name) {
-            eve._events = events = {n: {}};
-            return;
-        }
-        var names = isArray(name) ? isArray(name[0]) ? name : [name] : Str(name).split(comaseparator);
-        if (names.length > 1) {
-            for (var i = 0, ii = names.length; i < ii; i++) {
-                eve.off(names[i], f);
-            }
-            return;
-        }
-        names = isArray(name) ? name : Str(name).split(separator);
-        var e,
-            key,
-            splice,
-            i, ii, j, jj,
-            cur = [events],
-            inodes = [];
-        for (i = 0, ii = names.length; i < ii; i++) {
-            for (j = 0; j < cur.length; j += splice.length - 2) {
-                splice = [j, 1];
-                e = cur[j].n;
-                if (names[i] != wildcard) {
-                    if (e[names[i]]) {
-                        splice.push(e[names[i]]);
-                        inodes.unshift({
-                            n: e,
-                            name: names[i]
-                        });
-                    }
-                } else {
-                    for (key in e) if (e[has](key)) {
-                        splice.push(e[key]);
-                        inodes.unshift({
-                            n: e,
-                            name: key
-                        });
-                    }
-                }
-                cur.splice.apply(cur, splice);
-            }
-        }
-        for (i = 0, ii = cur.length; i < ii; i++) {
-            e = cur[i];
-            while (e.n) {
-                if (f) {
-                    if (e.f) {
-                        for (j = 0, jj = e.f.length; j < jj; j++) if (e.f[j] == f) {
-                            e.f.splice(j, 1);
-                            break;
-                        }
-                        !e.f.length && delete e.f;
-                    }
-                    for (key in e.n) if (e.n[has](key) && e.n[key].f) {
-                        var funcs = e.n[key].f;
-                        for (j = 0, jj = funcs.length; j < jj; j++) if (funcs[j] == f) {
-                            funcs.splice(j, 1);
-                            break;
-                        }
-                        !funcs.length && delete e.n[key].f;
-                    }
-                } else {
-                    delete e.f;
-                    for (key in e.n) if (e.n[has](key) && e.n[key].f) {
-                        delete e.n[key].f;
-                    }
-                }
-                e = e.n;
-            }
-        }
-        // prune inner nodes in path
-        prune: for (i = 0, ii = inodes.length; i < ii; i++) {
-            e = inodes[i];
-            for (key in e.n[e.name].f) {
-                // not empty (has listeners)
-                continue prune;
-            }
-            for (key in e.n[e.name].n) {
-                // not empty (has children)
-                continue prune;
-            }
-            // is empty
-            delete e.n[e.name];
-        }
-    };
-    /*\
-     * eve.once
-     [ method ]
-     **
-     * Binds given event handler with a given name to only run once then unbind itself.
-     | eve.once("login", f);
-     | eve("login"); // triggers f
-     | eve("login"); // no listeners
-     * Use @eve to trigger the listener.
-     **
-     - name (string) name of the event, dot (`.`) or slash (`/`) separated, with optional wildcards
-     - f (function) event handler function
-     **
-     = (function) same return function as @eve.on
-    \*/
-    eve.once = function (name, f) {
-        var f2 = function () {
-            eve.off(name, f2);
-            return f.apply(this, arguments);
-        };
-        return eve.on(name, f2);
-    };
-    /*\
-     * eve.version
-     [ property (string) ]
-     **
-     * Current version of the library.
-    \*/
-    eve.version = version;
-    eve.toString = function () {
-        return "You are running Eve " + version;
-    };
-    glob.eve = eve;
-    typeof module != "undefined" && module.exports ? module.exports = eve :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function () { return eve; }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : glob.eve = eve;
-})(typeof window != "undefined" ? window : this);
-
-
-/***/ }),
-/* 29 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-const STORAGE_KEY = "_chatter_graph";
-
-class Story {
-
-    static toLocalStorage(story) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(story));
-    }
-
-    static fromLocalStorage() {
-        let story =  JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if(!story){
-            story = {
-                entries: [
-                    {id: "Start", pos: {x: 30, y: 30}, data: {content: '<<MO "Hello">> [[B]] [[C]]'}, children: ['B', 'C']},
-                ]
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(story));
-        }
-
-        return story;
-
-    }
-
-}
-/* harmony export (immutable) */ __webpack_exports__["a"] = Story;
-;
-
-/***/ }),
-/* 30 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ChatEditor_js__ = __webpack_require__(33);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Events_js__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Util_js__ = __webpack_require__(8);
-
-
-
-
-
-
-/* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */]({
-    el: '#editor',
-    template: `<div class="modal chat-modal" v-bind:class="{active: active}" id="editor">
-    <a href="" class="modal-overlay" aria-label="Close"></a>
-    <div class="modal-container">
-        <div class="modal-header">
-            <a  @click="closeEditor()" class="btn btn-clear float-right" aria-label="Close"></a>
-            <div class="modal-title h5">Passage</div>
-        </div>
-        <div class="modal-body">
-            <div class="content columns editor-columns">
-                <div id="editor-form-column" class="form-group column col-6">
-                  <label class="form-label" for="input-entry-id">Id</label>
-                  <input class="form-input" type="text" id="input-entry-id" placeholder="" v-model="entryId">
-    
-                  <label class="form-label" for="input-content">Content</label>
-                  <textarea class="form-input" id="input-content" placeholder="" v-model="content" @input="textChanged"></textarea> 
-                </div>
-                
-                <div id="editor-chat-column" class="column col-6">
-                    <chat-editor :messages="messages" :options="options"></chat-editor>
-                </div> 
-            </div>
-        </div>
-        <div class="modal-footer">
-        
-        </div>
-    </div>
-    </div>`,
-    data: {
-        $eventTarget: null, //  EventTarget-API not Vue Events
-        active: false,
-        entryId: "",
-        content: "",
-
-        messages: [],
-        options: []
-    },
-    methods: {
-        closeEditor() {
-            this.updateData();
-            if (this.$eventTarget) {
-                //TODO how to do it better
-                //console.log(this.content,this.entryId,this.messages);
-                const detail = {
-                    id: this.entryId,
-                    originalId : this.originalId,
-                    content: this.content,
-                    messages: this.messages,
-                    options: JSON.parse(JSON.stringify(this.options))
-                };
-                this.$eventTarget.dispatchEvent(new CustomEvent(__WEBPACK_IMPORTED_MODULE_2__Events_js__["a" /* default */].CHATTER_ENTRY_CHANGED, {detail}))
-            }
-            this.active = false;
-        },
-        showEditor({id, data, children}, $eventTarget) {
-            this.$eventTarget = $eventTarget;
-            this.entryId = id;
-            this.originalId = id;
-            this.content = data.content;
-            this.updateData();
-            this.active = true;
-        },
-        textChanged(e) {
-            this.updateData();
-            console.log(this.options);
-        },
-        updateData(){
-            this.messages = __WEBPACK_IMPORTED_MODULE_3__Util_js__["a" /* default */].parseMessages(this.content);
-            this.options = __WEBPACK_IMPORTED_MODULE_3__Util_js__["a" /* default */].parseOptions(this.content);
-        }
-
-    },
-    created() {
-
-    }
-}));
-
-/***/ }),
-/* 31 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var apply = Function.prototype.apply;
-
-// DOM APIs, for completeness
-
-exports.setTimeout = function() {
-  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
-};
-exports.setInterval = function() {
-  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
-};
-exports.clearTimeout =
-exports.clearInterval = function(timeout) {
-  if (timeout) {
-    timeout.close();
-  }
-};
-
-function Timeout(id, clearFn) {
-  this._id = id;
-  this._clearFn = clearFn;
-}
-Timeout.prototype.unref = Timeout.prototype.ref = function() {};
-Timeout.prototype.close = function() {
-  this._clearFn.call(window, this._id);
-};
-
-// Does not start the time, just sets up the members needed.
-exports.enroll = function(item, msecs) {
-  clearTimeout(item._idleTimeoutId);
-  item._idleTimeout = msecs;
-};
-
-exports.unenroll = function(item) {
-  clearTimeout(item._idleTimeoutId);
-  item._idleTimeout = -1;
-};
-
-exports._unrefActive = exports.active = function(item) {
-  clearTimeout(item._idleTimeoutId);
-
-  var msecs = item._idleTimeout;
-  if (msecs >= 0) {
-    item._idleTimeoutId = setTimeout(function onTimeout() {
-      if (item._onTimeout)
-        item._onTimeout();
-    }, msecs);
-  }
-};
-
-// setimmediate attaches itself to the global object
-__webpack_require__(32);
-exports.setImmediate = setImmediate;
-exports.clearImmediate = clearImmediate;
-
-
-/***/ }),
-/* 32 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
-    "use strict";
-
-    if (global.setImmediate) {
-        return;
-    }
-
-    var nextHandle = 1; // Spec says greater than zero
-    var tasksByHandle = {};
-    var currentlyRunningATask = false;
-    var doc = global.document;
-    var registerImmediate;
-
-    function setImmediate(callback) {
-      // Callback can either be a function or a string
-      if (typeof callback !== "function") {
-        callback = new Function("" + callback);
-      }
-      // Copy function arguments
-      var args = new Array(arguments.length - 1);
-      for (var i = 0; i < args.length; i++) {
-          args[i] = arguments[i + 1];
-      }
-      // Store and register the task
-      var task = { callback: callback, args: args };
-      tasksByHandle[nextHandle] = task;
-      registerImmediate(nextHandle);
-      return nextHandle++;
-    }
-
-    function clearImmediate(handle) {
-        delete tasksByHandle[handle];
-    }
-
-    function run(task) {
-        var callback = task.callback;
-        var args = task.args;
-        switch (args.length) {
-        case 0:
-            callback();
-            break;
-        case 1:
-            callback(args[0]);
-            break;
-        case 2:
-            callback(args[0], args[1]);
-            break;
-        case 3:
-            callback(args[0], args[1], args[2]);
-            break;
-        default:
-            callback.apply(undefined, args);
-            break;
-        }
-    }
-
-    function runIfPresent(handle) {
-        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
-        // So if we're currently running a task, we'll need to delay this invocation.
-        if (currentlyRunningATask) {
-            // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
-            // "too much recursion" error.
-            setTimeout(runIfPresent, 0, handle);
-        } else {
-            var task = tasksByHandle[handle];
-            if (task) {
-                currentlyRunningATask = true;
-                try {
-                    run(task);
-                } finally {
-                    clearImmediate(handle);
-                    currentlyRunningATask = false;
-                }
-            }
-        }
-    }
-
-    function installNextTickImplementation() {
-        registerImmediate = function(handle) {
-            process.nextTick(function () { runIfPresent(handle); });
-        };
-    }
-
-    function canUsePostMessage() {
-        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
-        // where `global.postMessage` means something completely different and can't be used for this purpose.
-        if (global.postMessage && !global.importScripts) {
-            var postMessageIsAsynchronous = true;
-            var oldOnMessage = global.onmessage;
-            global.onmessage = function() {
-                postMessageIsAsynchronous = false;
-            };
-            global.postMessage("", "*");
-            global.onmessage = oldOnMessage;
-            return postMessageIsAsynchronous;
-        }
-    }
-
-    function installPostMessageImplementation() {
-        // Installs an event handler on `global` for the `message` event: see
-        // * https://developer.mozilla.org/en/DOM/window.postMessage
-        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
-
-        var messagePrefix = "setImmediate$" + Math.random() + "$";
-        var onGlobalMessage = function(event) {
-            if (event.source === global &&
-                typeof event.data === "string" &&
-                event.data.indexOf(messagePrefix) === 0) {
-                runIfPresent(+event.data.slice(messagePrefix.length));
-            }
-        };
-
-        if (global.addEventListener) {
-            global.addEventListener("message", onGlobalMessage, false);
-        } else {
-            global.attachEvent("onmessage", onGlobalMessage);
-        }
-
-        registerImmediate = function(handle) {
-            global.postMessage(messagePrefix + handle, "*");
-        };
-    }
-
-    function installMessageChannelImplementation() {
-        var channel = new MessageChannel();
-        channel.port1.onmessage = function(event) {
-            var handle = event.data;
-            runIfPresent(handle);
-        };
-
-        registerImmediate = function(handle) {
-            channel.port2.postMessage(handle);
-        };
-    }
-
-    function installReadyStateChangeImplementation() {
-        var html = doc.documentElement;
-        registerImmediate = function(handle) {
-            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
-            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
-            var script = doc.createElement("script");
-            script.onreadystatechange = function () {
-                runIfPresent(handle);
-                script.onreadystatechange = null;
-                html.removeChild(script);
-                script = null;
-            };
-            html.appendChild(script);
-        };
-    }
-
-    function installSetTimeoutImplementation() {
-        registerImmediate = function(handle) {
-            setTimeout(runIfPresent, 0, handle);
-        };
-    }
-
-    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
-    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
-    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
-
-    // Don't get fooled by e.g. browserify environments.
-    if ({}.toString.call(global.process) === "[object process]") {
-        // For Node.js before 0.9
-        installNextTickImplementation();
-
-    } else if (canUsePostMessage()) {
-        // For non-IE10 modern browsers
-        installPostMessageImplementation();
-
-    } else if (global.MessageChannel) {
-        // For web workers, where supported
-        installMessageChannelImplementation();
-
-    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
-        // For IE 6–8
-        installReadyStateChangeImplementation();
-
-    } else {
-        // For older browsers
-        installSetTimeoutImplementation();
-    }
-
-    attachTo.setImmediate = setImmediate;
-    attachTo.clearImmediate = clearImmediate;
-}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(5)))
-
-/***/ }),
-/* 33 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ChatMessage_js__ = __webpack_require__(34);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ChatOption_js__ = __webpack_require__(35);
-
-
-
-
-
-/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('chat-editor', {
-    template: `<div class="zoom-wrap">
-                <div class="chat chat-editor chat-frame">
-                    <header>
-                    
-                    </header>
-                    <main>
-                        <chat-message v-for="(message,index) in messages" :content="message.content" :user="message.user" :key="index"></chat-message>
-                    </main>
-                    <div class="options show">
-                        <chat-option v-for="(option,index) in options" :content="option.content" :link="options.link" :key="index"></chat-option>
-                    </div>
-                    <footer>
-                    
-                    </footer>
-                </div>
-            </div>`,
-    props: [
-        'messages',
-        'options'
-    ]
-}));
-
-/***/ }),
-/* 34 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-
-
-
-/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('chat-message', {
-    template: `<div class="message" v-bind:class="{me: (user === 'me'), other: user === 'other'}">
-                    <div class="user"></div>
-                    <div class="content">{{content}}</div>
-                </div>`,
-    props: [
-        'user',
-        'content'
-    ]
-}));
-
-/***/ }),
-/* 35 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-
-
-
-/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('chat-option', {
-    template: `
-                    <div>{{content}}</div>
-                </div>`,
-    props: [
-        'content',
-        'link'
-    ]
-}));
-
-// TODO: link handling -> onClick createAndJump
-
-/***/ }),
-/* 36 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Events_js__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_assets_plus_svg__ = __webpack_require__(37);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_assets_plus_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__common_assets_plus_svg__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__common_assets_download_svg__ = __webpack_require__(38);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__common_assets_download_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__common_assets_download_svg__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__common_assets_play_svg__ = __webpack_require__(39);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__common_assets_play_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__common_assets_play_svg__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__common_assets_sliders_svg__ = __webpack_require__(40);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__common_assets_sliders_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__common_assets_sliders_svg__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__common_assets_trash_svg__ = __webpack_require__(41);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__common_assets_trash_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6__common_assets_trash_svg__);
-
-
-
-
-
-
-
-
-
-/* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */]({
-    el: '#menu',
-    template: `
-            <menu id="menu">
-           
-            <button class="btn btn-action btn-primary circle btn-lg play" v-html="PlayIcon" @click="play"></button>
-            <button class="btn btn-action btn-primary circle btn-lg download" v-html="DownloadIcon" @click="exportStory"></button>
-            <!--<button class="btn btn-action btn-primary circle btn-lg settings" v-html="SettingsIcon" @click="settings"></button>-->
-             <button class="btn btn-action btn-primary circle btn-lg add" v-html="AddIcon" @click="add"></button>
-             <button class="btn btn-action btn-primary circle btn-lg add" :disabled="!deleteEnabled" v-html="DeleteIcon" @click="deleteSelected"></button>
-            </menu>
-        `,
-    data: {
-        PlayIcon: __WEBPACK_IMPORTED_MODULE_4__common_assets_play_svg___default.a,
-        DownloadIcon: __WEBPACK_IMPORTED_MODULE_3__common_assets_download_svg___default.a,
-        SettingsIcon: __WEBPACK_IMPORTED_MODULE_5__common_assets_sliders_svg___default.a,
-        AddIcon: __WEBPACK_IMPORTED_MODULE_2__common_assets_plus_svg___default.a,
-        DeleteIcon: __WEBPACK_IMPORTED_MODULE_6__common_assets_trash_svg___default.a,
-        deleteEnabled : false,
-        eventTarget: null},
-    methods: {
-        sendEvent(eventType) {
-            if (this.eventTarget) {
-                this.eventTarget.dispatchEvent(new CustomEvent(eventType));
-            }
-        },
-        setEventTarget(eventTarget){
-            this.eventTarget = eventTarget;
-            this.eventTarget.addEventListener(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_SELECTION_CHANGED, (e)=>{
-                console.log(e.detail.selected);
-                this.deleteEnabled = e.detail.selected && (e.detail.selected.length>0);
-            });
-        },
-        add() {
-            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_ADD);
-        },
-        play() {
-            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_PLAY);
-        },
-        exportStory() {
-            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_EXPORT);
-        },
-        settings() {
-            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_SETTINGS);
-        },
-        deleteSelected() {
-            console.log("deleteSelected");
-            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_DELETE_SELECTED);
-        }
-    }
-}));
-
-
-
-
-
-/***/ }),
-/* 37 */
-/***/ (function(module, exports) {
-
-module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 11 14\"><path d=\"M11 5.75v1.5q0 0.312-0.219 0.531t-0.531 0.219h-3.25v3.25q0 0.312-0.219 0.531t-0.531 0.219h-1.5q-0.312 0-0.531-0.219t-0.219-0.531v-3.25h-3.25q-0.312 0-0.531-0.219t-0.219-0.531v-1.5q0-0.312 0.219-0.531t0.531-0.219h3.25v-3.25q0-0.312 0.219-0.531t0.531-0.219h1.5q0.312 0 0.531 0.219t0.219 0.531v3.25h3.25q0.312 0 0.531 0.219t0.219 0.531z\"></path></svg>"
-
-/***/ }),
-/* 38 */
-/***/ (function(module, exports) {
-
-module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 13 14\"><path d=\"M10 10.5q0-0.203-0.148-0.352t-0.352-0.148-0.352 0.148-0.148 0.352 0.148 0.352 0.352 0.148 0.352-0.148 0.148-0.352zM12 10.5q0-0.203-0.148-0.352t-0.352-0.148-0.352 0.148-0.148 0.352 0.148 0.352 0.352 0.148 0.352-0.148 0.148-0.352zM13 8.75v2.5q0 0.312-0.219 0.531t-0.531 0.219h-11.5q-0.312 0-0.531-0.219t-0.219-0.531v-2.5q0-0.312 0.219-0.531t0.531-0.219h3.633l1.055 1.062q0.453 0.438 1.062 0.438t1.062-0.438l1.062-1.062h3.625q0.312 0 0.531 0.219t0.219 0.531zM10.461 4.305q0.133 0.32-0.109 0.547l-3.5 3.5q-0.141 0.148-0.352 0.148t-0.352-0.148l-3.5-3.5q-0.242-0.227-0.109-0.547 0.133-0.305 0.461-0.305h2v-3.5q0-0.203 0.148-0.352t0.352-0.148h2q0.203 0 0.352 0.148t0.148 0.352v3.5h2q0.328 0 0.461 0.305z\"></path></svg>"
-
-/***/ }),
-/* 39 */
-/***/ (function(module, exports) {
-
-module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 11 14\"><path d=\"M10.812 7.242l-10.375 5.766q-0.18 0.102-0.309 0.023t-0.129-0.281v-11.5q0-0.203 0.129-0.281t0.309 0.023l10.375 5.766q0.18 0.102 0.18 0.242t-0.18 0.242z\"></path></svg>"
-
-/***/ }),
-/* 40 */
-/***/ (function(module, exports) {
-
-module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 12 14\"><path d=\"M2.75 11v1h-2.75v-1h2.75zM5.5 10q0.203 0 0.352 0.148t0.148 0.352v2q0 0.203-0.148 0.352t-0.352 0.148h-2q-0.203 0-0.352-0.148t-0.148-0.352v-2q0-0.203 0.148-0.352t0.352-0.148h2zM6.75 7v1h-6.75v-1h6.75zM1.75 3v1h-1.75v-1h1.75zM12 11v1h-5.75v-1h5.75zM4.5 2q0.203 0 0.352 0.148t0.148 0.352v2q0 0.203-0.148 0.352t-0.352 0.148h-2q-0.203 0-0.352-0.148t-0.148-0.352v-2q0-0.203 0.148-0.352t0.352-0.148h2zM9.5 6q0.203 0 0.352 0.148t0.148 0.352v2q0 0.203-0.148 0.352t-0.352 0.148h-2q-0.203 0-0.352-0.148t-0.148-0.352v-2q0-0.203 0.148-0.352t0.352-0.148h2zM12 7v1h-1.75v-1h1.75zM12 3v1h-6.75v-1h6.75z\"></path></svg>"
-
-/***/ }),
-/* 41 */
-/***/ (function(module, exports) {
-
-module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 11 14\"><path d=\"M4 10.75v-5.5q0-0.109-0.070-0.18t-0.18-0.070h-0.5q-0.109 0-0.18 0.070t-0.070 0.18v5.5q0 0.109 0.070 0.18t0.18 0.070h0.5q0.109 0 0.18-0.070t0.070-0.18zM6 10.75v-5.5q0-0.109-0.070-0.18t-0.18-0.070h-0.5q-0.109 0-0.18 0.070t-0.070 0.18v5.5q0 0.109 0.070 0.18t0.18 0.070h0.5q0.109 0 0.18-0.070t0.070-0.18zM8 10.75v-5.5q0-0.109-0.070-0.18t-0.18-0.070h-0.5q-0.109 0-0.18 0.070t-0.070 0.18v5.5q0 0.109 0.070 0.18t0.18 0.070h0.5q0.109 0 0.18-0.070t0.070-0.18zM3.75 3h3.5l-0.375-0.914q-0.055-0.070-0.133-0.086h-2.477q-0.078 0.016-0.133 0.086zM11 3.25v0.5q0 0.109-0.070 0.18t-0.18 0.070h-0.75v7.406q0 0.648-0.367 1.121t-0.883 0.473h-6.5q-0.516 0-0.883-0.457t-0.367-1.105v-7.438h-0.75q-0.109 0-0.18-0.070t-0.070-0.18v-0.5q0-0.109 0.070-0.18t0.18-0.070h2.414l0.547-1.305q0.117-0.289 0.422-0.492t0.617-0.203h2.5q0.312 0 0.617 0.203t0.422 0.492l0.547 1.305h2.414q0.109 0 0.18 0.070t0.070 0.18z\"></path></svg>"
-
-/***/ }),
-/* 42 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__DialogResult__ = __webpack_require__(9);
-
-
-
-/* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */]({
-    el: '#confirm',
-    template:
-        `<div class="modal chat-modal" v-bind:class="{active: active}" id="confirm">
-            <a href="" class="modal-overlay" aria-label="Close" ></a>
-            <div class="modal-container">
-                <div class="modal-header">
-                    <a @click="cancel" class="btn btn-clear float-right" aria-label="Close"></a>
-                    <div class="modal-title h5">Confirm</div>
-                </div>
-                <div class="modal-body">
-                    {{message}}
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-primary" @click="okay">Okay</button>
-                    <button class="btn btn-primary" @click="cancel">Cancel</button>
-                </div>
-            </div>
-        </div>`,
-    data : {
-        active : false,
-        message : '',
-        resolve : null
-    },
-    methods: {
-        showDialog(message) {
-            console.log('message');
-            this.active = true;
-            return new Promise((resolve)=>{
-
-                this.message = message;
-                this.resolve = resolve;
-            });
-        },
-        cancel(){
-            if(this.resolve){
-                this.resolve(__WEBPACK_IMPORTED_MODULE_1__DialogResult__["a" /* default */].CANCEL);
-                this.resolve = null;
-                this.active = false;
-            }
-        },
-        okay(){
-            if(this.resolve){
-                this.resolve(__WEBPACK_IMPORTED_MODULE_1__DialogResult__["a" /* default */].OKAY);
-                this.resolve = null;
-                this.active = false;
-            }
-        }
-    }
-}));
-
-/***/ }),
-/* 43 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__avatar_avatar_js__ = __webpack_require__(44);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Events__ = __webpack_require__(2);
-
-
-
-
-/* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */]({
-    el: '#settings',
-    template:
-        `<div class="modal chat-modal" v-bind:class="{active: active}" id="settings">
-            <a href="" class="modal-overlay" aria-label="Close"></a>
-            <div class="modal-container">
-                <div class="modal-header">
-                    <a @click="closeSettings()" class="btn btn-clear float-right" aria-label="Close"></a>
-                    <div class="modal-title h5">Settings</div>
-                </div>
-                <div class="modal-body">
-                    <div id="editor-form-column" class="form-group column col-6">
-                        <label class="form-label" for="input-entry-id">StoryTitle</label>
-                        <input class="form-input" type="text" id="input-story-title" placeholder="" v-model="storyTitle">
-                        
-                        <label class="form-label" for="input-entry-id">StoryAuthor</label>
-                        <input class="form-input" type="text" id="input-story-author" placeholder="" v-model="storyAuthor">
-                        
-                        <label class="form-switch">
-                            <input type="checkbox" v-model="groupChat">
-                            <i class="form-icon"></i> Group Chat
-                        </label>
-                        
-                        <avatar :model="model"></avatar>
-                    
-                    </div>
-                </div>
-                <div class="modal-footer"></div>
-            </div>
-        </div>`,
-    data : {
-        active : false,
-        storyTitle : "",
-        storyAuthor : "",
-        groupChat : false,
-        model : {
-            head: {shape: 0}
-        }
-    },
-    methods: {
-        closeSettings() {
-            this.active = false;
-        },
-        showSettings() {
-            this.active = true;
-        },
-    }
-}));
-
-/***/ }),
-/* 44 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__avatarBody_js__ = __webpack_require__(45);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__avatarEyes_js__ = __webpack_require__(46);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__avatarHair_js__ = __webpack_require__(47);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__avatarHead_js__ = __webpack_require__(48);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__avatarMouth_js__ = __webpack_require__(51);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__avatarNose_js__ = __webpack_require__(52);
-
-
-
-
-
-
-
-
-
-/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar', {
-    template: `<svg width="140" height="140">
-                    <avatar-body></avatar-body>
-                    <avatar-head></avatar-head>
-                    <avatar-eyes></avatar-eyes>
-                    <avatar-nose></avatar-nose>
-                    <avatar-mouth></avatar-mouth>
-                    <avatar-hair></avatar-hair>
-                </svg>`,
-    props: [
-        'model'
-    ]
-}));
-
-/***/ }),
-/* 45 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-
-
-
-
-
-
-/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar-body', {
-    template: `<g></g>`,
-    props: [
-        'model'
-    ]
-}));
-
-/***/ }),
-/* 46 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-
-
-
-/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar-eyes', {
-    template: `<g>
-            <ellipse
-       ry="2"
-       rx="2"
-       cy="58"
-       cx="40"
-       id="ellipse73501-0"
-       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0e232e;fill-opacity:1;fill-rule:nonzero;stroke:#0e232e;stroke-width:5.33194542;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
-        <ellipse
-       ry="2"
-       rx="2"
-       cy="58"
-       cx="70"
-       id="ellipse73501-0"
-       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0e232e;fill-opacity:1;fill-rule:nonzero;stroke:#0e232e;stroke-width:5.33194542;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
-        
-        
-        
-        </g>`,
-    props: [
-        'model'
-    ]
-}));
-
-/***/ }),
-/* 47 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-
-
-
-/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar-hair', {
-    template: `<g>
-                  <path
-       style="fill:#f68585;fill-opacity:1;fill-rule:evenodd;stroke:#c96b6b;stroke-width:5.33194542;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-                        d="m 47,8 -29.06349,6.93257 -13.59852,25.06393 22.39756,-14.13179 17.86471,-5.06611 -10.6655,17.33143 23.19746,-17.59808 -9.59895,21.86429 25.86385,-20.79773 -10.13223,33.06305 21.86427,-18.66462 3.46629,20.53109 12.7986,-12.53196 9.06567,12.53196 -10.93214,-25.59721 -15.19833,-19.1979 -28.53021,-5.59939 z"
-                    />          
-
-               </g>`,
-    props: [
-        'model'
-    ]
-}));
-
-/***/ }),
-/* 48 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash__ = __webpack_require__(49);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_lodash__);
-
-
-
-const HEAD_SHAPE = [
-    {
-        d : "m 40,120 c -7.69258,-2.85806 -16.05447,-8.16178 -21.87077,-18.85411 -5.81631,-10.69234 -5.69611,-10.05706 -7.28037,-19.17972 -1.69222,-7.45349 -15.86377,-14.55774 -2.73107,-24.30382 1.60206,-1.71636 1.29008,-21.82442 12.0528,-31.80686 10.76272,-9.98244 28.05446,-10.84942 34.12537,-11.33299 6.07091,0.48357 23.36265,1.35055 34.12537,11.33299 10.76272,9.98244 10.45074,30.0905 12.0528,31.80686 13.1327,9.74608 -1.03885,16.85033 -2.73107,24.30382 -1.58426,9.12266 -1.46406,8.48738 -7.28037,19.17972 -5.8163,10.69233 -14.17819,15.99605 -21.87077,18.85411 -7.69259,2.85807 -9.58434,3.30224 -14.29596,3.30224 -4.71162,0 -6.60337,-0.44417 -14.29596,-3.30224 z"
-    }
-];
-
-/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar-head', {
-    template: `<g>
-       <path
-       style="fill:#ffd4c6;fill-rule:evenodd;stroke:#000000;stroke-width:6;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
-       :d="d"/>
-</g>`,
-    props: [
-        'model'
-    ],
-    computed : {
-        d: function(){
-            const shape = HEAD_SHAPE[__WEBPACK_IMPORTED_MODULE_1_lodash___default.a.get(this,'model.head')];
-            if(shape)
-                return shape.d
-            return HEAD_SHAPE[0].d;
-        }
-    }
-}));
-
-/***/ }),
-/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -39868,10 +28944,10169 @@ const HEAD_SHAPE = [
   }
 }.call(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(50)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(31)(module)))
 
 /***/ }),
-/* 50 */
+/* 7 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+var utils = __webpack_require__(1);
+var normalizeHeaderName = __webpack_require__(64);
+
+var DEFAULT_CONTENT_TYPE = {
+  'Content-Type': 'application/x-www-form-urlencoded'
+};
+
+function setContentTypeIfUnset(headers, value) {
+  if (!utils.isUndefined(headers) && utils.isUndefined(headers['Content-Type'])) {
+    headers['Content-Type'] = value;
+  }
+}
+
+function getDefaultAdapter() {
+  var adapter;
+  if (typeof XMLHttpRequest !== 'undefined') {
+    // For browsers use XHR adapter
+    adapter = __webpack_require__(13);
+  } else if (typeof process !== 'undefined') {
+    // For node use HTTP adapter
+    adapter = __webpack_require__(13);
+  }
+  return adapter;
+}
+
+var defaults = {
+  adapter: getDefaultAdapter(),
+
+  transformRequest: [function transformRequest(data, headers) {
+    normalizeHeaderName(headers, 'Content-Type');
+    if (utils.isFormData(data) ||
+      utils.isArrayBuffer(data) ||
+      utils.isBuffer(data) ||
+      utils.isStream(data) ||
+      utils.isFile(data) ||
+      utils.isBlob(data)
+    ) {
+      return data;
+    }
+    if (utils.isArrayBufferView(data)) {
+      return data.buffer;
+    }
+    if (utils.isURLSearchParams(data)) {
+      setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
+      return data.toString();
+    }
+    if (utils.isObject(data)) {
+      setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
+      return JSON.stringify(data);
+    }
+    return data;
+  }],
+
+  transformResponse: [function transformResponse(data) {
+    /*eslint no-param-reassign:0*/
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data);
+      } catch (e) { /* Ignore */ }
+    }
+    return data;
+  }],
+
+  timeout: 0,
+
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
+
+  maxContentLength: -1,
+
+  validateStatus: function validateStatus(status) {
+    return status >= 200 && status < 300;
+  }
+};
+
+defaults.headers = {
+  common: {
+    'Accept': 'application/json, text/plain, */*'
+  }
+};
+
+utils.forEach(['delete', 'get', 'head'], function forEachMethodNoData(method) {
+  defaults.headers[method] = {};
+});
+
+utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
+  defaults.headers[method] = utils.merge(DEFAULT_CONTENT_TYPE);
+});
+
+module.exports = defaults;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+
+/***/ }),
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+const flatten = arr => arr.reduce((acc, val) => acc.concat(val), []);
+
+
+const randomId = () => {
+    return Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7);
+};
+
+class Util {
+    static parseMessages(str) {
+        const MESSAGE_REGEX = /<<([^\s]*) "([^"]*)">>/g;
+        const messages = [];
+        let match;
+        while ((match = MESSAGE_REGEX.exec(str)) != null) {
+            messages.push({
+                user: match[1].toLowerCase() === 'me' ? "me" : match[1], content: match[2], original: match[0]
+            });
+        }
+        return messages;
+    }
+
+    static parseOptions(str) {
+        //matching [link] and [title|link]
+        const OPTION_REGEX = /\[\[([^|\]]*)\|?((?:[^\]]*))\]\]/g;
+        const options = [];
+        let match;
+        while ((match = OPTION_REGEX.exec(str)) != null) {
+            console.log("match", match);
+            options.push({
+                content: match[1],
+                link: (match[2].length > 0) ? match[2] : match[1], original: match[0]
+            });
+        }
+        return options;
+    }
+
+    static replaceLink(str, from, to) {
+        return str.replace(/\[\[([^|\]]*)\|?((?:[^\]]*))\]\]/g, (match, g1, g2) => {
+            let link = (g2.length > 0) ? g2 : g1;
+            if (link === from) {
+                link = to;
+            }
+            if (g2.length > 0) {
+                return `[[${g1}|${link}]]`;
+            } else {
+                return `[[${link}]]`;
+            }
+        });
+    }
+
+    static storyToTwee(story) {
+        console.log("Story", story);
+        return story.entries.map(_ => `::${_.id}\n${_.data.content}\n`).join("\n");
+    }
+
+
+
+    static storyToLmn(story) {
+        const lmnDialog = story.entries.map(_ => {
+            return {
+                id: _.id,
+                messages: Util.parseMessages(_.data.content),
+                options: Util.parseOptions(_.data.content),
+            }
+        }).map(_ => {
+
+            let result = [];
+            result = result.concat(_.messages.map((m) => {
+                return [m.original];
+            }));
+
+            if (_.options.length > 0) {
+                const EMPTY_MESSAGE = '';
+                result.push([EMPTY_MESSAGE, _.options.map(o => [o.content, o.link])]);
+            }
+
+            if (result.length === 0) {
+                result.push(['<<Message "NO MESSAGE FOUND">>']);
+            }
+
+            const endsWithMessages = (_.options.length === 0);
+            console.log(_.messages.length + _.options.length);
+            const first = 0;
+            const last = result.length - 1;
+
+            if (result.length > 0) {
+                result[first].unshift(_.id);
+                if (first !== last && endsWithMessages) {
+                    result[last].unshift(randomId());
+                }
+                result[last].push('???') // <-- stop fall trough.
+            }
+
+
+            return result;
+        }).reduce((acc, val) => acc.concat(val), []); //flatten 1-level
+
+        return {
+            data: story.settings,
+            dialog: lmnDialog
+        };
+
+    }
+
+
+    static nonCollidingId(targetId, story) {
+        let i = 1, collision, originalTarget = targetId;
+        while (typeof(collision = story.entries.find(entry => entry.id === targetId)) !== 'undefined') {
+            targetId = `${originalTarget}_${i++}`;
+        }
+        return targetId;
+    }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Util;
+
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony default export */ __webpack_exports__["a"] = ({
+    OKAY : 'OKAY',
+    CANCEL : "CANCEL"
+});
+
+/***/ }),
+/* 11 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__avatarBody_js__ = __webpack_require__(49);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__avatarEyes_js__ = __webpack_require__(50);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__avatarHair_js__ = __webpack_require__(51);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__avatarHead_js__ = __webpack_require__(52);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__avatarMouth_js__ = __webpack_require__(53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__avatarNose_js__ = __webpack_require__(54);
+
+
+
+
+
+
+
+
+
+/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar', {
+    template: `<svg width="140" height="140">
+                    <avatar-body></avatar-body>
+                    <avatar-head></avatar-head>
+                    <avatar-eyes></avatar-eyes>
+                    <avatar-nose></avatar-nose>
+                    <avatar-mouth></avatar-mouth>
+                    <avatar-hair></avatar-hair>
+                </svg>`,
+    props: [
+        'model'
+    ]
+}));
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function bind(fn, thisArg) {
+  return function wrap() {
+    var args = new Array(arguments.length);
+    for (var i = 0; i < args.length; i++) {
+      args[i] = arguments[i];
+    }
+    return fn.apply(thisArg, args);
+  };
+};
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+var utils = __webpack_require__(1);
+var settle = __webpack_require__(65);
+var buildURL = __webpack_require__(67);
+var parseHeaders = __webpack_require__(68);
+var isURLSameOrigin = __webpack_require__(69);
+var createError = __webpack_require__(14);
+var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(70);
+
+module.exports = function xhrAdapter(config) {
+  return new Promise(function dispatchXhrRequest(resolve, reject) {
+    var requestData = config.data;
+    var requestHeaders = config.headers;
+
+    if (utils.isFormData(requestData)) {
+      delete requestHeaders['Content-Type']; // Let the browser set it
+    }
+
+    var request = new XMLHttpRequest();
+    var loadEvent = 'onreadystatechange';
+    var xDomain = false;
+
+    // For IE 8/9 CORS support
+    // Only supports POST and GET calls and doesn't returns the response headers.
+    // DON'T do this for testing b/c XMLHttpRequest is mocked, not XDomainRequest.
+    if (process.env.NODE_ENV !== 'test' &&
+        typeof window !== 'undefined' &&
+        window.XDomainRequest && !('withCredentials' in request) &&
+        !isURLSameOrigin(config.url)) {
+      request = new window.XDomainRequest();
+      loadEvent = 'onload';
+      xDomain = true;
+      request.onprogress = function handleProgress() {};
+      request.ontimeout = function handleTimeout() {};
+    }
+
+    // HTTP basic authentication
+    if (config.auth) {
+      var username = config.auth.username || '';
+      var password = config.auth.password || '';
+      requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
+    }
+
+    request.open(config.method.toUpperCase(), buildURL(config.url, config.params, config.paramsSerializer), true);
+
+    // Set the request timeout in MS
+    request.timeout = config.timeout;
+
+    // Listen for ready state
+    request[loadEvent] = function handleLoad() {
+      if (!request || (request.readyState !== 4 && !xDomain)) {
+        return;
+      }
+
+      // The request errored out and we didn't get a response, this will be
+      // handled by onerror instead
+      // With one exception: request that using file: protocol, most browsers
+      // will return status as 0 even though it's a successful request
+      if (request.status === 0 && !(request.responseURL && request.responseURL.indexOf('file:') === 0)) {
+        return;
+      }
+
+      // Prepare the response
+      var responseHeaders = 'getAllResponseHeaders' in request ? parseHeaders(request.getAllResponseHeaders()) : null;
+      var responseData = !config.responseType || config.responseType === 'text' ? request.responseText : request.response;
+      var response = {
+        data: responseData,
+        // IE sends 1223 instead of 204 (https://github.com/axios/axios/issues/201)
+        status: request.status === 1223 ? 204 : request.status,
+        statusText: request.status === 1223 ? 'No Content' : request.statusText,
+        headers: responseHeaders,
+        config: config,
+        request: request
+      };
+
+      settle(resolve, reject, response);
+
+      // Clean up request
+      request = null;
+    };
+
+    // Handle low level network errors
+    request.onerror = function handleError() {
+      // Real errors are hidden from us by the browser
+      // onerror should only fire if it's a network error
+      reject(createError('Network Error', config, null, request));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Handle timeout
+    request.ontimeout = function handleTimeout() {
+      reject(createError('timeout of ' + config.timeout + 'ms exceeded', config, 'ECONNABORTED',
+        request));
+
+      // Clean up request
+      request = null;
+    };
+
+    // Add xsrf header
+    // This is only done if running in a standard browser environment.
+    // Specifically not if we're in a web worker, or react-native.
+    if (utils.isStandardBrowserEnv()) {
+      var cookies = __webpack_require__(71);
+
+      // Add xsrf header
+      var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
+          cookies.read(config.xsrfCookieName) :
+          undefined;
+
+      if (xsrfValue) {
+        requestHeaders[config.xsrfHeaderName] = xsrfValue;
+      }
+    }
+
+    // Add headers to the request
+    if ('setRequestHeader' in request) {
+      utils.forEach(requestHeaders, function setRequestHeader(val, key) {
+        if (typeof requestData === 'undefined' && key.toLowerCase() === 'content-type') {
+          // Remove Content-Type if data is undefined
+          delete requestHeaders[key];
+        } else {
+          // Otherwise add header to the request
+          request.setRequestHeader(key, val);
+        }
+      });
+    }
+
+    // Add withCredentials to request if needed
+    if (config.withCredentials) {
+      request.withCredentials = true;
+    }
+
+    // Add responseType to request if needed
+    if (config.responseType) {
+      try {
+        request.responseType = config.responseType;
+      } catch (e) {
+        // Expected DOMException thrown by browsers not compatible XMLHttpRequest Level 2.
+        // But, this can be suppressed for 'json' type as it can be parsed by default 'transformResponse' function.
+        if (config.responseType !== 'json') {
+          throw e;
+        }
+      }
+    }
+
+    // Handle progress if needed
+    if (typeof config.onDownloadProgress === 'function') {
+      request.addEventListener('progress', config.onDownloadProgress);
+    }
+
+    // Not all browsers support upload events
+    if (typeof config.onUploadProgress === 'function' && request.upload) {
+      request.upload.addEventListener('progress', config.onUploadProgress);
+    }
+
+    if (config.cancelToken) {
+      // Handle cancellation
+      config.cancelToken.promise.then(function onCanceled(cancel) {
+        if (!request) {
+          return;
+        }
+
+        request.abort();
+        reject(cancel);
+        // Clean up request
+        request = null;
+      });
+    }
+
+    if (requestData === undefined) {
+      requestData = null;
+    }
+
+    // Send the request
+    request.send(requestData);
+  });
+};
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var enhanceError = __webpack_require__(66);
+
+/**
+ * Create an Error with the specified message, config, error code, request and response.
+ *
+ * @param {string} message The error message.
+ * @param {Object} config The config.
+ * @param {string} [code] The error code (for example, 'ECONNABORTED').
+ * @param {Object} [request] The request.
+ * @param {Object} [response] The response.
+ * @returns {Error} The created error.
+ */
+module.exports = function createError(message, config, code, request, response) {
+  var error = new Error(message);
+  return enhanceError(error, config, code, request, response);
+};
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function isCancel(value) {
+  return !!(value && value.__CANCEL__);
+};
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * A `Cancel` is an object that is thrown when an operation is canceled.
+ *
+ * @class
+ * @param {string=} message The message.
+ */
+function Cancel(message) {
+  this.message = message;
+}
+
+Cancel.prototype.toString = function toString() {
+  return 'Cancel' + (this.message ? ': ' + this.message : '');
+};
+
+Cancel.prototype.__CANCEL__ = true;
+
+module.exports = Cancel;
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__css_styles_css__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__css_styles_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__css_styles_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__common_css_chat_css__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__common_css_chat_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__common_css_chat_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_spectre_css__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_spectre_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_spectre_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_spectre_css_dist_spectre_icons_css__ = __webpack_require__(25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_spectre_css_dist_spectre_icons_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_spectre_css_dist_spectre_icons_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__js_graph_GraphUI_js__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__js_Story_js__ = __webpack_require__(32);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__js_Events_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__js_editor_Editor_js__ = __webpack_require__(33);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__js_menu_Menu_js__ = __webpack_require__(40);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__js_menu_ConfirmDialog_js__ = __webpack_require__(47);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__js_menu_DialogResult_js__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__js_settings_Settings_js__ = __webpack_require__(48);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__js_preview_Preview_js__ = __webpack_require__(56);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__js_import_Upload_js__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__js_Util_js__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__js_Generator_js__ = __webpack_require__(59);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const story = __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].fromLocalStorage();
+
+const $graphElement = document.getElementById('graph');
+const $graphWrapper = document.getElementById('graph-wrapper');
+
+function getChildren(options) {
+    options = options || [];
+    return options.map(option => option.link);
+}
+
+//const TEMPLATE_URL = "/weft-pub/template/";  //TODO: fixme !! Quick and dirty;
+//const TEMPLATE_URL = "/weft/template/";  //TODO: fixme !! Quick and dirty;
+const TEMPLATE_URL = "http://localhost:8888/template";  //TODO: fixme !! Quick and dirty;
+
+
+if ($graphElement) {
+    const ui = new __WEBPACK_IMPORTED_MODULE_4__js_graph_GraphUI_js__["a" /* default */]($graphElement, $graphWrapper);
+    __WEBPACK_IMPORTED_MODULE_8__js_menu_Menu_js__["a" /* default */].setEventTarget($graphElement);
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_ENTRY_MOVED, (e) => {
+        const detail = e.detail;
+        story.entries.forEach((entry) => {
+            if (entry.id === detail.id) {
+                entry.pos.x = detail.x;
+                entry.pos.y = detail.y;
+            }
+        });
+        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
+    });
+
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_ENTRY_CHANGED, (e) => {
+        const detail = e.detail;
+        console.log("Detail", detail);
+        let updatedEntry;
+        let targetId = detail.id;
+
+        //Avoid collision
+        if (targetId !== detail.originalId) {
+            targetId = __WEBPACK_IMPORTED_MODULE_14__js_Util_js__["a" /* default */].nonCollidingId(targetId, story);
+        }
+
+
+        story.entries.forEach((entry) => {
+            // Update changed entry
+            if (entry.id === detail.originalId) {
+                updatedEntry = entry;
+                entry.id = targetId;
+                entry.data.content = detail.content;
+                entry.children = getChildren(detail.options);
+                ui.updateEntry(entry, detail.originalId);
+            }
+
+            // Update links to changed entry
+            if (targetId !== detail.originalId) {
+                entry.data.content = __WEBPACK_IMPORTED_MODULE_14__js_Util_js__["a" /* default */].replaceLink(entry.data.content, detail.originalId, targetId);
+                entry.children = getChildren(__WEBPACK_IMPORTED_MODULE_14__js_Util_js__["a" /* default */].parseOptions(entry.data.content));
+                ui.updateEntry(entry);
+            }
+        });
+
+        // Create new possible Children
+        if (updatedEntry) {
+            updatedEntry.children.forEach((possible) => {
+                const existing = story.entries.find(entry => entry.id === possible);
+                if (!existing) {
+                    const newEntry = {
+                        id: possible,
+                        pos: {
+                            x: Number.parseFloat(updatedEntry.pos.x) + 100,
+                            y: Number.parseFloat(updatedEntry.pos.y)
+                        },
+                        data: {content: ""},
+                        children: []
+                    };
+                    story.entries.push(newEntry);
+                    ui.updateEntry(newEntry);
+                }
+            });
+        }
+
+
+        ui.recalculateConnections();
+        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
+    });
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_OPEN_EDITOR, (e) => {
+        const detail = e.detail;
+        const entry = story.entries.find((item) => item.id === detail.id);
+        if (entry) {
+            __WEBPACK_IMPORTED_MODULE_7__js_editor_Editor_js__["a" /* default */].showEditor(entry,story.settings.users || {}, $graphElement);
+        }
+    });
+
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_ADD, () => {
+        const pos = ui.getFreePosition();
+        const id = __WEBPACK_IMPORTED_MODULE_14__js_Util_js__["a" /* default */].nonCollidingId('Unknown', story);
+        const newEntry = {
+            id,
+            pos,
+            data: {content: ""},
+            children: []
+        };
+        story.entries.push(newEntry);
+        ui.updateEntry(newEntry);
+    });
+
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_DELETE_SELECTED, () => {
+        const selected = ui.getSelectedIds();
+        console.log("delete received", selected);
+        const message = `Do you really want to delete ${selected.length} element(s)?`;
+        __WEBPACK_IMPORTED_MODULE_9__js_menu_ConfirmDialog_js__["a" /* default */].showDialog(message).then((result)=>{
+            if(result === __WEBPACK_IMPORTED_MODULE_10__js_menu_DialogResult_js__["a" /* default */].OKAY){
+                selected.forEach((entryId)=>{
+                    ui.removeEntry(entryId);
+                    story.entries = story.entries.filter(entry=>entry.id!==entryId);
+                    console.log(story.entries);
+                });
+                ui.recalculateConnections();
+                __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
+            }
+        });
+    });
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_PLAY, () => {
+        __WEBPACK_IMPORTED_MODULE_15__js_Generator_js__["a" /* default */].createGame({
+                templateUrl: TEMPLATE_URL,
+                lmnStory: __WEBPACK_IMPORTED_MODULE_14__js_Util_js__["a" /* default */].storyToLmn(story)
+            }
+        ).then(__WEBPACK_IMPORTED_MODULE_15__js_Generator_js__["a" /* default */].toDataUrl
+        ).then((dataUrl) => {
+            __WEBPACK_IMPORTED_MODULE_12__js_preview_Preview_js__["a" /* default */].showPreview(dataUrl);
+        });
+    });
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_EXPORT, () => {
+        __WEBPACK_IMPORTED_MODULE_15__js_Generator_js__["a" /* default */].createGame({
+            templateUrl: TEMPLATE_URL,
+            lmnStory: __WEBPACK_IMPORTED_MODULE_14__js_Util_js__["a" /* default */].storyToLmn(story),
+            internalData : story
+        })
+            .then(__WEBPACK_IMPORTED_MODULE_15__js_Generator_js__["a" /* default */].toDataUrl)
+            .then((dataUrl)=>{
+
+                const element = document.createElement('a');
+                element.setAttribute('href', dataUrl);
+                element.setAttribute('download', "game.html"); //TODO: story title here
+                element.style.display = 'none';
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+
+            });
+        console.log(JSON.stringify(__WEBPACK_IMPORTED_MODULE_14__js_Util_js__["a" /* default */].storyToLmn(story), null, 2));
+    });
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_SETTINGS, () => {
+        __WEBPACK_IMPORTED_MODULE_11__js_settings_Settings_js__["a" /* default */].showSettings(story.settings || {}).then((settings)=>{
+            story.settings = settings;
+            __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
+        });
+    });
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_UPLOAD, () => {
+        __WEBPACK_IMPORTED_MODULE_13__js_import_Upload_js__["a" /* default */].showUpload($graphElement);
+    });
+
+    $graphElement.addEventListener(__WEBPACK_IMPORTED_MODULE_6__js_Events_js__["a" /* default */].CHATTER_IMPORT_HTML_STRING, (e) => {
+        const newStory = __WEBPACK_IMPORTED_MODULE_15__js_Generator_js__["a" /* default */].restoreGameFromHTML(e.detail.html);
+        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(newStory);
+        document.location.reload(true);
+    });
+
+    if (story && story.entries) {
+        ui.addEntries(story.entries);
+    }
+
+    //DEBUG
+    window.restoreInitialStory = function () {
+        const initialStory = {
+            entries: [
+                {id: "A", pos: {x: 30, y: 30}, data: {content: '<<MO "Hello">> [[B]] [[C]]'}, children: ['B', 'C']},
+                {id: "B", pos: {x: 200, y: 20}, data: {content: 'foo '}, children: []},
+                {id: "C", pos: {x: 120, y: 200}, data: {content: 'foo'}, children: []},
+            ]
+        };
+        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(initialStory);
+        //ui.addEntries(initialStory.entries);
+    };
+
+    window.debugRestore = function(story){
+        __WEBPACK_IMPORTED_MODULE_5__js_Story_js__["a" /* default */].toLocalStorage(story);
+    };
+
+
+    window.showEditor = () => {
+        __WEBPACK_IMPORTED_MODULE_7__js_editor_Editor_js__["a" /* default */].active = true;
+    };
+
+    window.hideEditor = () => {
+        __WEBPACK_IMPORTED_MODULE_7__js_editor_Editor_js__["a" /* default */].active = false;
+    };
+
+    window.clearConnections = () => {
+        ui.clearConnections();
+    };
+}
+
+
+
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(19);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(4)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!./styles.css", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!./styles.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(3)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, "*, *:before, *:after {\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n}\n\nhtml, body, .wrapper {\n    height: 100%;\n}\n\n#graph-wrapper {\n    width: 160vw;\n    height: 120vh;\n    background-color: #eeeeee;\n    float: left;\n    position: relative;\n}\n\n#graph {\n\n}\n\nsvg .passage {\n    fill: lightblue;\n    stroke: lightblue;\n    stroke-opacity: .3;\n    stroke-width: 5;\n}\n\nsvg .passage.start {\n    fill: lightgreen;\n    stroke: lightgreen;\n    stroke-opacity: .3;\n    stroke-width: 5;\n}\n\nsvg .selected {\n    stroke: red;\n}\n\nsvg .selector-frame {\n    stroke: grey;\n    fill: rgba(0, 223, 242, 0.1)\n}\n\n\n.text-box {\n    position: absolute;\n    width: 80px;\n    height: 80px;\n    background-color: rgba(0,0,0,0);\n    pointer-events: none;\n    text-align: center;\n    display: flex;\n    align-items: center;\n    overflow: hidden;\n}\n\n.text-box span {\n    flex: 1;\n    font-weight: bold;\n    font-size: 12px;\n\n}\n\n.chat-modal .modal-container .modal-body {\n    max-height: 70vh;\n}\n\n.chat-editor {\n    border: 1px solid black;\n    border-radius: 10px;\n}\n\n.chat-editor textarea {\n    padding-left: 10px;\n}\n\n.wrap,\n.zoom-wrap {\n    /*\n    width: 320px;\n    height: 640px;\n    */\n    width: 100%;\n    height: 100%;\n    padding: 0;\n    overflow: hidden;\n}\n\n.chat-frame,\n#chat-frame {\n    /*\n    width: 960px;\n    height: 1920px;\n    */\n    width: 300%;\n    height: 300%;\n\n    transform: scale(0.3333);\n    transform-origin: 0 0;\n}\n\n#title {\n    position: fixed;\n    bottom: 20px;\n    right: 40px;\n}\n\n#menu {\n    position: fixed;\n    top: 20px;\n    right: 40px;\n    display: flex;\n    flex-direction: column;\n\n}\n\n#menu button {\n    flex: 1;\n    margin-top: 10px;\n}\n\n#menu button svg {\n    fill: white;\n    width: 1.5rem;\n}\n\n#menu button.play svg {\n    width: 1rem;\n    margin-left: 4px;\n    margin-top: 4px;\n}\n\n#menu button.download svg {\n    margin-left: 0px;\n    margin-top: 4px;\n}\n\n#menu button.add svg {\n    margin-left: 0px;\n    margin-top: 3px;\n}\n\n#menu button svg:hover {\n\n}\n\n#preview button,\n#menu button {\n    width: 3rem;\n    height: 3rem;\n}\n\n#preview button svg {\n    fill: white;\n    width: 1.5rem;\n}\n\n#preview button.refresh svg {\n    margin-left: 0px;\n    margin-top: 3px;\n}\n\n#preview .iframe-wrapper {\n    width: 360px;\n    height: 640px;\n    transform: scale(0.3333);\n    transform-origin: 0 0;\n}\n\n.editor-columns {\n    height: 68vh;\n}\n\n#editor-chat-column {\n\n}\n\n#editor-form-column {\n    display: flex;\n    flex-direction: column;\n    margin-bottom: 0px;\n\n}\n\n.editor-form-column>div{\n\n}\n\n\n.editor-columns textarea.form-input {\n    flex: 1;\n\n}\n\n\n#editor .modal-container {\n    width: 1000px;\n    max-width: 1000px;\n}\n\n#editor .chat-modal .modal-container .modal-body {\n    max-height: 90vh;\n}\n\n\n\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports) {
+
+
+/**
+ * When source maps are enabled, `style-loader` uses a link element with a data-uri to
+ * embed the css on the page. This breaks all relative urls because now they are relative to a
+ * bundle instead of the current page.
+ *
+ * One solution is to only use full urls, but that may be impossible.
+ *
+ * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
+ *
+ * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
+ *
+ */
+
+module.exports = function (css) {
+  // get current location
+  var location = typeof window !== "undefined" && window.location;
+
+  if (!location) {
+    throw new Error("fixUrls requires window.location");
+  }
+
+	// blank or null?
+	if (!css || typeof css !== "string") {
+	  return css;
+  }
+
+  var baseUrl = location.protocol + "//" + location.host;
+  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
+
+	// convert each url(...)
+	/*
+	This regular expression is just a way to recursively match brackets within
+	a string.
+
+	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
+	   (  = Start a capturing group
+	     (?:  = Start a non-capturing group
+	         [^)(]  = Match anything that isn't a parentheses
+	         |  = OR
+	         \(  = Match a start parentheses
+	             (?:  = Start another non-capturing groups
+	                 [^)(]+  = Match anything that isn't a parentheses
+	                 |  = OR
+	                 \(  = Match a start parentheses
+	                     [^)(]*  = Match anything that isn't a parentheses
+	                 \)  = Match a end parentheses
+	             )  = End Group
+              *\) = Match anything and then a close parens
+          )  = Close non-capturing group
+          *  = Match anything
+       )  = Close capturing group
+	 \)  = Match a close parens
+
+	 /gi  = Get all matches, not the first.  Be case insensitive.
+	 */
+	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
+		// strip quotes (if they exist)
+		var unquotedOrigUrl = origUrl
+			.trim()
+			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
+			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
+
+		// already a full url? no change
+		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(unquotedOrigUrl)) {
+		  return fullMatch;
+		}
+
+		// convert the url to a full url
+		var newUrl;
+
+		if (unquotedOrigUrl.indexOf("//") === 0) {
+		  	//TODO: should we add protocol?
+			newUrl = unquotedOrigUrl;
+		} else if (unquotedOrigUrl.indexOf("/") === 0) {
+			// path should be relative to the base url
+			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
+		} else {
+			// path should be relative to current directory
+			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
+		}
+
+		// send back the fixed url(...)
+		return "url(" + JSON.stringify(newUrl) + ")";
+	});
+
+	// send back the fixed css
+	return fixedCss;
+};
+
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(22);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(4)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!./chat.css", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!./chat.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(3)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, ".chat-size {\n    width: 100%;\n    height: 100%;\n}\n\n.chat {\n    background: white;\n    margin: 0 auto;\n    display: flex;\n    flex-direction: column;\n}\n\n.chat header {\n    width: 100%;\n    height: 120px;\n    background: black;\n}\n\n.chat main{\n    flex: 1;\n    padding: 0 30px 0 30px;\n    overflow: scroll;\n}\n\n.chat main:after {\n    content: \"\";\n    display: block;\n    height: 100px;\n    width: 100%;\n    clear: both;\n}\n\n.chat footer {\n    width: 100%;\n    height: 120px;\n    background: black;\n    position: relative;\n}\n\n.chat .answer {\n    width: 100%;\n    min-height: 130px;\n    font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n    font-size: 50px;\n    background-color: lightgrey;\n    display: flex;\n    flex-direction: row;\n}\n\n.chat .answer .content {\n    flex: 1;\n    margin: 20px;\n    min-height: 100px;\n    border-radius: 5px;\n    background-color: white;\n}\n\n.chat .answer .send {\n    margin-top: 20px;\n    margin-right: 10px;\n    width: 100px;\n    height: 100px;\n    background-color: dimgray;\n    border-radius: 50px;\n}\n\n@keyframes shadowPulse {\n    0% {\n        box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);\n    }\n\n    50% {\n        box-shadow: 0px 0px 0px 10px rgba(0, 0, 0, 0.2);\n    }\n\n    100% {\n        box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2);\n    }\n}\n\n.chat .glow {\n    animation-name: shadowPulse;\n    animation-duration: 1.5s;\n    animation-iteration-count: 8;\n    animation-timing-function: linear;\n}\n\n.chat .answer .send img,\n.chat .answer .send svg{\n    display: block;\n    margin: 15px 9px;\n    width: 70px;\n    height: 70px;\n}\n\n.chat .options {\n    width: 100%;\n    background: rgba(105, 105, 105, 1);\n    font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n    font-size: 0;\n    color: rgba(255, 255, 255, 0);\n}\n\n.chat .options.show {\n    /*fade in/out animation*/\n    font-size: 50px;\n    color: rgba(255, 255, 255, 1.0);\n    transition: font-size 0.25s,\n    color 0.25s 0.25s;\n}\n\n.chat .options.hide {\n    /*fade in/out animation*/\n    font-size: 0;\n    color: rgba(255, 255, 255, 0);\n    transition: font-size 0.25s 0.25s,\n    color 0.25s;\n}\n\n\n@keyframes colorPulse {\n    0% {\n        background: rgba(105, 105, 105, 1);\n    }\n\n    50% {\n        background: rgba(75, 75, 75, 1);\n    }\n\n    100% {\n        background: rgba(105, 105, 105, 1);\n    }\n}\n\n.chat .options > div {\n    animation-name: colorPulse;\n    animation-duration: 1.5s;\n    animation-iteration-count: 8;\n    animation-timing-function: linear;\n\n    border-bottom: 1px solid rgba(255, 255, 255, 1);\n    padding: 20px;\n}\n\n.chat .options > div:nth-child(odd) {\n    animation-delay: 0.75s;\n}\n\n.chat .message-wrapper {\n    clear: both;\n}\n\n.chat .message {\n    max-width: 80%;\n\n}\n\n.chat .message.other {\n    float: left;\n}\n\n.chat .message.me {\n    float: right;\n}\n\n.chat .message .content {\n    font-size: 50px;\n    padding: 18px;\n    font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n}\n\n.chat .message .time {\n    display: none;\n    font-size: 30px;\n    font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n    color: grey;\n}\n\n.chat .message.me .time {\n    float: left;\n}\n\n.chat .message.other .time {\n    float: right;\n}\n\n.chat .bbl-right,\n.chat .bbl-left,\n.chat .message {\n    margin-top: 40px;\n    padding: 0 20px 0 20px;\n    position: relative;\n\n    border-radius: .4em;\n    transition: width 10s, height 2s;\n}\n\n.chat .message.me {\n    background: #05bb6f;\n}\n\n.chat .message.other {\n    background: #00dff2;\n}\n\n.chat .bbl-right:after,\n.chat .message.me:after {\n    content: '';\n    position: absolute;\n    right: 0;\n    top: 50%;\n    width: 0;\n    height: 0;\n    border: 35px solid transparent;\n    border-left-color: #05bb6f;\n    border-right: 0;\n    border-top: 0;\n    margin-top: -10px;\n    margin-right: -20px;\n}\n\n.chat .bbl-left:after, .message.other:after {\n    content: '';\n    position: absolute;\n    left: 0;\n    top: 48px;\n    width: 0;\n    height: 0;\n    border: 35px solid transparent;\n    border-right-color: #00dff2;\n    border-left: 0;\n    border-top: 0;\n    margin-top: -10px;\n    margin-left: -20px;\n}\n\n@keyframes blink {\n    50% {\n        opacity: 1;\n    }\n}\n\n.chat .typing {\n    height: 0.5em;\n    vertical-align: middle;\n}\n\n.chat .typing span {\n    height: 15px;\n    width: 15px;\n    float: left;\n    margin: 0.5em 1px;\n    background-color: darkgreen;\n    display: block;\n    border-radius: 50%;\n    opacity: 0.4;\n}\n\n.chat .typing span:nth-of-type(1) {\n    animation: 1s blink infinite 0.3333s;\n}\n\n.chat .typing span:nth-of-type(2) {\n    animation: 1s blink infinite 0.6666s;\n}\n\n.chat .typing span:nth-of-type(3) {\n    animation: 1s blink infinite 1s;\n}\n\n.chat .message.other {\n    margin-left: 30px;\n}\n\n.chat .message-wrapper.other .user {\n    margin-top: 30px;\n    width:100px;\n    height: 100px;\n    border-radius: 50px;\n    background-color: red;\n    float: left;\n}\n\n.chat .message-wrapper.other .letter {\n    font-size: 85px;\n    line-height: 100px;\n    text-align: center;\n\n}\n\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(24);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(4)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!./spectre.css", function() {
+			var newContent = require("!!../../../css-loader/index.js!./spectre.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(3)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, "/*! Spectre.css v0.4.7 | MIT License | github.com/picturepan2/spectre */\n/* Manually forked from Normalize.css */\n/* normalize.css v5.0.0 | MIT License | github.com/necolas/normalize.css */\n/** 1. Change the default font family in all browsers (opinionated). 2. Correct the line height in all browsers. 3. Prevent adjustments of font size after orientation changes in IE on Windows Phone and in iOS. */\n/* Document ========================================================================== */\nhtml {\n  font-family: sans-serif; /* 1 */\n  -webkit-text-size-adjust: 100%; /* 3 */ \n  -ms-text-size-adjust: 100%; /* 3 */\n}\n\n/* Sections ========================================================================== */\n/** Remove the margin in all browsers (opinionated). */\nbody {\n  margin: 0;\n}\n\n/** Add the correct display in IE 9-. */\narticle,\naside,\nfooter,\nheader,\nnav,\nsection {\n  display: block;\n}\n\n/** Correct the font size and margin on `h1` elements within `section` and `article` contexts in Chrome, Firefox, and Safari. */\nh1 {\n  font-size: 2em;\n  margin: .67em 0;\n}\n\n/* Grouping content ========================================================================== */\n/** Add the correct display in IE 9-. 1. Add the correct display in IE. */\nfigcaption,\nfigure,\nmain {\n  /* 1 */ display: block;\n}\n\n/** Add the correct margin in IE 8 (removed). */\n/** 1. Add the correct box sizing in Firefox. 2. Show the overflow in Edge and IE. */\nhr {\n  box-sizing: content-box; /* 1 */\n  height: 0; /* 1 */\n  overflow: visible; /* 2 */\n}\n\n/** 1. Correct the inheritance and scaling of font size in all browsers. (removed) 2. Correct the odd `em` font sizing in all browsers. */\n/* Text-level semantics ========================================================================== */\n/** 1. Remove the gray background on active links in IE 10. 2. Remove gaps in links underline in iOS 8+ and Safari 8+. */\na {\n  background-color: transparent; /* 1 */\n  -webkit-text-decoration-skip: objects; /* 2 */\n}\n\n/** Remove the outline on focused links when they are also active or hovered in all browsers (opinionated). */\na:active,\na:hover {\n  outline-width: 0;\n}\n\n/** Modify default styling of address. */\naddress {\n  font-style: normal;\n}\n\n/** 1. Remove the bottom border in Firefox 39-. 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari. (removed) */\n/** Prevent the duplicate application of `bolder` by the next rule in Safari 6. */\nb,\nstrong {\n  font-weight: inherit;\n}\n\n/** Add the correct font weight in Chrome, Edge, and Safari. */\nb,\nstrong {\n  font-weight: bolder;\n}\n\n/** 1. Correct the inheritance and scaling of font size in all browsers. 2. Correct the odd `em` font sizing in all browsers. */\ncode,\nkbd,\npre,\nsamp {\n  font-family: \"SF Mono\", \"Segoe UI Mono\", \"Roboto Mono\", Menlo, Courier, monospace; /* 1 (changed) */\n  font-size: 1em; /* 2 */\n}\n\n/** Add the correct font style in Android 4.3-. */\ndfn {\n  font-style: italic;\n}\n\n/** Add the correct background and color in IE 9-. (Removed) */\n/** Add the correct font size in all browsers. */\nsmall {\n  font-size: 80%;\n  font-weight: 400; /* (added) */\n}\n\n/** Prevent `sub` and `sup` elements from affecting the line height in all browsers. */\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline;\n}\n\nsub {\n  bottom: -.25em;\n}\n\nsup {\n  top: -.5em;\n}\n\n/* Embedded content ========================================================================== */\n/** Add the correct display in IE 9-. */\naudio,\nvideo {\n  display: inline-block;\n}\n\n/** Add the correct display in iOS 4-7. */\naudio:not([controls]) {\n  display: none;\n  height: 0;\n}\n\n/** Remove the border on images inside links in IE 10-. */\nimg {\n  border-style: none;\n}\n\n/** Hide the overflow in IE. */\nsvg:not(:root) {\n  overflow: hidden;\n}\n\n/* Forms ========================================================================== */\n/** 1. Change the font styles in all browsers (opinionated). 2. Remove the margin in Firefox and Safari. */\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  font-family: inherit; /* 1 (changed) */\n  font-size: inherit; /* 1 (changed) */\n  line-height: inherit; /* 1 (changed) */\n  margin: 0; /* 2 */\n}\n\n/** Show the overflow in IE. 1. Show the overflow in Edge. */\nbutton,\ninput {\n  /* 1 */ overflow: visible;\n}\n\n/** Remove the inheritance of text transform in Edge, Firefox, and IE. 1. Remove the inheritance of text transform in Firefox. */\nbutton,\nselect {\n  /* 1 */ text-transform: none;\n}\n\n/** 1. Prevent a WebKit bug where (2) destroys native `audio` and `video` controls in Android 4. 2. Correct the inability to style clickable types in iOS and Safari. */\nbutton,\nhtml [type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  -webkit-appearance: button; /* 2 */\n}\n\n/** Remove the inner border and padding in Firefox. */\nbutton::-moz-focus-inner,\n[type=\"button\"]::-moz-focus-inner,\n[type=\"reset\"]::-moz-focus-inner,\n[type=\"submit\"]::-moz-focus-inner {\n  border-style: none;\n  padding: 0;\n}\n\n/** Restore the focus styles unset by the previous rule (removed). */\n/** Change the border, margin, and padding in all browsers (opinionated) (changed). */\nfieldset {\n  border: 0;\n  margin: 0;\n  padding: 0;\n}\n\n/** 1. Correct the text wrapping in Edge and IE. 2. Correct the color inheritance from `fieldset` elements in IE. 3. Remove the padding so developers are not caught out when they zero out `fieldset` elements in all browsers. */\nlegend {\n  box-sizing: border-box; /* 1 */\n  color: inherit; /* 2 */\n  display: table; /* 1 */\n  max-width: 100%; /* 1 */\n  padding: 0; /* 3 */\n  white-space: normal; /* 1 */\n}\n\n/** 1. Add the correct display in IE 9-. 2. Add the correct vertical alignment in Chrome, Firefox, and Opera. */\nprogress {\n  display: inline-block; /* 1 */\n  vertical-align: baseline; /* 2 */\n}\n\n/** Remove the default vertical scrollbar in IE. */\ntextarea {\n  overflow: auto;\n}\n\n/** 1. Add the correct box sizing in IE 10-. 2. Remove the padding in IE 10-. */\n[type=\"checkbox\"],\n[type=\"radio\"] {\n  box-sizing: border-box; /* 1 */\n  padding: 0; /* 2 */\n}\n\n/** Correct the cursor style of increment and decrement buttons in Chrome. */\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto;\n}\n\n/** 1. Correct the odd appearance in Chrome and Safari. 2. Correct the outline style in Safari. */\n[type=\"search\"] {\n  -webkit-appearance: textfield; /* 1 */\n  outline-offset: -2px; /* 2 */\n}\n\n/** Remove the inner padding and cancel buttons in Chrome and Safari on macOS. */\n[type=\"search\"]::-webkit-search-cancel-button,\n[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none;\n}\n\n/** 1. Correct the inability to style clickable types in iOS and Safari. 2. Change font properties to `inherit` in Safari. */\n::-webkit-file-upload-button {\n  -webkit-appearance: button; /* 1 */\n  font: inherit; /* 2 */\n}\n\n/* Interactive ========================================================================== */\n/* Add the correct display in IE 9-. 1. Add the correct display in Edge, IE, and Firefox. */\ndetails,\nmenu {\n  display: block;\n}\n\n/* Add the correct display in all browsers. */\nsummary {\n  display: list-item;\n  outline: none;\n}\n\n/* Scripting ========================================================================== */\n/** Add the correct display in IE 9-. */\ncanvas {\n  display: inline-block;\n}\n\n/** Add the correct display in IE. */\ntemplate {\n  display: none;\n}\n\n/* Hidden ========================================================================== */\n/** Add the correct display in IE 10-. */\n[hidden] {\n  display: none;\n}\n\n*,\n*::before,\n*::after {\n  box-sizing: inherit;\n}\n\nhtml {\n  box-sizing: border-box;\n  font-size: 20px;\n  line-height: 1.5;\n  -webkit-tap-highlight-color: transparent;\n}\n\nbody {\n  background: #fff;\n  color: #50596c;\n  font-family: -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", sans-serif;\n  font-size: .8rem;\n  overflow-x: hidden;\n  text-rendering: optimizeLegibility;\n}\n\na {\n  color: #5755d9;\n  outline: none;\n  text-decoration: none;\n}\n\na:focus {\n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\na:focus,\na:hover,\na:active,\na.active {\n  color: #4240d4;\n  text-decoration: underline;\n}\n\nh1,\nh2,\nh3,\nh4,\nh5,\nh6 {\n  color: inherit;\n  font-weight: 500;\n  line-height: 1.2;\n  margin-bottom: .5em;\n  margin-top: 0;\n}\n\n.h1,\n.h2,\n.h3,\n.h4,\n.h5,\n.h6 {\n  font-weight: 500;\n}\n\nh1,\n.h1 {\n  font-size: 2rem;\n}\n\nh2,\n.h2 {\n  font-size: 1.6rem;\n}\n\nh3,\n.h3 {\n  font-size: 1.4rem;\n}\n\nh4,\n.h4 {\n  font-size: 1.2rem;\n}\n\nh5,\n.h5 {\n  font-size: 1rem;\n}\n\nh6,\n.h6 {\n  font-size: .8rem;\n}\n\np {\n  margin: 0 0 1rem;\n}\n\na,\nins,\nu {\n  -webkit-text-decoration-skip: ink edges;\n  text-decoration-skip: ink edges;\n}\n\nabbr[title] {\n  border-bottom: .05rem dotted;\n  cursor: help;\n  text-decoration: none;\n}\n\nkbd {\n  background: #454d5d;\n  border-radius: .1rem;\n  color: #fff;\n  font-size: .7rem; \n  line-height: 1.2;\n  padding: .1rem .15rem;\n}\n\nmark {\n  background: #ffe9b3;\n  border-radius: .1rem;\n  color: #50596c;\n  padding: .05rem;\n}\n\nblockquote {\n  border-left: .1rem solid #e7e9ed;\n  margin-left: 0;\n  padding: .4rem .8rem;\n}\n\nblockquote p:last-child {\n  margin-bottom: 0;\n}\n\nul,\nol {\n  margin: .8rem 0 .8rem .8rem;\n  padding: 0;\n}\n\nul ul,\nul ol,\nol ul,\nol ol {\n  margin: .8rem 0 .8rem .8rem;\n}\n\nul li,\nol li {\n  margin-top: .4rem;\n}\n\nul {\n  list-style: disc inside;\n}\n\nul ul {\n  list-style-type: circle;\n}\n\nol {\n  list-style: decimal inside;\n}\n\nol ol {\n  list-style-type: lower-alpha;\n}\n\ndl dt {\n  font-weight: bold;\n}\n\ndl dd {\n  margin: .4rem 0 .8rem 0;\n}\n\n:lang(zh) {\n  font-family: -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", sans-serif;\n}\n\n:lang(ja) {\n  font-family: -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Hiragino Sans\", \"Hiragino Kaku Gothic Pro\", \"Yu Gothic\", YuGothic, Meiryo, \"Helvetica Neue\", sans-serif;\n}\n\n:lang(ko) {\n  font-family: -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Malgun Gothic\", \"Helvetica Neue\", sans-serif;\n}\n\n:lang(zh) ins,\n:lang(zh) u,\n:lang(ja) ins,\n:lang(ja) u,\n.cjk ins,\n.cjk u {\n  border-bottom: .05rem solid;\n  text-decoration: none;\n}\n\n:lang(zh) del + del,\n:lang(zh) del + s,\n:lang(zh) ins + ins,\n:lang(zh) ins + u,\n:lang(zh) s + del,\n:lang(zh) s + s,\n:lang(zh) u + ins,\n:lang(zh) u + u,\n:lang(ja) del + del,\n:lang(ja) del + s,\n:lang(ja) ins + ins,\n:lang(ja) ins + u,\n:lang(ja) s + del,\n:lang(ja) s + s,\n:lang(ja) u + ins,\n:lang(ja) u + u,\n.cjk del + del,\n.cjk del + s,\n.cjk ins + ins,\n.cjk ins + u,\n.cjk s + del,\n.cjk s + s,\n.cjk u + ins,\n.cjk u + u {\n  margin-left: .125em;\n}\n\n.table {\n  border-collapse: collapse;\n  border-spacing: 0;\n  text-align: left;\n  width: 100%;\n}\n\n.table.table-striped tbody tr:nth-of-type(odd) {\n  background: #f8f9fa;\n}\n\n.table tbody tr.active,\n.table.table-striped tbody tr.active {\n  background: #f0f1f4;\n}\n\n.table.table-hover tbody tr:hover {\n  background: #f0f1f4;\n}\n\n.table.table-scroll {\n  display: block;\n  overflow-x: auto;\n  padding-bottom: .75rem;\n  white-space: nowrap;\n}\n\n.table td,\n.table th {\n  border-bottom: .05rem solid #e7e9ed;\n  padding: .6rem .4rem;\n}\n\n.table th {\n  border-bottom-width: .1rem;\n}\n\n.btn {\n  -webkit-appearance: none;\n  -moz-appearance: none;\n  appearance: none;\n  background: #fff;\n  border: .05rem solid #5755d9;\n  border-radius: .1rem;\n  color: #5755d9;\n  cursor: pointer;\n  display: inline-block;\n  font-size: .8rem;\n  height: 1.8rem;\n  line-height: 1rem;\n  outline: none;\n  padding: .35rem .4rem;\n  text-align: center;\n  text-decoration: none;\n  transition: all .2s ease;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  vertical-align: middle;\n  white-space: nowrap;\n}\n\n.btn:focus {\n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.btn:focus,\n.btn:hover {\n  background: #f1f1fc;\n  border-color: #4b48d6;\n  text-decoration: none;\n}\n\n.btn:active,\n.btn.active {\n  background: #4b48d6;\n  border-color: #3634d2;\n  color: #fff;\n  text-decoration: none;\n}\n\n.btn:active.loading::after,\n.btn.active.loading::after {\n  border-bottom-color: #fff;\n  border-left-color: #fff;\n}\n\n.btn[disabled],\n.btn:disabled,\n.btn.disabled {\n  cursor: default;\n  opacity: .5;\n  pointer-events: none;\n}\n\n.btn.btn-primary {\n  background: #5755d9;\n  border-color: #4b48d6;\n  color: #fff;\n}\n\n.btn.btn-primary:focus,\n.btn.btn-primary:hover {\n  background: #4240d4;\n  border-color: #3634d2;\n  color: #fff;\n}\n\n.btn.btn-primary:active,\n.btn.btn-primary.active {\n  background: #3a38d2;\n  border-color: #302ecd;\n  color: #fff;\n}\n\n.btn.btn-primary.loading::after,\n.btn.btn-success.loading::after,\n.btn.btn-error.loading::after {\n  border-bottom-color: #fff;\n  border-left-color: #fff;\n}\n\n.btn.btn-success {\n  background: #32b643;\n  border-color: #2faa3f;\n  color: #fff;\n}\n\n.btn.btn-success:focus {\n  box-shadow: 0 0 0 .1rem rgba(50, 182, 67, .2);\n}\n\n.btn.btn-success:focus,\n.btn.btn-success:hover {\n  background: #30ae40;\n  border-color: #2da23c;\n  color: #fff;\n}\n\n.btn.btn-success:active,\n.btn.btn-success.active {\n  background: #2a9a39;\n  border-color: #278e34;\n  color: #fff;\n}\n\n.btn.btn-error {\n  background: #e85600;\n  border-color: #d95000;\n  color: #fff;\n}\n\n.btn.btn-error:focus {\n  box-shadow: 0 0 0 .1rem rgba(232, 86, 0, .2);\n}\n\n.btn.btn-error:focus,\n.btn.btn-error:hover {\n  background: #de5200;\n  border-color: #cf4d00;\n  color: #fff;\n}\n\n.btn.btn-error:active,\n.btn.btn-error.active {\n  background: #c44900;\n  border-color: #b54300;\n  color: #fff;\n}\n\n.btn.btn-link {\n  background: transparent;\n  border-color: transparent;\n  color: #5755d9;\n}\n\n.btn.btn-link:focus,\n.btn.btn-link:hover,\n.btn.btn-link:active,\n.btn.btn-link.active {\n  color: #4240d4;\n}\n\n.btn.btn-sm {\n  font-size: .7rem;\n  height: 1.4rem;\n  padding: .15rem .3rem;\n}\n\n.btn.btn-lg {\n  font-size: .9rem;\n  height: 2rem;\n  padding: .45rem .6rem;\n}\n\n.btn.btn-block {\n  display: block;\n  width: 100%;\n}\n\n.btn.btn-action {\n  padding-left: 0;\n  padding-right: 0; \n  width: 1.8rem;\n}\n\n.btn.btn-action.btn-sm {\n  width: 1.4rem;\n}\n\n.btn.btn-action.btn-lg {\n  width: 2rem;\n}\n\n.btn.btn-clear {\n  background: transparent;\n  border: 0;\n  color: currentColor;\n  height: .8rem;\n  line-height: .8rem;\n  margin-left: .2rem;\n  margin-right: -2px;\n  opacity: 1;\n  padding: 0;\n  text-decoration: none;\n  width: .8rem;\n}\n\n.btn.btn-clear:hover {\n  opacity: .95;\n}\n\n.btn.btn-clear::before {\n  content: \"\\2715\";\n}\n\n.btn-group {\n  display: inline-flex;\n  display: -ms-inline-flexbox;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n}\n\n.btn-group .btn {\n  -ms-flex: 1 0 auto;\n  flex: 1 0 auto;\n}\n\n.btn-group .btn:first-child:not(:last-child) {\n  border-bottom-right-radius: 0;\n  border-top-right-radius: 0;\n}\n\n.btn-group .btn:not(:first-child):not(:last-child) {\n  border-radius: 0;\n  margin-left: -.05rem;\n}\n\n.btn-group .btn:last-child:not(:first-child) {\n  border-bottom-left-radius: 0;\n  border-top-left-radius: 0;\n  margin-left: -.05rem;\n}\n\n.btn-group .btn:focus,\n.btn-group .btn:hover,\n.btn-group .btn:active,\n.btn-group .btn.active {\n  z-index: 1;\n}\n\n.btn-group.btn-group-block {\n  display: flex; \n  display: -ms-flexbox;\n}\n\n.btn-group.btn-group-block .btn {\n  -ms-flex: 1 0 0;\n  flex: 1 0 0;\n}\n\n.form-group:not(:last-child) {\n  margin-bottom: .4rem;\n}\n\nfieldset {\n  margin-bottom: .8rem;\n}\n\nlegend {\n  font-size: .9rem;\n  font-weight: 500;\n  margin-bottom: .8rem;\n}\n\n.form-label {\n  display: block;\n  line-height: 1rem;\n  padding: .4rem 0;\n}\n\n.form-label.label-sm {\n  padding: .2rem 0;\n}\n\n.form-label.label-lg {\n  padding: .5rem 0;\n}\n\n.form-input {\n  -webkit-appearance: none;\n  -moz-appearance: none;\n  appearance: none;\n  background: #fff;\n  background-image: none;\n  border: .05rem solid #caced7;\n  border-radius: .1rem;\n  color: #50596c;\n  display: block;\n  font-size: .8rem;\n  height: 1.8rem;\n  line-height: 1rem;\n  max-width: 100%;\n  outline: none;\n  padding: .35rem .4rem;\n  position: relative;\n  transition: all .2s ease;\n  width: 100%;\n}\n\n.form-input:focus {\n  border-color: #5755d9; \n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.form-input::-webkit-input-placeholder {\n  color: #acb3c2;\n}\n\n.form-input:-ms-input-placeholder {\n  color: #acb3c2;\n}\n\n.form-input::placeholder {\n  color: #acb3c2;\n}\n\n.form-input.input-sm {\n  font-size: .7rem;\n  height: 1.4rem;\n  padding: .15rem .3rem;\n}\n\n.form-input.input-lg {\n  font-size: .9rem;\n  height: 2rem;\n  padding: .45rem .6rem;\n}\n\n.form-input.input-inline {\n  display: inline-block;\n  vertical-align: middle;\n  width: auto;\n}\n\n.form-input[type=\"file\"] {\n  height: auto;\n}\n\ntextarea.form-input {\n  height: auto;\n}\n\n.form-input-hint {\n  color: #acb3c2;\n  font-size: .7rem;\n  margin-top: .2rem;\n}\n\n.has-success .form-input-hint,\n.is-success + .form-input-hint {\n  color: #32b643;\n}\n\n.has-error .form-input-hint,\n.is-error + .form-input-hint {\n  color: #e85600;\n}\n\n.form-select {\n  -webkit-appearance: none;\n  -moz-appearance: none;\n  appearance: none;\n  border: .05rem solid #caced7;\n  border-radius: .1rem;\n  color: inherit;\n  font-size: .8rem;\n  height: 1.8rem;\n  line-height: 1rem;\n  outline: none;\n  padding: .35rem .4rem;\n  vertical-align: middle;\n  width: 100%;\n}\n\n.form-select[size],\n.form-select[multiple] {\n  height: auto;\n}\n\n.form-select[size] option,\n.form-select[multiple] option {\n  padding: .1rem .2rem;\n}\n\n.form-select:not([multiple]):not([size]) {\n  background: #fff url(\"data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%204%205'%3E%3Cpath%20fill='%23667189'%20d='M2%200L0%202h4zm0%205L0%203h4z'/%3E%3C/svg%3E\") no-repeat right .35rem center/.4rem .5rem;\n  padding-right: 1.2rem;\n}\n\n.form-select:focus {\n  border-color: #5755d9; \n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.form-select::-ms-expand {\n  display: none;\n}\n\n.form-select.select-sm {\n  font-size: .7rem;\n  height: 1.4rem;\n  padding: .15rem 1.1rem .15rem .3rem;\n}\n\n.form-select.select-lg {\n  font-size: .9rem;\n  height: 2rem;\n  padding: .45rem 1.4rem .45rem .6rem;\n}\n\n.has-icon-left,\n.has-icon-right {\n  position: relative;\n}\n\n.has-icon-left .form-icon,\n.has-icon-right .form-icon {\n  height: .8rem;\n  margin: 0 .35rem;\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%);\n  width: .8rem;\n}\n\n.has-icon-left .form-icon {\n  left: .05rem;\n}\n\n.has-icon-left .form-input {\n  padding-left: 1.5rem;\n}\n\n.has-icon-right .form-icon {\n  right: .05rem;\n}\n\n.has-icon-right .form-input {\n  padding-right: 1.5rem;\n}\n\n.form-checkbox,\n.form-radio,\n.form-switch {\n  display: inline-block;\n  line-height: 1rem;\n  padding: .2rem 1.2rem;\n  position: relative;\n}\n\n.form-checkbox input,\n.form-radio input,\n.form-switch input {\n  clip: rect(0, 0, 0, 0);\n  height: 1px;\n  margin: -1px;\n  overflow: hidden;\n  position: absolute;\n  width: 1px;\n}\n\n.form-checkbox input:focus + .form-icon,\n.form-radio input:focus + .form-icon,\n.form-switch input:focus + .form-icon {\n  border-color: #5755d9; \n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.form-checkbox input:checked + .form-icon,\n.form-radio input:checked + .form-icon,\n.form-switch input:checked + .form-icon {\n  background: #5755d9;\n  border-color: #5755d9;\n}\n\n.form-checkbox .form-icon,\n.form-radio .form-icon,\n.form-switch .form-icon {\n  border: .05rem solid #caced7;\n  cursor: pointer;\n  display: inline-block;\n  position: absolute; \n  transition: all .2s ease;\n}\n\n.form-checkbox .form-icon,\n.form-radio .form-icon {\n  background: #fff;\n  height: .8rem;\n  left: 0;\n  top: .3rem;\n  width: .8rem;\n}\n\n.form-checkbox input:active + .form-icon,\n.form-radio input:active + .form-icon {\n  background: #f0f1f4;\n}\n\n.form-checkbox .form-icon {\n  border-radius: .1rem;\n}\n\n.form-checkbox input:checked + .form-icon::before {\n  background-clip: padding-box;\n  border: .1rem solid #fff;\n  border-left-width: 0;\n  border-top-width: 0;\n  content: \"\";\n  height: 12px;\n  left: 50%;\n  margin-left: -4px;\n  margin-top: -8px;\n  position: absolute;\n  top: 50%;\n  transform: rotate(45deg);\n  width: 8px;\n}\n\n.form-checkbox input:indeterminate + .form-icon {\n  background: #5755d9;\n  border-color: #5755d9;\n}\n\n.form-checkbox input:indeterminate + .form-icon::before {\n  background: #fff;\n  content: \"\";\n  height: 2px;\n  left: 50%;\n  margin-left: -5px;\n  margin-top: -1px;\n  position: absolute;\n  top: 50%;\n  width: 10px;\n}\n\n.form-radio .form-icon {\n  border-radius: 50%;\n}\n\n.form-radio input:checked + .form-icon::before {\n  background: #fff;\n  border-radius: 50%;\n  content: \"\";\n  height: 4px;\n  left: 50%;\n  position: absolute;\n  top: 50%;\n  transform: translate(-50%, -50%);\n  width: 4px;\n}\n\n.form-switch {\n  padding-left: 2rem;\n}\n\n.form-switch .form-icon {\n  background: #e7e9ed;\n  background-clip: padding-box;\n  border-radius: .45rem;\n  height: .9rem;\n  left: 0;\n  top: .25rem;\n  width: 1.6rem;\n}\n\n.form-switch .form-icon::before {\n  background: #fff;\n  border-radius: 50%;\n  content: \"\";\n  display: block;\n  height: .8rem;\n  left: 0;\n  position: absolute;\n  top: 0;\n  transition: all .2s ease;\n  width: .8rem;\n}\n\n.form-switch input:checked + .form-icon::before {\n  left: 14px;\n}\n\n.form-switch input:active + .form-icon::before {\n  background: #f8f9fa;\n}\n\n.input-group {\n  display: flex; \n  display: -ms-flexbox;\n}\n\n.input-group .input-group-addon {\n  background: #f8f9fa;\n  border: .05rem solid #caced7;\n  border-radius: .1rem;\n  line-height: 1rem;\n  padding: .35rem .4rem;\n}\n\n.input-group .input-group-addon.addon-sm {\n  font-size: .7rem;\n  padding: .15rem .3rem;\n}\n\n.input-group .input-group-addon.addon-lg {\n  font-size: .9rem;\n  padding: .45rem .6rem;\n}\n\n.input-group .form-input,\n.input-group .form-select {\n  -ms-flex: 1 1 auto;\n  flex: 1 1 auto;\n}\n\n.input-group .input-group-btn {\n  z-index: 1;\n}\n\n.input-group .form-input:first-child:not(:last-child),\n.input-group .form-select:first-child:not(:last-child),\n.input-group .input-group-addon:first-child:not(:last-child),\n.input-group .input-group-btn:first-child:not(:last-child) {\n  border-bottom-right-radius: 0;\n  border-top-right-radius: 0;\n}\n\n.input-group .form-input:not(:first-child):not(:last-child),\n.input-group .form-select:not(:first-child):not(:last-child),\n.input-group .input-group-addon:not(:first-child):not(:last-child),\n.input-group .input-group-btn:not(:first-child):not(:last-child) {\n  border-radius: 0;\n  margin-left: -.05rem;\n}\n\n.input-group .form-input:last-child:not(:first-child),\n.input-group .form-select:last-child:not(:first-child),\n.input-group .input-group-addon:last-child:not(:first-child),\n.input-group .input-group-btn:last-child:not(:first-child) {\n  border-bottom-left-radius: 0;\n  border-top-left-radius: 0;\n  margin-left: -.05rem;\n}\n\n.input-group .form-input:focus,\n.input-group .form-select:focus,\n.input-group .input-group-addon:focus,\n.input-group .input-group-btn:focus {\n  z-index: 2;\n}\n\n.input-group .form-select {\n  width: auto;\n}\n\n.input-group.input-inline {\n  display: inline-flex; \n  display: -ms-inline-flexbox;\n}\n\n.has-success .form-input,\n.form-input.is-success,\n.has-success .form-select,\n.form-select.is-success {\n  border-color: #32b643;\n}\n\n.has-success .form-input:focus,\n.form-input.is-success:focus,\n.has-success .form-select:focus,\n.form-select.is-success:focus {\n  box-shadow: 0 0 0 .1rem rgba(50, 182, 67, .2);\n}\n\n.has-error .form-input,\n.form-input.is-error,\n.has-error .form-select,\n.form-select.is-error {\n  border-color: #e85600;\n}\n\n.has-error .form-input:focus,\n.form-input.is-error:focus,\n.has-error .form-select:focus,\n.form-select.is-error:focus {\n  box-shadow: 0 0 0 .1rem rgba(232, 86, 0, .2);\n}\n\n.has-error .form-checkbox .form-icon,\n.form-checkbox.is-error .form-icon,\n.has-error .form-radio .form-icon,\n.form-radio.is-error .form-icon,\n.has-error .form-switch .form-icon,\n.form-switch.is-error .form-icon {\n  border-color: #e85600;\n}\n\n.has-error .form-checkbox input:checked + .form-icon,\n.form-checkbox.is-error input:checked + .form-icon,\n.has-error .form-radio input:checked + .form-icon,\n.form-radio.is-error input:checked + .form-icon,\n.has-error .form-switch input:checked + .form-icon,\n.form-switch.is-error input:checked + .form-icon {\n  background: #e85600;\n  border-color: #e85600;\n}\n\n.has-error .form-checkbox input:focus + .form-icon,\n.form-checkbox.is-error input:focus + .form-icon,\n.has-error .form-radio input:focus + .form-icon,\n.form-radio.is-error input:focus + .form-icon,\n.has-error .form-switch input:focus + .form-icon,\n.form-switch.is-error input:focus + .form-icon {\n  border-color: #e85600; \n  box-shadow: 0 0 0 .1rem rgba(232, 86, 0, .2);\n}\n\n.form-input:not(:placeholder-shown):invalid {\n  border-color: #e85600;\n}\n\n.form-input:not(:placeholder-shown):invalid:focus {\n  box-shadow: 0 0 0 .1rem rgba(232, 86, 0, .2);\n}\n\n.form-input:not(:placeholder-shown):invalid + .form-input-hint {\n  color: #e85600;\n}\n\n.form-input:disabled,\n.form-input.disabled,\n.form-select:disabled,\n.form-select.disabled {\n  background-color: #f0f1f4;\n  cursor: not-allowed;\n  opacity: .5;\n}\n\n.form-input[readonly] {\n  background-color: #f8f9fa;\n}\n\ninput:disabled + .form-icon,\ninput.disabled + .form-icon {\n  background: #f0f1f4;\n  cursor: not-allowed;\n  opacity: .5;\n}\n\n.form-switch input:disabled + .form-icon::before,\n.form-switch input.disabled + .form-icon::before {\n  background: #fff;\n}\n\n.form-horizontal {\n  padding: .4rem 0;\n}\n\n.form-horizontal .form-group {\n  display: flex; \n  display: -ms-flexbox;\n}\n\n.form-horizontal .form-checkbox,\n.form-horizontal .form-radio,\n.form-horizontal .form-switch {\n  margin: .2rem 0;\n}\n\n.label {\n  background: #f0f1f4;\n  border-radius: .1rem;\n  color: #5b657a;\n  display: inline-block; \n  line-height: 1.2;\n  padding: .1rem .15rem;\n}\n\n.label.label-rounded {\n  border-radius: 5rem;\n  padding-left: .4rem;\n  padding-right: .4rem;\n}\n\n.label.label-primary {\n  background: #5755d9;\n  color: #fff;\n}\n\n.label.label-secondary {\n  background: #f1f1fc;\n  color: #5755d9;\n}\n\n.label.label-success {\n  background: #32b643;\n  color: #fff;\n}\n\n.label.label-warning {\n  background: #ffb700;\n  color: #fff;\n}\n\n.label.label-error {\n  background: #e85600;\n  color: #fff;\n}\n\ncode {\n  background: #fdf4f4;\n  border-radius: .1rem;\n  color: #e06870;\n  font-size: 85%; \n  line-height: 1.2;\n  padding: .1rem .15rem;\n}\n\n.code {\n  border-radius: .1rem;\n  color: #50596c;\n  position: relative;\n}\n\n.code::before {\n  color: #acb3c2;\n  content: attr(data-lang);\n  font-size: .7rem;\n  position: absolute;\n  right: .4rem;\n  top: .1rem;\n}\n\n.code code {\n  background: #f8f9fa;\n  color: inherit;\n  display: block;\n  line-height: 1.5;\n  overflow-x: auto;\n  padding: 1rem;\n  width: 100%;\n}\n\n.img-responsive {\n  display: block;\n  height: auto;\n  max-width: 100%;\n}\n\n.img-fit-cover {\n  object-fit: cover;\n}\n\n.img-fit-contain {\n  object-fit: contain;\n}\n\n.video-responsive {\n  display: block;\n  overflow: hidden;\n  padding: 0;\n  position: relative;\n  width: 100%;\n}\n\n.video-responsive::before {\n  content: \"\";\n  display: block;\n  padding-bottom: 56.25%;\n}\n\n.video-responsive iframe,\n.video-responsive object,\n.video-responsive embed {\n  border: 0;\n  bottom: 0;\n  height: 100%;\n  left: 0;\n  position: absolute;\n  right: 0;\n  top: 0;\n  width: 100%;\n}\n\nvideo.video-responsive {\n  height: auto;\n  max-width: 100%;\n}\n\nvideo.video-responsive::before {\n  content: none;\n}\n\n.video-responsive-4-3::before {\n  padding-bottom: 75%;\n}\n\n.video-responsive-1-1::before {\n  padding-bottom: 100%;\n}\n\n.figure {\n  margin: 0 0 .4rem 0;\n}\n\n.figure .figure-caption {\n  color: #667189;\n  margin-top: .4rem;\n}\n\n.container {\n  margin-left: auto;\n  margin-right: auto;\n  padding-left: .4rem;\n  padding-right: .4rem;\n  width: 100%;\n}\n\n.container.grid-xl {\n  max-width: 1296px;\n}\n\n.container.grid-lg {\n  max-width: 976px;\n}\n\n.container.grid-md {\n  max-width: 856px;\n}\n\n.container.grid-sm {\n  max-width: 616px;\n}\n\n.container.grid-xs {\n  max-width: 496px;\n}\n\n.show-xs,\n.show-sm,\n.show-md,\n.show-lg,\n.show-xl {\n  display: none !important;\n}\n\n.columns {\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n  margin-left: -.4rem;\n  margin-right: -.4rem;\n}\n\n.columns.col-gapless {\n  margin-left: 0;\n  margin-right: 0;\n}\n\n.columns.col-gapless > .column {\n  padding-left: 0;\n  padding-right: 0;\n}\n\n.columns.col-oneline {\n  -ms-flex-wrap: nowrap;\n  flex-wrap: nowrap;\n  overflow-x: auto;\n}\n\n.column {\n  -ms-flex: 1;\n  flex: 1;\n  max-width: 100%;\n  padding-left: .4rem;\n  padding-right: .4rem;\n}\n\n.column.col-12,\n.column.col-11,\n.column.col-10,\n.column.col-9,\n.column.col-8,\n.column.col-7,\n.column.col-6,\n.column.col-5,\n.column.col-4,\n.column.col-3,\n.column.col-2,\n.column.col-1 {\n  -ms-flex: none;\n  flex: none;\n}\n\n.col-12 {\n  width: 100%;\n}\n\n.col-11 {\n  width: 91.66666667%;\n}\n\n.col-10 {\n  width: 83.33333333%;\n}\n\n.col-9 {\n  width: 75%;\n}\n\n.col-8 {\n  width: 66.66666667%;\n}\n\n.col-7 {\n  width: 58.33333333%;\n}\n\n.col-6 {\n  width: 50%;\n}\n\n.col-5 {\n  width: 41.66666667%;\n}\n\n.col-4 {\n  width: 33.33333333%;\n}\n\n.col-3 {\n  width: 25%;\n}\n\n.col-2 {\n  width: 16.66666667%;\n}\n\n.col-1 {\n  width: 8.33333333%;\n}\n\n.col-auto {\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n  max-width: none;\n  width: auto;\n}\n\n.col-mx-auto {\n  margin-left: auto;\n  margin-right: auto;\n}\n\n.col-ml-auto {\n  margin-left: auto;\n}\n\n.col-mr-auto {\n  margin-right: auto;\n}\n\n@media (max-width: 1280px) {\n  .col-xl-12,\n  .col-xl-11,\n  .col-xl-10,\n  .col-xl-9,\n  .col-xl-8,\n  .col-xl-7,\n  .col-xl-6,\n  .col-xl-5,\n  .col-xl-4,\n  .col-xl-3,\n  .col-xl-2,\n  .col-xl-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-xl-12 {\n    width: 100%;\n  }\n  .col-xl-11 {\n    width: 91.66666667%;\n  }\n  .col-xl-10 {\n    width: 83.33333333%;\n  }\n  .col-xl-9 {\n    width: 75%;\n  }\n  .col-xl-8 {\n    width: 66.66666667%;\n  }\n  .col-xl-7 {\n    width: 58.33333333%;\n  }\n  .col-xl-6 {\n    width: 50%;\n  }\n  .col-xl-5 {\n    width: 41.66666667%;\n  }\n  .col-xl-4 {\n    width: 33.33333333%;\n  }\n  .col-xl-3 {\n    width: 25%;\n  }\n  .col-xl-2 {\n    width: 16.66666667%;\n  }\n  .col-xl-1 {\n    width: 8.33333333%;\n  }\n  .hide-xl {\n    display: none !important;\n  }\n  .show-xl {\n    display: block !important;\n  }\n}\n\n@media (max-width: 960px) {\n  .col-lg-12,\n  .col-lg-11,\n  .col-lg-10,\n  .col-lg-9,\n  .col-lg-8,\n  .col-lg-7,\n  .col-lg-6,\n  .col-lg-5,\n  .col-lg-4,\n  .col-lg-3,\n  .col-lg-2,\n  .col-lg-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-lg-12 {\n    width: 100%;\n  }\n  .col-lg-11 {\n    width: 91.66666667%;\n  }\n  .col-lg-10 {\n    width: 83.33333333%;\n  }\n  .col-lg-9 {\n    width: 75%;\n  }\n  .col-lg-8 {\n    width: 66.66666667%;\n  }\n  .col-lg-7 {\n    width: 58.33333333%;\n  }\n  .col-lg-6 {\n    width: 50%;\n  }\n  .col-lg-5 {\n    width: 41.66666667%;\n  }\n  .col-lg-4 {\n    width: 33.33333333%;\n  }\n  .col-lg-3 {\n    width: 25%;\n  }\n  .col-lg-2 {\n    width: 16.66666667%;\n  }\n  .col-lg-1 {\n    width: 8.33333333%;\n  }\n  .hide-lg {\n    display: none !important;\n  }\n  .show-lg {\n    display: block !important;\n  }\n}\n\n@media (max-width: 840px) {\n  .col-md-12,\n  .col-md-11,\n  .col-md-10,\n  .col-md-9,\n  .col-md-8,\n  .col-md-7,\n  .col-md-6,\n  .col-md-5,\n  .col-md-4,\n  .col-md-3,\n  .col-md-2,\n  .col-md-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-md-12 {\n    width: 100%;\n  }\n  .col-md-11 {\n    width: 91.66666667%;\n  }\n  .col-md-10 {\n    width: 83.33333333%;\n  }\n  .col-md-9 {\n    width: 75%;\n  }\n  .col-md-8 {\n    width: 66.66666667%;\n  }\n  .col-md-7 {\n    width: 58.33333333%;\n  }\n  .col-md-6 {\n    width: 50%;\n  }\n  .col-md-5 {\n    width: 41.66666667%;\n  }\n  .col-md-4 {\n    width: 33.33333333%;\n  }\n  .col-md-3 {\n    width: 25%;\n  }\n  .col-md-2 {\n    width: 16.66666667%;\n  }\n  .col-md-1 {\n    width: 8.33333333%;\n  }\n  .hide-md {\n    display: none !important;\n  }\n  .show-md {\n    display: block !important;\n  }\n}\n\n@media (max-width: 600px) {\n  .col-sm-12,\n  .col-sm-11,\n  .col-sm-10,\n  .col-sm-9,\n  .col-sm-8,\n  .col-sm-7,\n  .col-sm-6,\n  .col-sm-5,\n  .col-sm-4,\n  .col-sm-3,\n  .col-sm-2,\n  .col-sm-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-sm-12 {\n    width: 100%;\n  }\n  .col-sm-11 {\n    width: 91.66666667%;\n  }\n  .col-sm-10 {\n    width: 83.33333333%;\n  }\n  .col-sm-9 {\n    width: 75%;\n  }\n  .col-sm-8 {\n    width: 66.66666667%;\n  }\n  .col-sm-7 {\n    width: 58.33333333%;\n  }\n  .col-sm-6 {\n    width: 50%;\n  }\n  .col-sm-5 {\n    width: 41.66666667%;\n  }\n  .col-sm-4 {\n    width: 33.33333333%;\n  }\n  .col-sm-3 {\n    width: 25%;\n  }\n  .col-sm-2 {\n    width: 16.66666667%;\n  }\n  .col-sm-1 {\n    width: 8.33333333%;\n  }\n  .hide-sm {\n    display: none !important;\n  }\n  .show-sm {\n    display: block !important;\n  }\n}\n\n@media (max-width: 480px) {\n  .col-xs-12,\n  .col-xs-11,\n  .col-xs-10,\n  .col-xs-9,\n  .col-xs-8,\n  .col-xs-7,\n  .col-xs-6,\n  .col-xs-5,\n  .col-xs-4,\n  .col-xs-3,\n  .col-xs-2,\n  .col-xs-1 {\n    -ms-flex: none;\n    flex: none;\n  }\n  .col-xs-12 {\n    width: 100%;\n  }\n  .col-xs-11 {\n    width: 91.66666667%;\n  }\n  .col-xs-10 {\n    width: 83.33333333%;\n  }\n  .col-xs-9 {\n    width: 75%;\n  }\n  .col-xs-8 {\n    width: 66.66666667%;\n  }\n  .col-xs-7 {\n    width: 58.33333333%;\n  }\n  .col-xs-6 {\n    width: 50%;\n  }\n  .col-xs-5 {\n    width: 41.66666667%;\n  }\n  .col-xs-4 {\n    width: 33.33333333%;\n  }\n  .col-xs-3 {\n    width: 25%;\n  }\n  .col-xs-2 {\n    width: 16.66666667%;\n  }\n  .col-xs-1 {\n    width: 8.33333333%;\n  }\n  .hide-xs {\n    display: none !important;\n  }\n  .show-xs {\n    display: block !important;\n  }\n}\n\n.navbar {\n  align-items: stretch;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-align: stretch;\n  -ms-flex-pack: justify;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n  justify-content: space-between;\n}\n\n.navbar .navbar-section {\n  align-items: center;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex: 1 0 0;\n  flex: 1 0 0; \n  -ms-flex-align: center;\n}\n\n.navbar .navbar-section:last-child {\n  -ms-flex-pack: end;\n  justify-content: flex-end;\n}\n\n.navbar .navbar-center {\n  align-items: center;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto; \n  -ms-flex-align: center;\n}\n\n.navbar .navbar-brand {\n  font-size: .9rem;\n  font-weight: 500;\n  text-decoration: none;\n}\n\n.accordion input:checked ~ .accordion-header .icon,\n.accordion[open] .accordion-header .icon {\n  transform: rotate(90deg);\n}\n\n.accordion input:checked ~ .accordion-body,\n.accordion[open] .accordion-body {\n  max-height: 50rem;\n}\n\n.accordion .accordion-header {\n  display: block;\n  padding: .2rem .4rem;\n}\n\n.accordion .accordion-header .icon {\n  transition: all .2s ease;\n}\n\n.accordion .accordion-body {\n  margin-bottom: .4rem;\n  max-height: 0;\n  overflow: hidden;\n  transition: max-height .2s ease;\n}\n\nsummary.accordion-header::-webkit-details-marker {\n  display: none;\n}\n\n.form-autocomplete {\n  position: relative;\n}\n\n.form-autocomplete .form-autocomplete-input {\n  align-content: flex-start;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-line-pack: start;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n  height: auto;\n  min-height: 1.6rem;\n  padding: .1rem;\n}\n\n.form-autocomplete .form-autocomplete-input.is-focused {\n  border-color: #5755d9; \n  box-shadow: 0 0 0 .1rem rgba(87, 85, 217, .2);\n}\n\n.form-autocomplete .form-autocomplete-input .form-input {\n  border-color: transparent;\n  box-shadow: none;\n  display: inline-block;\n  -ms-flex: 1 0 auto;\n  flex: 1 0 auto;\n  height: 1.2rem;\n  line-height: .8rem;\n  margin: .1rem;\n  width: auto;\n}\n\n.form-autocomplete .menu {\n  left: 0;\n  position: absolute;\n  top: 100%;\n  width: 100%;\n}\n\n.avatar {\n  background: #5755d9;\n  border-radius: 50%;\n  color: rgba(255, 255, 255, .85);\n  display: inline-block;\n  font-size: .8rem;\n  font-weight: 300;\n  height: 1.6rem;\n  line-height: 1.25;\n  margin: 0;\n  position: relative;\n  vertical-align: middle; \n  width: 1.6rem;\n}\n\n.avatar.avatar-xs {\n  font-size: .4rem;\n  height: .8rem;\n  width: .8rem;\n}\n\n.avatar.avatar-sm {\n  font-size: .6rem;\n  height: 1.2rem;\n  width: 1.2rem;\n}\n\n.avatar.avatar-lg {\n  font-size: 1.2rem;\n  height: 2.4rem;\n  width: 2.4rem;\n}\n\n.avatar.avatar-xl {\n  font-size: 1.6rem;\n  height: 3.2rem;\n  width: 3.2rem;\n}\n\n.avatar img {\n  border-radius: 50%;\n  height: 100%;\n  position: relative;\n  width: 100%;\n  z-index: 1;\n}\n\n.avatar .avatar-icon,\n.avatar .avatar-presence {\n  background: #fff;\n  bottom: 14.64%;\n  height: 50%;\n  padding: .1rem;\n  position: absolute;\n  right: 14.64%;\n  transform: translate(50%, 50%);\n  width: 50%;\n  z-index: 2;\n}\n\n.avatar .avatar-presence {\n  background: #acb3c2;\n  border-radius: 50%;\n  box-shadow: 0 0 0 .1rem #fff;\n  height: .5em;\n  width: .5em;\n}\n\n.avatar .avatar-presence.online {\n  background: #32b643;\n}\n\n.avatar .avatar-presence.busy {\n  background: #e85600;\n}\n\n.avatar .avatar-presence.away {\n  background: #ffb700;\n}\n\n.avatar[data-initial]::before {\n  color: currentColor;\n  content: attr(data-initial);\n  left: 50%;\n  position: absolute;\n  top: 50%;\n  transform: translate(-50%, -50%);\n  z-index: 1;\n}\n\n.badge {\n  position: relative;\n  white-space: nowrap;\n}\n\n.badge[data-badge]::after,\n.badge:not([data-badge])::after {\n  background: #5755d9;\n  background-clip: padding-box;\n  border-radius: .5rem;\n  box-shadow: 0 0 0 .1rem #fff;\n  color: #fff;\n  content: attr(data-badge);\n  display: inline-block;\n  transform: translate(-.1rem, -.5rem);\n}\n\n.badge[data-badge]::after {\n  font-size: .7rem;\n  height: .9rem;\n  line-height: 1;\n  min-width: .9rem;\n  padding: .1rem .2rem;\n  text-align: center;\n  white-space: nowrap;\n}\n\n.badge:not([data-badge])::after,\n.badge[data-badge=\"\"]::after {\n  height: 6px;\n  min-width: 6px;\n  padding: 0;\n  width: 6px;\n}\n\n.badge.btn::after {\n  position: absolute;\n  right: 0;\n  top: 0;\n  transform: translate(50%, -50%);\n}\n\n.badge.avatar::after {\n  position: absolute;\n  right: 14.64%;\n  top: 14.64%;\n  transform: translate(50%, -50%);\n  z-index: 100;\n}\n\n.badge.avatar-xs::after {\n  content: \"\";\n  height: .4rem;\n  min-width: .4rem;\n  padding: 0;\n  width: .4rem;\n}\n\n.breadcrumb {\n  list-style: none;\n  margin: .2rem 0;\n  padding: .2rem 0;\n}\n\n.breadcrumb .breadcrumb-item {\n  color: #667189;\n  display: inline-block;\n  margin: 0;\n  padding: .2rem 0;\n}\n\n.breadcrumb .breadcrumb-item:not(:last-child) {\n  margin-right: .2rem;\n}\n\n.breadcrumb .breadcrumb-item:not(:last-child) a {\n  color: #667189;\n}\n\n.breadcrumb .breadcrumb-item:not(:first-child)::before {\n  color: #e7e9ed;\n  content: \"/\";\n  padding-right: .4rem;\n}\n\n.bar {\n  background: #f0f1f4;\n  border-radius: .1rem;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-wrap: nowrap;\n  flex-wrap: nowrap;\n  height: .8rem;\n  width: 100%;\n}\n\n.bar.bar-sm {\n  height: .2rem;\n}\n\n.bar .bar-item {\n  background: #5755d9;\n  color: #fff;\n  display: block;\n  -ms-flex-negative: 0;\n  flex-shrink: 0;\n  font-size: .7rem;\n  height: 100%;\n  line-height: .8rem;\n  position: relative;\n  text-align: center;\n  width: 0;\n}\n\n.bar .bar-item:first-child {\n  border-bottom-left-radius: .1rem;\n  border-top-left-radius: .1rem;\n}\n\n.bar .bar-item:last-child {\n  border-bottom-right-radius: .1rem;\n  border-top-right-radius: .1rem;\n  -ms-flex-negative: 1;\n  flex-shrink: 1;\n}\n\n.bar-slider {\n  height: .1rem;\n  margin: .4rem 0;\n  position: relative;\n}\n\n.bar-slider .bar-item {\n  left: 0;\n  padding: 0;\n  position: absolute;\n}\n\n.bar-slider .bar-item:not(:last-child):first-child {\n  background: #f0f1f4;\n  z-index: 1;\n}\n\n.bar-slider .bar-slider-btn {\n  background: #5755d9;\n  border: 0;\n  border-radius: 50%;\n  height: .6rem;\n  padding: 0;\n  position: absolute;\n  right: 0;\n  top: 50%;\n  transform: translate(50%, -50%);\n  width: .6rem;\n}\n\n.bar-slider .bar-slider-btn:active {\n  box-shadow: 0 0 0 .1rem #5755d9;\n}\n\n.card {\n  background: #fff;\n  border: .05rem solid #e7e9ed;\n  border-radius: .1rem;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-direction: column;\n  flex-direction: column;\n}\n\n.card .card-header,\n.card .card-body,\n.card .card-footer {\n  padding: .8rem;\n  padding-bottom: 0;\n}\n\n.card .card-header:last-child,\n.card .card-body:last-child,\n.card .card-footer:last-child {\n  padding-bottom: .8rem;\n}\n\n.card .card-image {\n  padding-top: .8rem;\n}\n\n.card .card-image:first-child {\n  padding-top: 0;\n}\n\n.card .card-image:first-child img {\n  border-top-left-radius: .1rem;\n  border-top-right-radius: .1rem;\n}\n\n.card .card-image:last-child img {\n  border-bottom-left-radius: .1rem;\n  border-bottom-right-radius: .1rem;\n}\n\n.chip {\n  align-items: center;\n  background: #f0f1f4;\n  border-radius: 5rem;\n  color: #667189;\n  display: inline-flex;\n  display: -ms-inline-flexbox;\n  -ms-flex-align: center;\n  font-size: 90%;\n  height: 1.2rem;\n  line-height: .8rem;\n  margin: .1rem;\n  max-width: 100%;\n  padding: .2rem .4rem;\n  text-decoration: none;\n  vertical-align: middle;\n}\n\n.chip.active {\n  background: #5755d9;\n  color: #fff;\n}\n\n.chip .avatar {\n  margin-left: -.4rem;\n  margin-right: .2rem;\n}\n\n.dropdown {\n  display: inline-block;\n  position: relative;\n}\n\n.dropdown .menu {\n  animation: slide-down .15s ease 1;\n  display: none;\n  left: 0;\n  max-height: 50vh;\n  overflow-y: auto;\n  position: absolute;\n  top: 100%;\n}\n\n.dropdown.dropdown-right .menu {\n  left: auto;\n  right: 0;\n}\n\n.dropdown.active .menu,\n.dropdown .dropdown-toggle:focus + .menu,\n.dropdown .menu:hover {\n  display: block;\n}\n\n.dropdown .btn-group .dropdown-toggle:nth-last-child(2) {\n  border-bottom-right-radius: .1rem;\n  border-top-right-radius: .1rem;\n}\n\n.empty {\n  background: #f8f9fa;\n  border-radius: .1rem;\n  color: #667189;\n  padding: 3.2rem 1.6rem; \n  text-align: center;\n}\n\n.empty .empty-icon {\n  margin-bottom: .8rem;\n}\n\n.empty .empty-title,\n.empty .empty-subtitle {\n  margin: .4rem auto;\n}\n\n.empty .empty-action {\n  margin-top: .8rem;\n}\n\n.menu {\n  background: #fff;\n  border-radius: .1rem;\n  box-shadow: 0 .05rem .2rem rgba(69, 77, 93, .3);\n  list-style: none;\n  margin: 0;\n  min-width: 180px;\n  padding: .4rem;\n  transform: translateY(.2rem);\n  z-index: 100;\n}\n\n.menu.menu-nav {\n  background: transparent;\n  box-shadow: none;\n}\n\n.menu .menu-item {\n  margin-top: 0;\n  padding: 0 .4rem;\n  text-decoration: none;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n}\n\n.menu .menu-item > a {\n  border-radius: .1rem;\n  color: inherit;\n  display: block;\n  margin: 0 -.4rem;\n  padding: .2rem .4rem;\n  text-decoration: none;\n}\n\n.menu .menu-item > a:focus,\n.menu .menu-item > a:hover {\n  background: #f1f1fc;\n  color: #5755d9;\n}\n\n.menu .menu-item > a:active,\n.menu .menu-item > a.active {\n  background: #f1f1fc;\n  color: #5755d9;\n}\n\n.menu .menu-item + .menu-item {\n  margin-top: .2rem;\n}\n\n.menu .menu-badge {\n  float: right;\n  padding: .2rem 0;\n}\n\n.menu .menu-badge .btn {\n  margin-top: -.1rem;\n}\n\n.modal {\n  align-items: center;\n  bottom: 0;\n  display: none;\n  -ms-flex-align: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n  left: 0;\n  opacity: 0;\n  overflow: hidden;\n  padding: .4rem;\n  position: fixed;\n  right: 0;\n  top: 0;\n}\n\n.modal:target,\n.modal.active {\n  display: flex;\n  display: -ms-flexbox;\n  opacity: 1;\n  z-index: 400;\n}\n\n.modal:target .modal-overlay,\n.modal.active .modal-overlay {\n  background: rgba(248, 249, 250, .75);\n  bottom: 0;\n  cursor: default;\n  display: block;\n  left: 0;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.modal:target .modal-container,\n.modal.active .modal-container {\n  animation: slide-down .2s ease 1;\n  max-width: 640px;\n  width: 100%;\n  z-index: 1;\n}\n\n.modal.modal-sm .modal-container {\n  max-width: 320px;\n  padding: 0 .4rem;\n}\n\n.modal.modal-lg .modal-overlay {\n  background: #fff;\n}\n\n.modal.modal-lg .modal-container {\n  box-shadow: none;\n  max-width: 960px;\n}\n\n.modal-container {\n  background: #fff;\n  border-radius: .1rem;\n  box-shadow: 0 .2rem .5rem rgba(69, 77, 93, .3);\n  display: block;\n  padding: 0 .8rem;\n  text-align: left;\n}\n\n.modal-container .modal-header {\n  padding: .8rem;\n}\n\n.modal-container .modal-body {\n  max-height: 50vh;\n  overflow-y: auto;\n  padding: .8rem;\n  position: relative;\n}\n\n.modal-container .modal-footer {\n  padding: .8rem;\n  text-align: right;\n}\n\n.nav {\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  list-style: none;\n  margin: .2rem 0;\n}\n\n.nav .nav-item a {\n  color: #667189;\n  padding: .2rem .4rem;\n  text-decoration: none;\n}\n\n.nav .nav-item a:focus,\n.nav .nav-item a:hover {\n  color: #5755d9;\n}\n\n.nav .nav-item.active > a {\n  color: #50596c;\n  font-weight: bold;\n}\n\n.nav .nav-item.active > a:focus,\n.nav .nav-item.active > a:hover {\n  color: #5755d9;\n}\n\n.nav .nav {\n  margin-bottom: .4rem;\n  margin-left: .8rem;\n}\n\n.pagination {\n  display: flex;\n  display: -ms-flexbox;\n  list-style: none;\n  margin: .2rem 0;\n  padding: .2rem 0;\n}\n\n.pagination .page-item {\n  margin: .2rem .05rem;\n}\n\n.pagination .page-item span {\n  display: inline-block;\n  padding: .2rem .2rem;\n}\n\n.pagination .page-item a {\n  border-radius: .1rem;\n  color: #667189;\n  display: inline-block;\n  padding: .2rem .4rem;\n  text-decoration: none;\n}\n\n.pagination .page-item a:focus,\n.pagination .page-item a:hover {\n  color: #5755d9;\n}\n\n.pagination .page-item.disabled a {\n  cursor: default;\n  opacity: .5;\n  pointer-events: none;\n}\n\n.pagination .page-item.active a {\n  background: #5755d9;\n  color: #fff;\n}\n\n.pagination .page-item.page-prev,\n.pagination .page-item.page-next {\n  -ms-flex: 1 0 50%;\n  flex: 1 0 50%;\n}\n\n.pagination .page-item.page-next {\n  text-align: right;\n}\n\n.pagination .page-item .page-item-title {\n  margin: 0;\n}\n\n.pagination .page-item .page-item-subtitle {\n  margin: 0;\n  opacity: .5;\n}\n\n.panel {\n  border: .05rem solid #e7e9ed;\n  border-radius: .1rem;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-direction: column;\n  flex-direction: column;\n}\n\n.panel .panel-header,\n.panel .panel-footer {\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n  padding: .8rem;\n}\n\n.panel .panel-nav {\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n}\n\n.panel .panel-body {\n  -ms-flex: 1 1 auto;\n  flex: 1 1 auto;\n  overflow-y: auto;\n  padding: 0 .8rem;\n}\n\n.popover {\n  display: inline-block;\n  position: relative;\n}\n\n.popover .popover-container {\n  left: 50%;\n  opacity: 0;\n  padding: .4rem;\n  position: absolute;\n  top: 0;\n  transform: translate(-50%, -50%) scale(0);\n  transition: transform .2s ease;\n  width: 320px;\n  z-index: 400;\n}\n\n.popover *:focus + .popover-container,\n.popover:hover .popover-container,\n.popover .popover-container:hover {\n  display: block;\n  opacity: 1;\n  transform: translate(-50%, -100%) scale(1);\n}\n\n.popover.popover-right .popover-container {\n  left: 100%;\n  top: 50%;\n}\n\n.popover.popover-right :focus + .popover-container,\n.popover.popover-right:hover .popover-container,\n.popover.popover-right .popover-container:hover {\n  transform: translate(0, -50%) scale(1);\n}\n\n.popover.popover-bottom .popover-container {\n  left: 50%;\n  top: 100%;\n}\n\n.popover.popover-bottom :focus + .popover-container,\n.popover.popover-bottom:hover .popover-container,\n.popover.popover-bottom .popover-container:hover {\n  transform: translate(-50%, 0) scale(1);\n}\n\n.popover.popover-left .popover-container {\n  left: 0;\n  top: 50%;\n}\n\n.popover.popover-left :focus + .popover-container,\n.popover.popover-left:hover .popover-container,\n.popover.popover-left .popover-container:hover {\n  transform: translate(-100%, -50%) scale(1);\n}\n\n.popover .card {\n  border: 0; \n  box-shadow: 0 .2rem .5rem rgba(69, 77, 93, .3);\n}\n\n.step {\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-wrap: nowrap;\n  flex-wrap: nowrap;\n  list-style: none;\n  margin: .2rem 0;\n  width: 100%;\n}\n\n.step .step-item {\n  -ms-flex: 1 1 0;\n  flex: 1 1 0;\n  margin-top: 0;\n  min-height: 1rem;\n  position: relative; \n  text-align: center;\n}\n\n.step .step-item:not(:first-child)::before {\n  background: #5755d9;\n  content: \"\";\n  height: 2px;\n  left: -50%;\n  position: absolute;\n  top: 9px;\n  width: 100%;\n}\n\n.step .step-item a {\n  color: #acb3c2;\n  display: inline-block;\n  padding: 20px 10px 0;\n  text-decoration: none;\n}\n\n.step .step-item a::before {\n  background: #5755d9;\n  border: .1rem solid #fff;\n  border-radius: 50%;\n  content: \"\";\n  display: block;\n  height: .6rem;\n  left: 50%;\n  position: absolute;\n  top: .2rem;\n  transform: translateX(-50%);\n  width: .6rem;\n  z-index: 1;\n}\n\n.step .step-item.active a::before {\n  background: #fff;\n  border: .1rem solid #5755d9;\n}\n\n.step .step-item.active ~ .step-item::before {\n  background: #e7e9ed;\n}\n\n.step .step-item.active ~ .step-item a::before {\n  background: #e7e9ed;\n}\n\n.tab {\n  align-items: center;\n  border-bottom: .05rem solid #e7e9ed;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-align: center;\n  -ms-flex-wrap: wrap;\n  flex-wrap: wrap;\n  list-style: none;\n  margin: .2rem 0 .15rem 0;\n}\n\n.tab .tab-item {\n  margin-top: 0;\n}\n\n.tab .tab-item a {\n  border-bottom: .1rem solid transparent;\n  color: inherit;\n  display: block;\n  margin: 0 .4rem 0 0;\n  padding: .4rem .2rem .3rem .2rem;\n  text-decoration: none;\n}\n\n.tab .tab-item a:focus,\n.tab .tab-item a:hover {\n  color: #5755d9;\n}\n\n.tab .tab-item.active a,\n.tab .tab-item a.active {\n  border-bottom-color: #5755d9;\n  color: #5755d9;\n}\n\n.tab .tab-item.tab-action {\n  -ms-flex: 1 0 auto;\n  flex: 1 0 auto;\n  text-align: right;\n}\n\n.tab .tab-item .btn-clear {\n  margin-top: -.2rem;\n}\n\n.tab.tab-block .tab-item {\n  -ms-flex: 1 0 0;\n  flex: 1 0 0;\n  text-align: center;\n}\n\n.tab.tab-block .tab-item a {\n  margin: 0;\n}\n\n.tab.tab-block .tab-item .badge[data-badge]::after {\n  position: absolute;\n  right: .1rem;\n  top: .1rem;\n  transform: translate(0, 0);\n}\n\n.tab:not(.tab-block) .badge {\n  padding-right: 0;\n}\n\n.tile {\n  align-content: space-between;\n  align-items: flex-start;\n  display: flex; \n  display: -ms-flexbox;\n  -ms-flex-align: start;\n  -ms-flex-line-pack: justify;\n}\n\n.tile .tile-icon,\n.tile .tile-action {\n  -ms-flex: 0 0 auto;\n  flex: 0 0 auto;\n}\n\n.tile .tile-content {\n  -ms-flex: 1 1 auto;\n  flex: 1 1 auto;\n}\n\n.tile .tile-content:not(:first-child) {\n  padding-left: .4rem;\n}\n\n.tile .tile-content:not(:last-child) {\n  padding-right: .4rem;\n}\n\n.tile .tile-title,\n.tile .tile-subtitle {\n  line-height: 1rem;\n}\n\n.tile.tile-centered {\n  align-items: center; \n  -ms-flex-align: center;\n}\n\n.tile.tile-centered .tile-content {\n  overflow: hidden;\n}\n\n.tile.tile-centered .tile-title,\n.tile.tile-centered .tile-subtitle {\n  margin-bottom: 0; \n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.toast {\n  background: rgba(69, 77, 93, .9);\n  border: .05rem solid #454d5d;\n  border-color: #454d5d;\n  border-radius: .1rem;\n  color: #fff;\n  display: block;\n  padding: .4rem;\n  width: 100%;\n}\n\n.toast.toast-primary {\n  background: rgba(87, 85, 217, .9);\n  border-color: #5755d9;\n}\n\n.toast.toast-success {\n  background: rgba(50, 182, 67, .9);\n  border-color: #32b643;\n}\n\n.toast.toast-warning {\n  background: rgba(255, 183, 0, .9);\n  border-color: #ffb700;\n}\n\n.toast.toast-error {\n  background: rgba(232, 86, 0, .9);\n  border-color: #e85600;\n}\n\n.toast a {\n  color: #fff;\n  text-decoration: underline;\n}\n\n.toast a:focus,\n.toast a:hover,\n.toast a:active,\n.toast a.active {\n  opacity: .75;\n}\n\n.toast .btn-clear {\n  margin: 4px -2px 4px 4px;\n}\n\n.tooltip {\n  position: relative;\n}\n\n.tooltip::after {\n  background: rgba(69, 77, 93, .9);\n  border-radius: .1rem;\n  bottom: 100%;\n  color: #fff;\n  content: attr(data-tooltip);\n  display: block;\n  font-size: .7rem;\n  left: 50%;\n  max-width: 320px;\n  opacity: 0;\n  overflow: hidden;\n  padding: .2rem .4rem;\n  pointer-events: none;\n  position: absolute;\n  text-overflow: ellipsis;\n  transform: translate(-50%, .4rem);\n  transition: all .2s ease;\n  white-space: pre;\n  z-index: 300;\n}\n\n.tooltip:focus::after,\n.tooltip:hover::after {\n  opacity: 1;\n  transform: translate(-50%, -.2rem);\n}\n\n.tooltip[disabled],\n.tooltip.disabled {\n  pointer-events: auto;\n}\n\n.tooltip.tooltip-right::after {\n  bottom: 50%;\n  left: 100%;\n  transform: translate(-.2rem, 50%);\n}\n\n.tooltip.tooltip-right:focus::after,\n.tooltip.tooltip-right:hover::after {\n  transform: translate(.2rem, 50%);\n}\n\n.tooltip.tooltip-bottom::after {\n  bottom: auto;\n  top: 100%;\n  transform: translate(-50%, -.4rem);\n}\n\n.tooltip.tooltip-bottom:focus::after,\n.tooltip.tooltip-bottom:hover::after {\n  transform: translate(-50%, .2rem);\n}\n\n.tooltip.tooltip-left::after {\n  bottom: 50%;\n  left: auto;\n  right: 100%;\n  transform: translate(.4rem, 50%);\n}\n\n.tooltip.tooltip-left:focus::after,\n.tooltip.tooltip-left:hover::after {\n  transform: translate(-.2rem, 50%);\n}\n\n@keyframes loading {\n  0% {\n    transform: rotate(0deg);\n  }\n  100% {\n    transform: rotate(360deg);\n  }\n}\n\n@keyframes slide-down {\n  0% {\n    opacity: 0;\n    transform: translateY(-1.6rem);\n  }\n  100% {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n.text-primary {\n  color: #5755d9;\n}\n\na.text-primary:focus,\na.text-primary:hover {\n  color: #4240d4;\n}\n\n.text-secondary {\n  color: #e5e5f9;\n}\n\na.text-secondary:focus,\na.text-secondary:hover {\n  color: #d1d0f4;\n}\n\n.text-gray {\n  color: #acb3c2;\n}\n\na.text-gray:focus,\na.text-gray:hover {\n  color: #9ea6b7;\n}\n\n.text-light {\n  color: #fff;\n}\n\na.text-light:focus,\na.text-light:hover {\n  color: #f2f2f2;\n}\n\n.text-success {\n  color: #32b643;\n}\n\na.text-success:focus,\na.text-success:hover {\n  color: #2da23c;\n}\n\n.text-warning {\n  color: #ffb700;\n}\n\na.text-warning:focus,\na.text-warning:hover {\n  color: #e6a500;\n}\n\n.text-error {\n  color: #e85600;\n}\n\na.text-error:focus,\na.text-error:hover {\n  color: #cf4d00;\n}\n\n.bg-primary {\n  background: #5755d9;\n  color: #fff;\n}\n\n.bg-secondary {\n  background: #f1f1fc;\n}\n\n.bg-dark {\n  background: #454d5d;\n  color: #fff;\n}\n\n.bg-gray {\n  background: #f8f9fa;\n}\n\n.bg-success {\n  background: #32b643;\n  color: #fff;\n}\n\n.bg-warning {\n  background: #ffb700;\n  color: #fff;\n}\n\n.bg-error {\n  background: #e85600;\n  color: #fff;\n}\n\n.c-hand {\n  cursor: pointer;\n}\n\n.c-move {\n  cursor: move;\n}\n\n.c-zoom-in {\n  cursor: zoom-in;\n}\n\n.c-zoom-out {\n  cursor: zoom-out;\n}\n\n.c-not-allowed {\n  cursor: not-allowed;\n}\n\n.c-auto {\n  cursor: auto;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline {\n  display: inline;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex; \n  display: -ms-flexbox;\n}\n\n.d-inline-flex {\n  display: inline-flex; \n  display: -ms-inline-flexbox;\n}\n\n.d-none,\n.d-hide {\n  display: none !important;\n}\n\n.d-visible {\n  visibility: visible;\n}\n\n.d-invisible {\n  visibility: hidden;\n}\n\n.text-hide {\n  background: transparent;\n  border: 0;\n  color: transparent;\n  font-size: 0;\n  line-height: 0;\n  text-shadow: none;\n}\n\n.text-assistive {\n  border: 0;\n  clip: rect(0, 0, 0, 0);\n  height: 1px;\n  margin: -1px;\n  overflow: hidden;\n  padding: 0;\n  position: absolute;\n  width: 1px;\n}\n\n.divider,\n.divider-vert {\n  display: block;\n  position: relative;\n}\n\n.divider[data-content]::after,\n.divider-vert[data-content]::after {\n  background: #fff;\n  color: #acb3c2;\n  content: attr(data-content);\n  display: inline-block;\n  font-size: .7rem;\n  padding: 0 .4rem;\n  transform: translateY(-.65rem);\n}\n\n.divider {\n  border-top: .05rem solid #e7e9ed;\n  height: .05rem;\n  margin: .4rem 0;\n}\n\n.divider[data-content] {\n  margin: .8rem 0;\n}\n\n.divider-vert {\n  display: block;\n  padding: .8rem;\n}\n\n.divider-vert::before {\n  border-left: .05rem solid #e7e9ed;\n  bottom: .4rem;\n  content: \"\";\n  display: block;\n  left: 50%;\n  position: absolute;\n  top: .4rem;\n  transform: translateX(-50%);\n}\n\n.divider-vert[data-content]::after {\n  left: 50%;\n  padding: .2rem 0;\n  position: absolute;\n  top: 50%;\n  transform: translate(-50%, -50%);\n}\n\n.loading {\n  color: transparent !important;\n  min-height: .8rem;\n  pointer-events: none;\n  position: relative;\n}\n\n.loading::after {\n  animation: loading 500ms infinite linear;\n  border: .1rem solid #5755d9;\n  border-radius: 50%;\n  border-right-color: transparent;\n  border-top-color: transparent;\n  content: \"\";\n  display: block;\n  height: .8rem;\n  left: 50%;\n  margin-left: -.4rem;\n  margin-top: -.4rem;\n  position: absolute;\n  top: 50%;\n  width: .8rem;\n  z-index: 1;\n}\n\n.loading.loading-lg {\n  min-height: 2rem;\n}\n\n.loading.loading-lg::after {\n  height: 1.6rem;\n  margin-left: -.8rem;\n  margin-top: -.8rem;\n  width: 1.6rem;\n}\n\n.clearfix::after,\n.container::after {\n  clear: both;\n  content: \"\";\n  display: table;\n}\n\n.float-left {\n  float: left !important;\n}\n\n.float-right {\n  float: right !important;\n}\n\n.relative {\n  position: relative;\n}\n\n.absolute {\n  position: absolute;\n}\n\n.fixed {\n  position: fixed;\n}\n\n.centered {\n  display: block;\n  float: none;\n  margin-left: auto;\n  margin-right: auto;\n}\n\n.flex-centered {\n  align-items: center;\n  display: flex;\n  display: -ms-flexbox;\n  -ms-flex-align: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n}\n\n.m-0 {\n  margin: 0;\n}\n\n.mb-0 {\n  margin-bottom: 0;\n}\n\n.ml-0 {\n  margin-left: 0;\n}\n\n.mr-0 {\n  margin-right: 0;\n}\n\n.mt-0 {\n  margin-top: 0;\n}\n\n.mx-0 {\n  margin-left: 0;\n  margin-right: 0;\n}\n\n.my-0 {\n  margin-bottom: 0;\n  margin-top: 0;\n}\n\n.m-1 {\n  margin: .2rem;\n}\n\n.mb-1 {\n  margin-bottom: .2rem;\n}\n\n.ml-1 {\n  margin-left: .2rem;\n}\n\n.mr-1 {\n  margin-right: .2rem;\n}\n\n.mt-1 {\n  margin-top: .2rem;\n}\n\n.mx-1 {\n  margin-left: .2rem;\n  margin-right: .2rem;\n}\n\n.my-1 {\n  margin-bottom: .2rem;\n  margin-top: .2rem;\n}\n\n.m-2 {\n  margin: .4rem;\n}\n\n.mb-2 {\n  margin-bottom: .4rem;\n}\n\n.ml-2 {\n  margin-left: .4rem;\n}\n\n.mr-2 {\n  margin-right: .4rem;\n}\n\n.mt-2 {\n  margin-top: .4rem;\n}\n\n.mx-2 {\n  margin-left: .4rem;\n  margin-right: .4rem;\n}\n\n.my-2 {\n  margin-bottom: .4rem;\n  margin-top: .4rem;\n}\n\n.p-0 {\n  padding: 0;\n}\n\n.pb-0 {\n  padding-bottom: 0;\n}\n\n.pl-0 {\n  padding-left: 0;\n}\n\n.pr-0 {\n  padding-right: 0;\n}\n\n.pt-0 {\n  padding-top: 0;\n}\n\n.px-0 {\n  padding-left: 0;\n  padding-right: 0;\n}\n\n.py-0 {\n  padding-bottom: 0;\n  padding-top: 0;\n}\n\n.p-1 {\n  padding: .2rem;\n}\n\n.pb-1 {\n  padding-bottom: .2rem;\n}\n\n.pl-1 {\n  padding-left: .2rem;\n}\n\n.pr-1 {\n  padding-right: .2rem;\n}\n\n.pt-1 {\n  padding-top: .2rem;\n}\n\n.px-1 {\n  padding-left: .2rem;\n  padding-right: .2rem;\n}\n\n.py-1 {\n  padding-bottom: .2rem;\n  padding-top: .2rem;\n}\n\n.p-2 {\n  padding: .4rem;\n}\n\n.pb-2 {\n  padding-bottom: .4rem;\n}\n\n.pl-2 {\n  padding-left: .4rem;\n}\n\n.pr-2 {\n  padding-right: .4rem;\n}\n\n.pt-2 {\n  padding-top: .4rem;\n}\n\n.px-2 {\n  padding-left: .4rem;\n  padding-right: .4rem;\n}\n\n.py-2 {\n  padding-bottom: .4rem;\n  padding-top: .4rem;\n}\n\n.rounded {\n  border-radius: .1rem;\n}\n\n.circle {\n  border-radius: 50%;\n}\n\n.text-left {\n  text-align: left;\n}\n\n.text-right {\n  text-align: right;\n}\n\n.text-center {\n  text-align: center;\n}\n\n.text-justify {\n  text-align: justify;\n}\n\n.text-lowercase {\n  text-transform: lowercase;\n}\n\n.text-uppercase {\n  text-transform: uppercase;\n}\n\n.text-capitalize {\n  text-transform: capitalize;\n}\n\n.text-normal {\n  font-weight: normal;\n}\n\n.text-bold {\n  font-weight: bold;\n}\n\n.text-italic {\n  font-style: italic;\n}\n\n.text-large {\n  font-size: 1.2em;\n}\n\n.text-ellipsis {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.text-clip {\n  overflow: hidden;\n  text-overflow: clip;\n  white-space: nowrap;\n}\n\n.text-break {\n  -webkit-hyphens: auto;\n  -ms-hyphens: auto;\n  hyphens: auto;\n  word-break: break-word;\n  word-wrap: break-word;\n}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(26);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(4)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../css-loader/index.js!./spectre-icons.css", function() {
+			var newContent = require("!!../../css-loader/index.js!./spectre-icons.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(3)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, "/*! Spectre.css Icons v0.4.6 | MIT License | github.com/picturepan2/spectre */\n.icon {\n  box-sizing: border-box;\n  display: inline-block;\n  font-size: inherit;\n  font-style: normal;\n  height: 1em;\n  position: relative;\n  text-indent: -9999px;\n  vertical-align: middle;\n  width: 1em;\n}\n\n.icon::before,\n.icon::after {\n  display: block;\n  left: 50%;\n  position: absolute;\n  top: 50%;\n  transform: translate(-50%, -50%);\n}\n\n.icon.icon-2x {\n  font-size: 1.6rem;\n}\n\n.icon.icon-3x {\n  font-size: 2.4rem;\n}\n\n.icon.icon-4x {\n  font-size: 3.2rem;\n}\n\n.accordion .icon,\n.btn .icon,\n.toast .icon,\n.menu .icon {\n  vertical-align: -10%;\n}\n\n.btn-lg .icon {\n  vertical-align: -15%;\n}\n\n.icon-arrow-down::before,\n.icon-arrow-left::before,\n.icon-arrow-right::before,\n.icon-arrow-up::before,\n.icon-downward::before,\n.icon-back::before,\n.icon-forward::before,\n.icon-upward::before {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-right: 0;\n  content: \"\";\n  height: .65em;\n  width: .65em;\n}\n\n.icon-arrow-down::before {\n  transform: translate(-50%, -75%) rotate(225deg);\n}\n\n.icon-arrow-left::before {\n  transform: translate(-25%, -50%) rotate(-45deg);\n}\n\n.icon-arrow-right::before {\n  transform: translate(-75%, -50%) rotate(135deg);\n}\n\n.icon-arrow-up::before {\n  transform: translate(-50%, -25%) rotate(45deg);\n}\n\n.icon-back::after,\n.icon-forward::after {\n  background: currentColor;\n  content: \"\";\n  height: .1rem;\n  width: .8em;\n}\n\n.icon-downward::after,\n.icon-upward::after {\n  background: currentColor;\n  content: \"\";\n  height: .8em;\n  width: .1rem;\n}\n\n.icon-back::after {\n  left: 55%;\n}\n\n.icon-back::before {\n  transform: translate(-50%, -50%) rotate(-45deg);\n}\n\n.icon-downward::after {\n  top: 45%;\n}\n\n.icon-downward::before {\n  transform: translate(-50%, -50%) rotate(-135deg);\n}\n\n.icon-forward::after {\n  left: 45%;\n}\n\n.icon-forward::before {\n  transform: translate(-50%, -50%) rotate(135deg);\n}\n\n.icon-upward::after {\n  top: 55%;\n}\n\n.icon-upward::before {\n  transform: translate(-50%, -50%) rotate(45deg);\n}\n\n.icon-caret::before {\n  border-left: .3em solid transparent;\n  border-right: .3em solid transparent;\n  border-top: .3em solid currentColor;\n  content: \"\";\n  height: 0;\n  transform: translate(-50%, -25%);\n  width: 0;\n}\n\n.icon-menu::before {\n  background: currentColor;\n  box-shadow: 0 -.35em, 0 .35em;\n  content: \"\";\n  height: .1rem;\n  width: 100%;\n}\n\n.icon-apps::before {\n  background: currentColor;\n  box-shadow: -.35em -.35em, -.35em 0, -.35em .35em, 0 -.35em, 0 .35em, .35em -.35em, .35em 0, .35em .35em;\n  content: \"\";\n  height: 3px;\n  width: 3px;\n}\n\n.icon-resize-horiz::before,\n.icon-resize-horiz::after,\n.icon-resize-vert::before,\n.icon-resize-vert::after {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-right: 0;\n  content: \"\";\n  height: .45em;\n  width: .45em;\n}\n\n.icon-resize-horiz::before,\n.icon-resize-vert::before {\n  transform: translate(-50%, -90%) rotate(45deg);\n}\n\n.icon-resize-horiz::after,\n.icon-resize-vert::after {\n  transform: translate(-50%, -10%) rotate(225deg);\n}\n\n.icon-resize-horiz::before {\n  transform: translate(-90%, -50%) rotate(-45deg);\n}\n\n.icon-resize-horiz::after {\n  transform: translate(-10%, -50%) rotate(135deg);\n}\n\n.icon-more-horiz::before,\n.icon-more-vert::before {\n  background: currentColor;\n  border-radius: 50%;\n  box-shadow: -.4em 0, .4em 0;\n  content: \"\";\n  height: 3px;\n  width: 3px;\n}\n\n.icon-more-vert::before {\n  box-shadow: 0 -.4em, 0 .4em;\n}\n\n.icon-plus::before,\n.icon-minus::before,\n.icon-cross::before {\n  background: currentColor;\n  content: \"\";\n  height: .1rem;\n  width: 100%;\n}\n\n.icon-plus::after,\n.icon-cross::after {\n  background: currentColor;\n  content: \"\";\n  height: 100%;\n  width: .1rem;\n}\n\n.icon-cross::before {\n  width: 100%;\n}\n\n.icon-cross::after {\n  height: 100%;\n}\n\n.icon-cross::before,\n.icon-cross::after {\n  transform: translate(-50%, -50%) rotate(45deg);\n}\n\n.icon-check::before {\n  border: .1rem solid currentColor;\n  border-right: 0;\n  border-top: 0;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, -75%) rotate(-45deg); \n  width: .9em;\n}\n\n.icon-stop {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n}\n\n.icon-stop::before {\n  background: currentColor;\n  content: \"\";\n  height: .1rem;\n  transform: translate(-50%, -50%) rotate(45deg);\n  width: 1em;\n}\n\n.icon-shutdown {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  border-top-color: transparent;\n}\n\n.icon-shutdown::before {\n  background: currentColor;\n  content: \"\";\n  height: .5em;\n  top: .1em;\n  width: .1rem;\n}\n\n.icon-refresh::before {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  border-right-color: transparent;\n  content: \"\";\n  height: 1em;\n  width: 1em;\n}\n\n.icon-refresh::after {\n  border: .2em solid currentColor;\n  border-left-color: transparent;\n  border-top-color: transparent;\n  content: \"\";\n  height: 0;\n  left: 80%;\n  top: 20%;\n  width: 0;\n}\n\n.icon-search::before {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  content: \"\";\n  height: .75em;\n  left: 5%;\n  top: 5%;\n  transform: translate(0, 0) rotate(45deg);\n  width: .75em;\n}\n\n.icon-search::after {\n  background: currentColor;\n  content: \"\";\n  height: .1rem;\n  left: 80%;\n  top: 80%;\n  transform: translate(-50%, -50%) rotate(45deg);\n  width: .4em;\n}\n\n.icon-edit::before {\n  border: .1rem solid currentColor;\n  content: \"\";\n  height: .4em;\n  transform: translate(-40%, -60%) rotate(-45deg);\n  width: .85em;\n}\n\n.icon-edit::after {\n  border: .15em solid currentColor;\n  border-right-color: transparent;\n  border-top-color: transparent;\n  content: \"\";\n  height: 0;\n  left: 5%;\n  top: 95%;\n  transform: translate(0, -100%);\n  width: 0;\n}\n\n.icon-delete::before {\n  border: .1rem solid currentColor;\n  border-bottom-left-radius: .1rem;\n  border-bottom-right-radius: .1rem;\n  border-top: 0;\n  content: \"\";\n  height: .75em;\n  top: 60%;\n  width: .75em;\n}\n\n.icon-delete::after {\n  background: currentColor;\n  box-shadow: -.25em .2em, .25em .2em;\n  content: \"\";\n  height: .1rem;\n  top: .05rem;\n  width: .5em;\n}\n\n.icon-share {\n  border: .1rem solid currentColor;\n  border-radius: .1rem;\n  border-right: 0;\n  border-top: 0;\n}\n\n.icon-share::before {\n  border: .1rem solid currentColor;\n  border-left: 0;\n  border-top: 0;\n  content: \"\";\n  height: .4em;\n  left: 100%;\n  top: .25em;\n  transform: translate(-125%, -50%) rotate(-45deg);\n  width: .4em;\n}\n\n.icon-share::after {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-radius: 75% 0;\n  border-right: 0;\n  content: \"\";\n  height: .5em;\n  width: .6em;\n}\n\n.icon-flag::before {\n  background: currentColor;\n  content: \"\";\n  height: 1em;\n  left: 15%;\n  width: .1rem;\n}\n\n.icon-flag::after {\n  border: .1rem solid currentColor;\n  border-bottom-right-radius: .1rem;\n  border-left: 0;\n  border-top-right-radius: .1rem;\n  content: \"\";\n  height: .65em;\n  left: 60%;\n  top: 35%;\n  width: .8em;\n}\n\n.icon-bookmark::before {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-top-left-radius: .1rem;\n  border-top-right-radius: .1rem;\n  content: \"\";\n  height: .9em;\n  width: .8em;\n}\n\n.icon-bookmark::after {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-left: 0;\n  border-radius: .1rem;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, 35%) rotate(-45deg) skew(15deg, 15deg);\n  width: .5em;\n}\n\n.icon-download,\n.icon-upload {\n  border-bottom: .1rem solid currentColor;\n}\n\n.icon-download::before,\n.icon-upload::before {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-right: 0;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, -60%) rotate(-135deg); \n  width: .5em;\n}\n\n.icon-download::after,\n.icon-upload::after {\n  background: currentColor;\n  content: \"\";\n  height: .6em;\n  top: 40%;\n  width: .1rem;\n}\n\n.icon-upload::before {\n  transform: translate(-50%, -60%) rotate(45deg);\n}\n\n.icon-upload::after {\n  top: 50%;\n}\n\n.icon-time {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n}\n\n.icon-time::before {\n  background: currentColor;\n  content: \"\";\n  height: .4em;\n  transform: translate(-50%, -75%);\n  width: .1rem;\n}\n\n.icon-time::after {\n  background: currentColor;\n  content: \"\";\n  height: .3em;\n  transform: translate(-50%, -75%) rotate(90deg);\n  transform-origin: 50% 90%;\n  width: .1rem;\n}\n\n.icon-mail::before {\n  border: .1rem solid currentColor;\n  border-radius: .1rem;\n  content: \"\";\n  height: .8em;\n  width: 1em;\n}\n\n.icon-mail::after {\n  border: .1rem solid currentColor;\n  border-right: 0;\n  border-top: 0;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, -90%) rotate(-45deg) skew(10deg, 10deg);\n  width: .5em;\n}\n\n.icon-people::before {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  content: \"\";\n  height: .45em;\n  top: 25%;\n  width: .45em;\n}\n\n.icon-people::after {\n  border: .1rem solid currentColor;\n  border-radius: 50% 50% 0 0;\n  content: \"\";\n  height: .4em;\n  top: 75%;\n  width: .9em;\n}\n\n.icon-message {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-radius: .1rem;\n  border-right: 0;\n}\n\n.icon-message::before {\n  border: .1rem solid currentColor;\n  border-bottom-right-radius: .1rem;\n  border-left: 0;\n  border-top: 0;\n  content: \"\";\n  height: .8em;\n  left: 65%;\n  top: 40%;\n  width: .7em;\n}\n\n.icon-message::after {\n  background: currentColor;\n  border-radius: .1rem;\n  content: \"\";\n  height: .3em;\n  left: 10%;\n  top: 100%;\n  transform: translate(0, -90%) rotate(45deg);\n  width: .1rem;\n}\n\n.icon-photo {\n  border: .1rem solid currentColor;\n  border-radius: .1rem;\n}\n\n.icon-photo::before {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  content: \"\";\n  height: .25em;\n  left: 35%;\n  top: 35%;\n  width: .25em;\n}\n\n.icon-photo::after {\n  border: .1rem solid currentColor;\n  border-bottom: 0;\n  border-left: 0;\n  content: \"\";\n  height: .5em;\n  left: 60%;\n  transform: translate(-50%, 25%) rotate(-45deg);\n  width: .5em;\n}\n\n.icon-link::before,\n.icon-link::after {\n  border: .1rem solid currentColor;\n  border-radius: 5em 0 0 5em;\n  border-right: 0;\n  content: \"\";\n  height: .5em;\n  width: .75em;\n}\n\n.icon-link::before {\n  transform: translate(-70%, -45%) rotate(-45deg);\n}\n\n.icon-link::after {\n  transform: translate(-30%, -55%) rotate(135deg);\n}\n\n.icon-location::before {\n  border: .1rem solid currentColor;\n  border-radius: 50% 50% 50% 0;\n  content: \"\";\n  height: .8em;\n  transform: translate(-50%, -60%) rotate(-45deg);\n  width: .8em;\n}\n\n.icon-location::after {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n  content: \"\";\n  height: .2em;\n  transform: translate(-50%, -80%);\n  width: .2em;\n}\n\n.icon-emoji {\n  border: .1rem solid currentColor;\n  border-radius: 50%;\n}\n\n.icon-emoji::before {\n  border-radius: 50%;\n  box-shadow: -.17em -.15em, .17em -.15em;\n  content: \"\";\n  height: .1em;\n  width: .1em;\n}\n\n.icon-emoji::after {\n  border: .1rem solid currentColor;\n  border-bottom-color: transparent;\n  border-radius: 50%;\n  border-right-color: transparent;\n  content: \"\";\n  height: .5em;\n  transform: translate(-50%, -40%) rotate(-135deg);\n  width: .5em;\n}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 27 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__snap_SnapMod_js__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Events_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_lodash__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_lodash__);
+
+
+
+
+var gridSize = 50;
+
+
+//Internal Event Handler:
+// * They Handle the recalculation and redraw
+// * Then they call the UIs handler that create DOM Events in the svgRoot element
+const start = function (ui) {
+
+    const startDragElement = (element)=>{
+        const _x = element.attr("x");
+        const _y = element.attr("y");
+        element.data("ox", _x);
+        element.data("oy", _y);
+        const label = element.data("label");
+        label.style.left = `${_x}px`;
+        label.style.top = `${_y}px`;
+    };
+
+
+    return function (e) {
+        startDragElement(this);
+        __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.values(ui.squares).forEach((square)=>{
+            if(square.element.hasClass('selected')){
+                startDragElement(square.element);
+            }
+        });
+        if (ui.onDragStart) {
+            ui.onDragStart(this, e);
+        }
+    };
+};
+
+const move = function (ui) {
+
+    const adjustConnections = () => {
+        ui.connections.forEach(con => ui.snap.connection(con));
+    };
+
+    const moveElement = (element,dx,dy)=>{
+        const _x = parseInt(element.data("ox")) + dx;
+        const _y = parseInt(element.data("oy")) + dy;
+        element.attr({
+            x: _x,
+            y: _y
+        });
+        const label = element.data("label");
+        label.style.left = `${_x}px`;
+        label.style.top = `${_y}px`;
+    };
+
+
+    return function (dx, dy) {
+        moveElement(this,dx,dy)
+        __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.values(ui.squares).forEach((square)=>{
+            if(square.element.hasClass('selected')){
+                moveElement(square.element,dx,dy);
+            }
+        });
+        adjustConnections();
+    }
+};
+
+const stop = function (ui) {
+
+    return function (e) {
+        if (ui.onDragStop) {
+            ui.onDragStop(this, e);
+        }
+    };
+};
+
+
+const dblClick = function (ui) {
+    return function (e) {
+        if (ui.onDblClick) {
+            ui.onDblClick(this, e);
+        }
+    };
+};
+
+const click = function (ui) {
+    return function (e) {
+        if (ui.onClick) {
+            ui.onClick(this, e);
+        }
+    };
+};
+
+
+const CONNECTION_CONF = {
+    directed: true,
+    straight: true
+};
+
+const SQUARE_SIZE = 80;
+
+class GraphUI {
+
+    constructor(svgRoot, parentDiv) {
+        this.parentDiv = parentDiv;
+        this.svgRoot = svgRoot;
+        this.snap = Object(__WEBPACK_IMPORTED_MODULE_0__snap_SnapMod_js__["a" /* default */])(svgRoot);
+        this.squares = Object.create({});
+        this.connections = [];
+        this._start = start(this);
+        this._move = move(this);
+        this._stop = stop(this);
+        this._dblClick = dblClick(this);
+        this._click = click(this);
+
+        this._initSelectionFrame();
+    }
+
+
+    _initSelectionFrame() {
+
+        const getOffset = () => {
+            var rect = this.svgRoot.getBoundingClientRect();
+            var scrollTop = window.scrollY
+                || window.pageYOffset
+                || document.body.scrollTop + (document.documentElement && document.documentElement.scrollTop || 0);
+            var scrollLeft = window.scrollX
+                || window.pageXOffset
+                || document.body.scrollLeft + (document.documentElement && document.documentElement.scrollLeft || 0);
+            return {
+                offsetX: -(rect.left + scrollLeft),
+                offsetY: -(rect.top + scrollTop)
+            };
+        };
+
+        this.svgRoot.addEventListener('mousedown', (e) => {
+            if (e.srcElement === this.svgRoot) {
+                document.body.style.cursor = 'crosshair';
+
+                const {offsetX, offsetY} = getOffset();
+                const x_0 = e.pageX + offsetX;
+                const y_0 = e.pageY + offsetY;
+                const frame = this.snap.rect(x_0, y_0, 0, 0);
+                frame.addClass('selector-frame');
+
+                const onMouseMove = (e) => {
+                    const x_1 = e.pageX + offsetX;
+                    const y_1 = e.pageY + offsetY;
+                    frame.attr('x', Math.min(x_0, x_1));
+                    frame.attr('y', Math.min(y_0, y_1));
+                    frame.attr('width', Math.abs(x_0 - x_1));
+                    frame.attr('height', Math.abs(y_0 - y_1));
+                };
+
+                const onMouseUp = (e) => {
+                    const x_1 = e.pageX + offsetX;
+                    const y_1 = e.pageY + offsetY;
+                    this._selectElements({x_0,y_0}, {x_1,y_1});
+                    frame.remove();
+                    this.svgRoot.removeEventListener('mousemove', onMouseMove);
+                    this.svgRoot.removeEventListener('mouseup', onMouseUp);
+                    document.body.style.cursor = '';
+                };
+
+                this.svgRoot.addEventListener('mousemove', onMouseMove);
+                this.svgRoot.addEventListener('mouseup', onMouseUp);
+
+                if (e.srcElement === this.svgRoot) {
+                    this.onOuterClick();
+                }
+            }
+        });
+    }
+
+    _createElement(square) {
+
+
+        const label = document.createElement('div');
+        label.classList.add('text-box');
+        label.innerHTML = `<span>${square.id}</span>`;
+        label.style.left = `${square.pos.x}px`;
+        label.style.top = `${square.pos.y}px`;
+        this.parentDiv.appendChild(label);
+
+        const element = this.snap.rect(square.pos.x, square.pos.y, SQUARE_SIZE, SQUARE_SIZE);
+        if(square.id === 'Start')
+            element.addClass('start');
+        element.addClass('passage');
+        element.data('entryId', square.id);
+        element.data('label', label);
+        element.drag(this._move, this._start, this._stop);
+        element.dblclick(this._dblClick);
+        element.click(this._click);
+        return element;
+    }
+
+    onDragStart(element) {
+        this._selectSingleElement(element);
+    };
+
+    onDragStop(element) {
+        const detail = {
+            id: element.data('entryId'),
+            x: element.attr('x'),
+            y: element.attr('y')
+        };
+        this.svgRoot.dispatchEvent(new CustomEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_ENTRY_MOVED, {detail}));
+    };
+
+    onClick(element) {
+        this._selectSingleElement(element);
+    }
+
+    getSelectedIds(){
+        return __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.values(this.squares)
+            .filter(square=>square.element.hasClass('selected'))
+            .map(square=>{console.log("e",square);return square.element.data('entryId')});
+    }
+
+    _selectionChanged(){
+        const selected = this.getSelectedIds();
+        this.svgRoot.dispatchEvent(new CustomEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_SELECTION_CHANGED, {detail:{selected}}));
+    }
+
+    _selectSingleElement(element) {
+        const clickedId = element.data('entryId');
+        console.log('inner', clickedId);
+        if (!element.hasClass('selected')) {
+            element.addClass('selected');
+            __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.values(this.squares).forEach((square) => {
+                if (square.element.data('entryId') !== clickedId) {
+                    square.element.removeClass('selected');
+                }
+            });
+            this._selectionChanged();
+        }
+    }
+
+    _selectElements({x_0, y_0}, {x_1, y_1}) {
+        const between = (test, bound_0, bound_1) => {
+            const max = Math.max(bound_0, bound_1);
+            const min = Math.min(bound_0, bound_1);
+            return (min <= test && test <= max);
+        };
+
+        __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.values(this.squares).forEach((square) => {
+            const x = Number.parseFloat(square.element.attr('x'));
+            const y = Number.parseFloat(square.element.attr('y'));
+            if(between(x,x_0,x_1) && between(y,y_0,y_1)){
+                square.element.addClass('selected');
+            }else{
+                square.element.removeClass('selected');
+            }
+        });
+        this._selectionChanged();
+    };
+
+    onOuterClick() {
+        __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.values(this.squares).forEach((square) => {
+            square.element.removeClass('selected');
+        });
+        this._selectionChanged();
+    }
+
+    onDblClick(element) {
+        const detail = {
+            id: element.data('entryId'),
+        };
+        this.svgRoot.dispatchEvent(new CustomEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_OPEN_EDITOR, {detail}));
+    };
+
+
+    clearConnections() {
+        this.connections.forEach((connection) => {
+            connection.line.remove();
+            connection.bg.remove();
+        });
+        this.connections = [];
+    }
+
+    recalculateConnections() {
+        this.clearConnections();
+        __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.values(this.squares).forEach((square) => {
+            const parentSquare = this.squares[square.id];
+            square.children.forEach((child) => {
+                const childSquare = this.squares[child];
+                if (childSquare) {
+                    const items = this.snap.connection(parentSquare.element, childSquare.element, "blue", "grey", CONNECTION_CONF);
+                    this.connections.push(items);
+                }
+            });
+        })
+    }
+
+    updateEntry(entry, oldId) {
+        // remove old entry
+        const toRemove = (typeof oldId !== 'undefined') ? oldId : entry.id;
+        this.removeEntry(toRemove);
+
+        // add new entry
+        this.squares[entry.id] = this.createSquare(entry);
+    }
+
+    removeEntry(entryId){
+        const square = this.squares[entryId];
+        if (square) {
+            const label = square.element.data('label');
+            label.remove();
+            square.element.remove();
+        }
+        delete this.squares[entryId]
+    }
+
+    createSquare(entry) {
+        return {
+            id: entry.id,
+            element: this._createElement(entry),
+            children: entry.children
+        };
+    }
+
+    /**
+     *
+     * @param {{id,pos,data,children}} entries
+     */
+    addEntries(entries) {
+        this.clearConnections();
+        entries.forEach((entry) => {
+            this.squares[entry.id] = this.createSquare(entry);
+        });
+        this.recalculateConnections();
+
+    }
+
+    getFreePosition() {
+        let x = 0;
+        let y = 0;
+        __WEBPACK_IMPORTED_MODULE_2_lodash___default.a.values(this.squares).forEach(square => {
+            const element = square.element;
+            x = Math.max(x, Number.parseFloat(element.attr('x')));
+            y = Math.max(y, Number.parseFloat(element.attr('y')));
+        });
+        x = x + SQUARE_SIZE + 10;
+        return {x, y};
+    }
+
+
+}
+
+
+/* harmony default export */ __webpack_exports__["a"] = (GraphUI);
+
+/***/ }),
+/* 28 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs__);
+
+
+//Add Some Plugins to SNAP
+
+//Source code from Dmitry at http://raphaeljs.com/graffle.html
+__WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs___default.a.plugin(function (Snap, Element, Paper, global) {
+
+    Paper.prototype.connection = function (obj1, obj2, line, bg, options) {
+        options = options || {};
+
+        //first argument is the created connection itself
+        //other arguements will be ignored then.
+        if (obj1.line && obj1.from && obj1.to) {
+            line = obj1;
+            obj1 = line.from;
+            obj2 = line.to;
+            options = line.options;
+        }
+
+        var bb1 = obj1.getBBox(),
+            bb2 = obj2.getBBox(),
+            p = [{x: bb1.x + bb1.width / 2, y: bb1.y - 1},
+                {x: bb1.x + bb1.width / 2, y: bb1.y + bb1.height + 1},
+                {x: bb1.x - 1, y: bb1.y + bb1.height / 2},
+                {x: bb1.x + bb1.width + 1, y: bb1.y + bb1.height / 2},
+                {x: bb2.x + bb2.width / 2, y: bb2.y - 1},
+                {x: bb2.x + bb2.width / 2, y: bb2.y + bb2.height + 1},
+                {x: bb2.x - 1, y: bb2.y + bb2.height / 2},
+                {x: bb2.x + bb2.width + 1, y: bb2.y + bb2.height / 2}],
+            d = {}, dis = [];
+
+
+        for (var i = 0; i < 4; i++) {
+            for (var j = 4; j < 8; j++) {
+                var dx = Math.abs(p[i].x - p[j].x),
+                    dy = Math.abs(p[i].y - p[j].y);
+                if ((i == j - 4) || (((i != 3 && j != 6) || p[i].x < p[j].x) && ((i != 2 && j != 7) || p[i].x > p[j].x) && ((i != 0 && j != 5) || p[i].y > p[j].y) && ((i != 1 && j != 4) || p[i].y < p[j].y))) {
+                    dis.push(dx + dy);
+                    d[dis[dis.length - 1]] = [i, j];
+                }
+            }
+        }
+        if (dis.length == 0) {
+            var res = [0, 4];
+        } else {
+            res = d[Math.min.apply(Math, dis)];
+        }
+        var x1 = p[res[0]].x,
+            y1 = p[res[0]].y,
+            x4 = p[res[1]].x,
+            y4 = p[res[1]].y;
+        dx = Math.max(Math.abs(x1 - x4) / 2, 10);
+        dy = Math.max(Math.abs(y1 - y4) / 2, 10);
+        var x2 = [x1, x1, x1 - dx, x1 + dx][res[0]].toFixed(3),
+            y2 = [y1 - dy, y1 + dy, y1, y1][res[0]].toFixed(3),
+            x3 = [0, 0, 0, 0, x4, x4, x4 - dx, x4 + dx][res[1]].toFixed(3),
+            y3 = [0, 0, 0, 0, y1 + dy, y1 - dy, y4, y4][res[1]].toFixed(3);
+        var path;
+        if (options.straight) {
+            path = "M" + [x1.toFixed(3), y1.toFixed(3)].join() + "L" + [x4.toFixed(3), y4.toFixed(3)].join();
+        } else {
+            console.log("CCC");
+            path = "M" + x1.toFixed(3) + "," + y1.toFixed(3) + "C" + [x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)].join();
+        }
+
+        if (line && line.line) {
+            line.bg && line.bg.attr({path: path});
+            line.line.attr({path: path});
+        } else {
+            var color = typeof line == "string" ? line : "yellow";
+            var attr = {stroke: color, fill: "none"};
+            if (options.directed) {
+                var arrowPath = this.path("M 2 59 L 293 148 L 1 243 L 121 151 Z").attr({
+                    fill: color,
+                    stroke: color,
+                    strokeWidth: 5
+                });
+                var arrowMarker = arrowPath.marker(0, 0, 8000, 8000, 250, 150).attr({
+                    markerUnits: 'strokeWidth',
+                    markerWidth: 300,
+                    markerHeight: 300,
+                    orient: "auto"
+                });
+
+                attr['markerEnd'] = arrowMarker;
+            }
+            return {
+                bg: bg && bg.split && this.path(path).attr({
+                    stroke: bg.split("|")[0],
+                    fill: "none",
+                    "stroke-width": bg.split("|")[1] || 3
+                }),
+                line: this.path(path).attr(attr),
+                from: obj1,
+                to: obj2,
+                options : options
+            };
+        }
+    }
+
+});
+
+
+/* harmony default export */ __webpack_exports__["a"] = (__WEBPACK_IMPORTED_MODULE_0_snapsvg_cjs___default.a);
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+window.eve = __webpack_require__(30)
+
+// Copyright (c) 2017 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+var mina = (function (eve) {
+    var animations = {},
+    requestAnimFrame = window.requestAnimationFrame       ||
+                       window.webkitRequestAnimationFrame ||
+                       window.mozRequestAnimationFrame    ||
+                       window.oRequestAnimationFrame      ||
+                       window.msRequestAnimationFrame     ||
+                       function (callback) {
+                           setTimeout(callback, 16, new Date().getTime());
+                           return true;
+                       },
+    requestID,
+    isArray = Array.isArray || function (a) {
+        return a instanceof Array ||
+            Object.prototype.toString.call(a) == "[object Array]";
+    },
+    idgen = 0,
+    idprefix = "M" + (+new Date).toString(36),
+    ID = function () {
+        return idprefix + (idgen++).toString(36);
+    },
+    diff = function (a, b, A, B) {
+        if (isArray(a)) {
+            res = [];
+            for (var i = 0, ii = a.length; i < ii; i++) {
+                res[i] = diff(a[i], b, A[i], B);
+            }
+            return res;
+        }
+        var dif = (A - a) / (B - b);
+        return function (bb) {
+            return a + dif * (bb - b);
+        };
+    },
+    timer = Date.now || function () {
+        return +new Date;
+    },
+    sta = function (val) {
+        var a = this;
+        if (val == null) {
+            return a.s;
+        }
+        var ds = a.s - val;
+        a.b += a.dur * ds;
+        a.B += a.dur * ds;
+        a.s = val;
+    },
+    speed = function (val) {
+        var a = this;
+        if (val == null) {
+            return a.spd;
+        }
+        a.spd = val;
+    },
+    duration = function (val) {
+        var a = this;
+        if (val == null) {
+            return a.dur;
+        }
+        a.s = a.s * val / a.dur;
+        a.dur = val;
+    },
+    stopit = function () {
+        var a = this;
+        delete animations[a.id];
+        a.update();
+        eve("mina.stop." + a.id, a);
+    },
+    pause = function () {
+        var a = this;
+        if (a.pdif) {
+            return;
+        }
+        delete animations[a.id];
+        a.update();
+        a.pdif = a.get() - a.b;
+    },
+    resume = function () {
+        var a = this;
+        if (!a.pdif) {
+            return;
+        }
+        a.b = a.get() - a.pdif;
+        delete a.pdif;
+        animations[a.id] = a;
+        frame();
+    },
+    update = function () {
+        var a = this,
+            res;
+        if (isArray(a.start)) {
+            res = [];
+            for (var j = 0, jj = a.start.length; j < jj; j++) {
+                res[j] = +a.start[j] +
+                    (a.end[j] - a.start[j]) * a.easing(a.s);
+            }
+        } else {
+            res = +a.start + (a.end - a.start) * a.easing(a.s);
+        }
+        a.set(res);
+    },
+    frame = function (timeStamp) {
+        // Manual invokation?
+        if (!timeStamp) {
+            // Frame loop stopped?
+            if (!requestID) {
+                // Start frame loop...
+                requestID = requestAnimFrame(frame);
+            }
+            return;
+        }
+        var len = 0;
+        for (var i in animations) if (animations.hasOwnProperty(i)) {
+            var a = animations[i],
+                b = a.get(),
+                res;
+            len++;
+            a.s = (b - a.b) / (a.dur / a.spd);
+            if (a.s >= 1) {
+                delete animations[i];
+                a.s = 1;
+                len--;
+                (function (a) {
+                    setTimeout(function () {
+                        eve("mina.finish." + a.id, a);
+                    });
+                }(a));
+            }
+            a.update();
+        }
+        requestID = len ? requestAnimFrame(frame) : false;
+    },
+    /*\
+     * mina
+     [ method ]
+     **
+     * Generic animation of numbers
+     **
+     - a (number) start _slave_ number
+     - A (number) end _slave_ number
+     - b (number) start _master_ number (start time in general case)
+     - B (number) end _master_ number (end time in general case)
+     - get (function) getter of _master_ number (see @mina.time)
+     - set (function) setter of _slave_ number
+     - easing (function) #optional easing function, default is @mina.linear
+     = (object) animation descriptor
+     o {
+     o         id (string) animation id,
+     o         start (number) start _slave_ number,
+     o         end (number) end _slave_ number,
+     o         b (number) start _master_ number,
+     o         s (number) animation status (0..1),
+     o         dur (number) animation duration,
+     o         spd (number) animation speed,
+     o         get (function) getter of _master_ number (see @mina.time),
+     o         set (function) setter of _slave_ number,
+     o         easing (function) easing function, default is @mina.linear,
+     o         status (function) status getter/setter,
+     o         speed (function) speed getter/setter,
+     o         duration (function) duration getter/setter,
+     o         stop (function) animation stopper
+     o         pause (function) pauses the animation
+     o         resume (function) resumes the animation
+     o         update (function) calles setter with the right value of the animation
+     o }
+    \*/
+    mina = function (a, A, b, B, get, set, easing) {
+        var anim = {
+            id: ID(),
+            start: a,
+            end: A,
+            b: b,
+            s: 0,
+            dur: B - b,
+            spd: 1,
+            get: get,
+            set: set,
+            easing: easing || mina.linear,
+            status: sta,
+            speed: speed,
+            duration: duration,
+            stop: stopit,
+            pause: pause,
+            resume: resume,
+            update: update
+        };
+        animations[anim.id] = anim;
+        var len = 0, i;
+        for (i in animations) if (animations.hasOwnProperty(i)) {
+            len++;
+            if (len == 2) {
+                break;
+            }
+        }
+        len == 1 && frame();
+        return anim;
+    };
+    /*\
+     * mina.time
+     [ method ]
+     **
+     * Returns the current time. Equivalent to:
+     | function () {
+     |     return (new Date).getTime();
+     | }
+    \*/
+    mina.time = timer;
+    /*\
+     * mina.getById
+     [ method ]
+     **
+     * Returns an animation by its id
+     - id (string) animation's id
+     = (object) See @mina
+    \*/
+    mina.getById = function (id) {
+        return animations[id] || null;
+    };
+
+    /*\
+     * mina.linear
+     [ method ]
+     **
+     * Default linear easing
+     - n (number) input 0..1
+     = (number) output 0..1
+    \*/
+    mina.linear = function (n) {
+        return n;
+    };
+    /*\
+     * mina.easeout
+     [ method ]
+     **
+     * Easeout easing
+     - n (number) input 0..1
+     = (number) output 0..1
+    \*/
+    mina.easeout = function (n) {
+        return Math.pow(n, 1.7);
+    };
+    /*\
+     * mina.easein
+     [ method ]
+     **
+     * Easein easing
+     - n (number) input 0..1
+     = (number) output 0..1
+    \*/
+    mina.easein = function (n) {
+        return Math.pow(n, .48);
+    };
+    /*\
+     * mina.easeinout
+     [ method ]
+     **
+     * Easeinout easing
+     - n (number) input 0..1
+     = (number) output 0..1
+    \*/
+    mina.easeinout = function (n) {
+        if (n == 1) {
+            return 1;
+        }
+        if (n == 0) {
+            return 0;
+        }
+        var q = .48 - n / 1.04,
+            Q = Math.sqrt(.1734 + q * q),
+            x = Q - q,
+            X = Math.pow(Math.abs(x), 1 / 3) * (x < 0 ? -1 : 1),
+            y = -Q - q,
+            Y = Math.pow(Math.abs(y), 1 / 3) * (y < 0 ? -1 : 1),
+            t = X + Y + .5;
+        return (1 - t) * 3 * t * t + t * t * t;
+    };
+    /*\
+     * mina.backin
+     [ method ]
+     **
+     * Backin easing
+     - n (number) input 0..1
+     = (number) output 0..1
+    \*/
+    mina.backin = function (n) {
+        if (n == 1) {
+            return 1;
+        }
+        var s = 1.70158;
+        return n * n * ((s + 1) * n - s);
+    };
+    /*\
+     * mina.backout
+     [ method ]
+     **
+     * Backout easing
+     - n (number) input 0..1
+     = (number) output 0..1
+    \*/
+    mina.backout = function (n) {
+        if (n == 0) {
+            return 0;
+        }
+        n = n - 1;
+        var s = 1.70158;
+        return n * n * ((s + 1) * n + s) + 1;
+    };
+    /*\
+     * mina.elastic
+     [ method ]
+     **
+     * Elastic easing
+     - n (number) input 0..1
+     = (number) output 0..1
+    \*/
+    mina.elastic = function (n) {
+        if (n == !!n) {
+            return n;
+        }
+        return Math.pow(2, -10 * n) * Math.sin((n - .075) *
+            (2 * Math.PI) / .3) + 1;
+    };
+    /*\
+     * mina.bounce
+     [ method ]
+     **
+     * Bounce easing
+     - n (number) input 0..1
+     = (number) output 0..1
+    \*/
+    mina.bounce = function (n) {
+        var s = 7.5625,
+            p = 2.75,
+            l;
+        if (n < 1 / p) {
+            l = s * n * n;
+        } else {
+            if (n < 2 / p) {
+                n -= 1.5 / p;
+                l = s * n * n + .75;
+            } else {
+                if (n < 2.5 / p) {
+                    n -= 2.25 / p;
+                    l = s * n * n + .9375;
+                } else {
+                    n -= 2.625 / p;
+                    l = s * n * n + .984375;
+                }
+            }
+        }
+        return l;
+    };
+    window.mina = mina;
+    return mina;
+})(typeof eve == "undefined" ? function () {} : eve);
+
+// Copyright (c) 2013 - 2017 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+var Snap = (function(root) {
+Snap.version = "0.5.1";
+/*\
+ * Snap
+ [ method ]
+ **
+ * Creates a drawing surface or wraps existing SVG element.
+ **
+ - width (number|string) width of surface
+ - height (number|string) height of surface
+ * or
+ - DOM (SVGElement) element to be wrapped into Snap structure
+ * or
+ - array (array) array of elements (will return set of elements)
+ * or
+ - query (string) CSS query selector
+ = (object) @Element
+\*/
+function Snap(w, h) {
+    if (w) {
+        if (w.nodeType) {
+            return wrap(w);
+        }
+        if (is(w, "array") && Snap.set) {
+            return Snap.set.apply(Snap, w);
+        }
+        if (w instanceof Element) {
+            return w;
+        }
+        if (h == null) {
+            try {
+                w = glob.doc.querySelector(String(w));
+                return wrap(w);
+            } catch (e) {
+                return null;
+            }
+        }
+    }
+    w = w == null ? "100%" : w;
+    h = h == null ? "100%" : h;
+    return new Paper(w, h);
+}
+Snap.toString = function () {
+    return "Snap v" + this.version;
+};
+Snap._ = {};
+var glob = {
+    win: root.window,
+    doc: root.window.document
+};
+Snap._.glob = glob;
+var has = "hasOwnProperty",
+    Str = String,
+    toFloat = parseFloat,
+    toInt = parseInt,
+    math = Math,
+    mmax = math.max,
+    mmin = math.min,
+    abs = math.abs,
+    pow = math.pow,
+    PI = math.PI,
+    round = math.round,
+    E = "",
+    S = " ",
+    objectToString = Object.prototype.toString,
+    ISURL = /^url\(['"]?([^\)]+?)['"]?\)$/i,
+    colourRegExp = /^\s*((#[a-f\d]{6})|(#[a-f\d]{3})|rgba?\(\s*([\d\.]+%?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+%?(?:\s*,\s*[\d\.]+%?)?)\s*\)|hsba?\(\s*([\d\.]+(?:deg|\xb0|%)?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+(?:%?\s*,\s*[\d\.]+)?%?)\s*\)|hsla?\(\s*([\d\.]+(?:deg|\xb0|%)?\s*,\s*[\d\.]+%?\s*,\s*[\d\.]+(?:%?\s*,\s*[\d\.]+)?%?)\s*\))\s*$/i,
+    bezierrg = /^(?:cubic-)?bezier\(([^,]+),([^,]+),([^,]+),([^\)]+)\)/,
+    separator = Snap._.separator = /[,\s]+/,
+    whitespace = /[\s]/g,
+    commaSpaces = /[\s]*,[\s]*/,
+    hsrg = {hs: 1, rg: 1},
+    pathCommand = /([a-z])[\s,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\s]*,?[\s]*)+)/ig,
+    tCommand = /([rstm])[\s,]*((-?\d*\.?\d*(?:e[\-+]?\d+)?[\s]*,?[\s]*)+)/ig,
+    pathValues = /(-?\d*\.?\d*(?:e[\-+]?\d+)?)[\s]*,?[\s]*/ig,
+    idgen = 0,
+    idprefix = "S" + (+new Date).toString(36),
+    ID = function (el) {
+        return (el && el.type ? el.type : E) + idprefix + (idgen++).toString(36);
+    },
+    xlink = "http://www.w3.org/1999/xlink",
+    xmlns = "http://www.w3.org/2000/svg",
+    hub = {},
+    /*\
+     * Snap.url
+     [ method ]
+     **
+     * Wraps path into `"url('<path>')"`.
+     - value (string) path
+     = (string) wrapped path
+    \*/
+    URL = Snap.url = function (url) {
+        return "url('#" + url + "')";
+    };
+
+function $(el, attr) {
+    if (attr) {
+        if (el == "#text") {
+            el = glob.doc.createTextNode(attr.text || attr["#text"] || "");
+        }
+        if (el == "#comment") {
+            el = glob.doc.createComment(attr.text || attr["#text"] || "");
+        }
+        if (typeof el == "string") {
+            el = $(el);
+        }
+        if (typeof attr == "string") {
+            if (el.nodeType == 1) {
+                if (attr.substring(0, 6) == "xlink:") {
+                    return el.getAttributeNS(xlink, attr.substring(6));
+                }
+                if (attr.substring(0, 4) == "xml:") {
+                    return el.getAttributeNS(xmlns, attr.substring(4));
+                }
+                return el.getAttribute(attr);
+            } else if (attr == "text") {
+                return el.nodeValue;
+            } else {
+                return null;
+            }
+        }
+        if (el.nodeType == 1) {
+            for (var key in attr) if (attr[has](key)) {
+                var val = Str(attr[key]);
+                if (val) {
+                    if (key.substring(0, 6) == "xlink:") {
+                        el.setAttributeNS(xlink, key.substring(6), val);
+                    } else if (key.substring(0, 4) == "xml:") {
+                        el.setAttributeNS(xmlns, key.substring(4), val);
+                    } else {
+                        el.setAttribute(key, val);
+                    }
+                } else {
+                    el.removeAttribute(key);
+                }
+            }
+        } else if ("text" in attr) {
+            el.nodeValue = attr.text;
+        }
+    } else {
+        el = glob.doc.createElementNS(xmlns, el);
+    }
+    return el;
+}
+Snap._.$ = $;
+Snap._.id = ID;
+function getAttrs(el) {
+    var attrs = el.attributes,
+        name,
+        out = {};
+    for (var i = 0; i < attrs.length; i++) {
+        if (attrs[i].namespaceURI == xlink) {
+            name = "xlink:";
+        } else {
+            name = "";
+        }
+        name += attrs[i].name;
+        out[name] = attrs[i].textContent;
+    }
+    return out;
+}
+function is(o, type) {
+    type = Str.prototype.toLowerCase.call(type);
+    if (type == "finite") {
+        return isFinite(o);
+    }
+    if (type == "array" &&
+        (o instanceof Array || Array.isArray && Array.isArray(o))) {
+        return true;
+    }
+    return  type == "null" && o === null ||
+            type == typeof o && o !== null ||
+            type == "object" && o === Object(o) ||
+            objectToString.call(o).slice(8, -1).toLowerCase() == type;
+}
+/*\
+ * Snap.format
+ [ method ]
+ **
+ * Replaces construction of type `{<name>}` to the corresponding argument
+ **
+ - token (string) string to format
+ - json (object) object which properties are used as a replacement
+ = (string) formatted string
+ > Usage
+ | // this draws a rectangular shape equivalent to "M10,20h40v50h-40z"
+ | paper.path(Snap.format("M{x},{y}h{dim.width}v{dim.height}h{dim['negative width']}z", {
+ |     x: 10,
+ |     y: 20,
+ |     dim: {
+ |         width: 40,
+ |         height: 50,
+ |         "negative width": -40
+ |     }
+ | }));
+\*/
+Snap.format = (function () {
+    var tokenRegex = /\{([^\}]+)\}/g,
+        objNotationRegex = /(?:(?:^|\.)(.+?)(?=\[|\.|$|\()|\[('|")(.+?)\2\])(\(\))?/g, // matches .xxxxx or ["xxxxx"] to run over object properties
+        replacer = function (all, key, obj) {
+            var res = obj;
+            key.replace(objNotationRegex, function (all, name, quote, quotedName, isFunc) {
+                name = name || quotedName;
+                if (res) {
+                    if (name in res) {
+                        res = res[name];
+                    }
+                    typeof res == "function" && isFunc && (res = res());
+                }
+            });
+            res = (res == null || res == obj ? all : res) + "";
+            return res;
+        };
+    return function (str, obj) {
+        return Str(str).replace(tokenRegex, function (all, key) {
+            return replacer(all, key, obj);
+        });
+    };
+})();
+function clone(obj) {
+    if (typeof obj == "function" || Object(obj) !== obj) {
+        return obj;
+    }
+    var res = new obj.constructor;
+    for (var key in obj) if (obj[has](key)) {
+        res[key] = clone(obj[key]);
+    }
+    return res;
+}
+Snap._.clone = clone;
+function repush(array, item) {
+    for (var i = 0, ii = array.length; i < ii; i++) if (array[i] === item) {
+        return array.push(array.splice(i, 1)[0]);
+    }
+}
+function cacher(f, scope, postprocessor) {
+    function newf() {
+        var arg = Array.prototype.slice.call(arguments, 0),
+            args = arg.join("\u2400"),
+            cache = newf.cache = newf.cache || {},
+            count = newf.count = newf.count || [];
+        if (cache[has](args)) {
+            repush(count, args);
+            return postprocessor ? postprocessor(cache[args]) : cache[args];
+        }
+        count.length >= 1e3 && delete cache[count.shift()];
+        count.push(args);
+        cache[args] = f.apply(scope, arg);
+        return postprocessor ? postprocessor(cache[args]) : cache[args];
+    }
+    return newf;
+}
+Snap._.cacher = cacher;
+function angle(x1, y1, x2, y2, x3, y3) {
+    if (x3 == null) {
+        var x = x1 - x2,
+            y = y1 - y2;
+        if (!x && !y) {
+            return 0;
+        }
+        return (180 + math.atan2(-y, -x) * 180 / PI + 360) % 360;
+    } else {
+        return angle(x1, y1, x3, y3) - angle(x2, y2, x3, y3);
+    }
+}
+function rad(deg) {
+    return deg % 360 * PI / 180;
+}
+function deg(rad) {
+    return rad * 180 / PI % 360;
+}
+function x_y() {
+    return this.x + S + this.y;
+}
+function x_y_w_h() {
+    return this.x + S + this.y + S + this.width + " \xd7 " + this.height;
+}
+
+/*\
+ * Snap.rad
+ [ method ]
+ **
+ * Transform angle to radians
+ - deg (number) angle in degrees
+ = (number) angle in radians
+\*/
+Snap.rad = rad;
+/*\
+ * Snap.deg
+ [ method ]
+ **
+ * Transform angle to degrees
+ - rad (number) angle in radians
+ = (number) angle in degrees
+\*/
+Snap.deg = deg;
+/*\
+ * Snap.sin
+ [ method ]
+ **
+ * Equivalent to `Math.sin()` only works with degrees, not radians.
+ - angle (number) angle in degrees
+ = (number) sin
+\*/
+Snap.sin = function (angle) {
+    return math.sin(Snap.rad(angle));
+};
+/*\
+ * Snap.tan
+ [ method ]
+ **
+ * Equivalent to `Math.tan()` only works with degrees, not radians.
+ - angle (number) angle in degrees
+ = (number) tan
+\*/
+Snap.tan = function (angle) {
+    return math.tan(Snap.rad(angle));
+};
+/*\
+ * Snap.cos
+ [ method ]
+ **
+ * Equivalent to `Math.cos()` only works with degrees, not radians.
+ - angle (number) angle in degrees
+ = (number) cos
+\*/
+Snap.cos = function (angle) {
+    return math.cos(Snap.rad(angle));
+};
+/*\
+ * Snap.asin
+ [ method ]
+ **
+ * Equivalent to `Math.asin()` only works with degrees, not radians.
+ - num (number) value
+ = (number) asin in degrees
+\*/
+Snap.asin = function (num) {
+    return Snap.deg(math.asin(num));
+};
+/*\
+ * Snap.acos
+ [ method ]
+ **
+ * Equivalent to `Math.acos()` only works with degrees, not radians.
+ - num (number) value
+ = (number) acos in degrees
+\*/
+Snap.acos = function (num) {
+    return Snap.deg(math.acos(num));
+};
+/*\
+ * Snap.atan
+ [ method ]
+ **
+ * Equivalent to `Math.atan()` only works with degrees, not radians.
+ - num (number) value
+ = (number) atan in degrees
+\*/
+Snap.atan = function (num) {
+    return Snap.deg(math.atan(num));
+};
+/*\
+ * Snap.atan2
+ [ method ]
+ **
+ * Equivalent to `Math.atan2()` only works with degrees, not radians.
+ - num (number) value
+ = (number) atan2 in degrees
+\*/
+Snap.atan2 = function (num) {
+    return Snap.deg(math.atan2(num));
+};
+/*\
+ * Snap.angle
+ [ method ]
+ **
+ * Returns an angle between two or three points
+ - x1 (number) x coord of first point
+ - y1 (number) y coord of first point
+ - x2 (number) x coord of second point
+ - y2 (number) y coord of second point
+ - x3 (number) #optional x coord of third point
+ - y3 (number) #optional y coord of third point
+ = (number) angle in degrees
+\*/
+Snap.angle = angle;
+/*\
+ * Snap.len
+ [ method ]
+ **
+ * Returns distance between two points
+ - x1 (number) x coord of first point
+ - y1 (number) y coord of first point
+ - x2 (number) x coord of second point
+ - y2 (number) y coord of second point
+ = (number) distance
+\*/
+Snap.len = function (x1, y1, x2, y2) {
+    return Math.sqrt(Snap.len2(x1, y1, x2, y2));
+};
+/*\
+ * Snap.len2
+ [ method ]
+ **
+ * Returns squared distance between two points
+ - x1 (number) x coord of first point
+ - y1 (number) y coord of first point
+ - x2 (number) x coord of second point
+ - y2 (number) y coord of second point
+ = (number) distance
+\*/
+Snap.len2 = function (x1, y1, x2, y2) {
+    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+};
+/*\
+ * Snap.closestPoint
+ [ method ]
+ **
+ * Returns closest point to a given one on a given path.
+ - path (Element) path element
+ - x (number) x coord of a point
+ - y (number) y coord of a point
+ = (object) in format
+ {
+    x (number) x coord of the point on the path
+    y (number) y coord of the point on the path
+    length (number) length of the path to the point
+    distance (number) distance from the given point to the path
+ }
+\*/
+// Copied from http://bl.ocks.org/mbostock/8027637
+Snap.closestPoint = function (path, x, y) {
+    function distance2(p) {
+        var dx = p.x - x,
+            dy = p.y - y;
+        return dx * dx + dy * dy;
+    }
+    var pathNode = path.node,
+        pathLength = pathNode.getTotalLength(),
+        precision = pathLength / pathNode.pathSegList.numberOfItems * .125,
+        best,
+        bestLength,
+        bestDistance = Infinity;
+
+    // linear scan for coarse approximation
+    for (var scan, scanLength = 0, scanDistance; scanLength <= pathLength; scanLength += precision) {
+        if ((scanDistance = distance2(scan = pathNode.getPointAtLength(scanLength))) < bestDistance) {
+            best = scan;
+            bestLength = scanLength;
+            bestDistance = scanDistance;
+        }
+    }
+
+    // binary search for precise estimate
+    precision *= .5;
+    while (precision > .5) {
+        var before,
+            after,
+            beforeLength,
+            afterLength,
+            beforeDistance,
+            afterDistance;
+        if ((beforeLength = bestLength - precision) >= 0 && (beforeDistance = distance2(before = pathNode.getPointAtLength(beforeLength))) < bestDistance) {
+            best = before;
+            bestLength = beforeLength;
+            bestDistance = beforeDistance;
+        } else if ((afterLength = bestLength + precision) <= pathLength && (afterDistance = distance2(after = pathNode.getPointAtLength(afterLength))) < bestDistance) {
+            best = after;
+            bestLength = afterLength;
+            bestDistance = afterDistance;
+        } else {
+            precision *= .5;
+        }
+    }
+
+    best = {
+        x: best.x,
+        y: best.y,
+        length: bestLength,
+        distance: Math.sqrt(bestDistance)
+    };
+    return best;
+}
+/*\
+ * Snap.is
+ [ method ]
+ **
+ * Handy replacement for the `typeof` operator
+ - o (…) any object or primitive
+ - type (string) name of the type, e.g., `string`, `function`, `number`, etc.
+ = (boolean) `true` if given value is of given type
+\*/
+Snap.is = is;
+/*\
+ * Snap.snapTo
+ [ method ]
+ **
+ * Snaps given value to given grid
+ - values (array|number) given array of values or step of the grid
+ - value (number) value to adjust
+ - tolerance (number) #optional maximum distance to the target value that would trigger the snap. Default is `10`.
+ = (number) adjusted value
+\*/
+Snap.snapTo = function (values, value, tolerance) {
+    tolerance = is(tolerance, "finite") ? tolerance : 10;
+    if (is(values, "array")) {
+        var i = values.length;
+        while (i--) if (abs(values[i] - value) <= tolerance) {
+            return values[i];
+        }
+    } else {
+        values = +values;
+        var rem = value % values;
+        if (rem < tolerance) {
+            return value - rem;
+        }
+        if (rem > values - tolerance) {
+            return value - rem + values;
+        }
+    }
+    return value;
+};
+// Colour
+/*\
+ * Snap.getRGB
+ [ method ]
+ **
+ * Parses color string as RGB object
+ - color (string) color string in one of the following formats:
+ # <ul>
+ #     <li>Color name (<code>red</code>, <code>green</code>, <code>cornflowerblue</code>, etc)</li>
+ #     <li>#••• — shortened HTML color: (<code>#000</code>, <code>#fc0</code>, etc.)</li>
+ #     <li>#•••••• — full length HTML color: (<code>#000000</code>, <code>#bd2300</code>)</li>
+ #     <li>rgb(•••, •••, •••) — red, green and blue channels values: (<code>rgb(200,&nbsp;100,&nbsp;0)</code>)</li>
+ #     <li>rgba(•••, •••, •••, •••) — also with opacity</li>
+ #     <li>rgb(•••%, •••%, •••%) — same as above, but in %: (<code>rgb(100%,&nbsp;175%,&nbsp;0%)</code>)</li>
+ #     <li>rgba(•••%, •••%, •••%, •••%) — also with opacity</li>
+ #     <li>hsb(•••, •••, •••) — hue, saturation and brightness values: (<code>hsb(0.5,&nbsp;0.25,&nbsp;1)</code>)</li>
+ #     <li>hsba(•••, •••, •••, •••) — also with opacity</li>
+ #     <li>hsb(•••%, •••%, •••%) — same as above, but in %</li>
+ #     <li>hsba(•••%, •••%, •••%, •••%) — also with opacity</li>
+ #     <li>hsl(•••, •••, •••) — hue, saturation and luminosity values: (<code>hsb(0.5,&nbsp;0.25,&nbsp;0.5)</code>)</li>
+ #     <li>hsla(•••, •••, •••, •••) — also with opacity</li>
+ #     <li>hsl(•••%, •••%, •••%) — same as above, but in %</li>
+ #     <li>hsla(•••%, •••%, •••%, •••%) — also with opacity</li>
+ # </ul>
+ * Note that `%` can be used any time: `rgb(20%, 255, 50%)`.
+ = (object) RGB object in the following format:
+ o {
+ o     r (number) red,
+ o     g (number) green,
+ o     b (number) blue,
+ o     hex (string) color in HTML/CSS format: #••••••,
+ o     error (boolean) true if string can't be parsed
+ o }
+\*/
+Snap.getRGB = cacher(function (colour) {
+    if (!colour || !!((colour = Str(colour)).indexOf("-") + 1)) {
+        return {r: -1, g: -1, b: -1, hex: "none", error: 1, toString: rgbtoString};
+    }
+    if (colour == "none") {
+        return {r: -1, g: -1, b: -1, hex: "none", toString: rgbtoString};
+    }
+    !(hsrg[has](colour.toLowerCase().substring(0, 2)) || colour.charAt() == "#") && (colour = toHex(colour));
+    if (!colour) {
+        return {r: -1, g: -1, b: -1, hex: "none", error: 1, toString: rgbtoString};
+    }
+    var res,
+        red,
+        green,
+        blue,
+        opacity,
+        t,
+        values,
+        rgb = colour.match(colourRegExp);
+    if (rgb) {
+        if (rgb[2]) {
+            blue = toInt(rgb[2].substring(5), 16);
+            green = toInt(rgb[2].substring(3, 5), 16);
+            red = toInt(rgb[2].substring(1, 3), 16);
+        }
+        if (rgb[3]) {
+            blue = toInt((t = rgb[3].charAt(3)) + t, 16);
+            green = toInt((t = rgb[3].charAt(2)) + t, 16);
+            red = toInt((t = rgb[3].charAt(1)) + t, 16);
+        }
+        if (rgb[4]) {
+            values = rgb[4].split(commaSpaces);
+            red = toFloat(values[0]);
+            values[0].slice(-1) == "%" && (red *= 2.55);
+            green = toFloat(values[1]);
+            values[1].slice(-1) == "%" && (green *= 2.55);
+            blue = toFloat(values[2]);
+            values[2].slice(-1) == "%" && (blue *= 2.55);
+            rgb[1].toLowerCase().slice(0, 4) == "rgba" && (opacity = toFloat(values[3]));
+            values[3] && values[3].slice(-1) == "%" && (opacity /= 100);
+        }
+        if (rgb[5]) {
+            values = rgb[5].split(commaSpaces);
+            red = toFloat(values[0]);
+            values[0].slice(-1) == "%" && (red /= 100);
+            green = toFloat(values[1]);
+            values[1].slice(-1) == "%" && (green /= 100);
+            blue = toFloat(values[2]);
+            values[2].slice(-1) == "%" && (blue /= 100);
+            (values[0].slice(-3) == "deg" || values[0].slice(-1) == "\xb0") && (red /= 360);
+            rgb[1].toLowerCase().slice(0, 4) == "hsba" && (opacity = toFloat(values[3]));
+            values[3] && values[3].slice(-1) == "%" && (opacity /= 100);
+            return Snap.hsb2rgb(red, green, blue, opacity);
+        }
+        if (rgb[6]) {
+            values = rgb[6].split(commaSpaces);
+            red = toFloat(values[0]);
+            values[0].slice(-1) == "%" && (red /= 100);
+            green = toFloat(values[1]);
+            values[1].slice(-1) == "%" && (green /= 100);
+            blue = toFloat(values[2]);
+            values[2].slice(-1) == "%" && (blue /= 100);
+            (values[0].slice(-3) == "deg" || values[0].slice(-1) == "\xb0") && (red /= 360);
+            rgb[1].toLowerCase().slice(0, 4) == "hsla" && (opacity = toFloat(values[3]));
+            values[3] && values[3].slice(-1) == "%" && (opacity /= 100);
+            return Snap.hsl2rgb(red, green, blue, opacity);
+        }
+        red = mmin(math.round(red), 255);
+        green = mmin(math.round(green), 255);
+        blue = mmin(math.round(blue), 255);
+        opacity = mmin(mmax(opacity, 0), 1);
+        rgb = {r: red, g: green, b: blue, toString: rgbtoString};
+        rgb.hex = "#" + (16777216 | blue | green << 8 | red << 16).toString(16).slice(1);
+        rgb.opacity = is(opacity, "finite") ? opacity : 1;
+        return rgb;
+    }
+    return {r: -1, g: -1, b: -1, hex: "none", error: 1, toString: rgbtoString};
+}, Snap);
+/*\
+ * Snap.hsb
+ [ method ]
+ **
+ * Converts HSB values to a hex representation of the color
+ - h (number) hue
+ - s (number) saturation
+ - b (number) value or brightness
+ = (string) hex representation of the color
+\*/
+Snap.hsb = cacher(function (h, s, b) {
+    return Snap.hsb2rgb(h, s, b).hex;
+});
+/*\
+ * Snap.hsl
+ [ method ]
+ **
+ * Converts HSL values to a hex representation of the color
+ - h (number) hue
+ - s (number) saturation
+ - l (number) luminosity
+ = (string) hex representation of the color
+\*/
+Snap.hsl = cacher(function (h, s, l) {
+    return Snap.hsl2rgb(h, s, l).hex;
+});
+/*\
+ * Snap.rgb
+ [ method ]
+ **
+ * Converts RGB values to a hex representation of the color
+ - r (number) red
+ - g (number) green
+ - b (number) blue
+ = (string) hex representation of the color
+\*/
+Snap.rgb = cacher(function (r, g, b, o) {
+    if (is(o, "finite")) {
+        var round = math.round;
+        return "rgba(" + [round(r), round(g), round(b), +o.toFixed(2)] + ")";
+    }
+    return "#" + (16777216 | b | g << 8 | r << 16).toString(16).slice(1);
+});
+var toHex = function (color) {
+    var i = glob.doc.getElementsByTagName("head")[0] || glob.doc.getElementsByTagName("svg")[0],
+        red = "rgb(255, 0, 0)";
+    toHex = cacher(function (color) {
+        if (color.toLowerCase() == "red") {
+            return red;
+        }
+        i.style.color = red;
+        i.style.color = color;
+        var out = glob.doc.defaultView.getComputedStyle(i, E).getPropertyValue("color");
+        return out == red ? null : out;
+    });
+    return toHex(color);
+},
+hsbtoString = function () {
+    return "hsb(" + [this.h, this.s, this.b] + ")";
+},
+hsltoString = function () {
+    return "hsl(" + [this.h, this.s, this.l] + ")";
+},
+rgbtoString = function () {
+    return this.opacity == 1 || this.opacity == null ?
+            this.hex :
+            "rgba(" + [this.r, this.g, this.b, this.opacity] + ")";
+},
+prepareRGB = function (r, g, b) {
+    if (g == null && is(r, "object") && "r" in r && "g" in r && "b" in r) {
+        b = r.b;
+        g = r.g;
+        r = r.r;
+    }
+    if (g == null && is(r, string)) {
+        var clr = Snap.getRGB(r);
+        r = clr.r;
+        g = clr.g;
+        b = clr.b;
+    }
+    if (r > 1 || g > 1 || b > 1) {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+    }
+
+    return [r, g, b];
+},
+packageRGB = function (r, g, b, o) {
+    r = math.round(r * 255);
+    g = math.round(g * 255);
+    b = math.round(b * 255);
+    var rgb = {
+        r: r,
+        g: g,
+        b: b,
+        opacity: is(o, "finite") ? o : 1,
+        hex: Snap.rgb(r, g, b),
+        toString: rgbtoString
+    };
+    is(o, "finite") && (rgb.opacity = o);
+    return rgb;
+};
+/*\
+ * Snap.color
+ [ method ]
+ **
+ * Parses the color string and returns an object featuring the color's component values
+ - clr (string) color string in one of the supported formats (see @Snap.getRGB)
+ = (object) Combined RGB/HSB object in the following format:
+ o {
+ o     r (number) red,
+ o     g (number) green,
+ o     b (number) blue,
+ o     hex (string) color in HTML/CSS format: #••••••,
+ o     error (boolean) `true` if string can't be parsed,
+ o     h (number) hue,
+ o     s (number) saturation,
+ o     v (number) value (brightness),
+ o     l (number) lightness
+ o }
+\*/
+Snap.color = function (clr) {
+    var rgb;
+    if (is(clr, "object") && "h" in clr && "s" in clr && "b" in clr) {
+        rgb = Snap.hsb2rgb(clr);
+        clr.r = rgb.r;
+        clr.g = rgb.g;
+        clr.b = rgb.b;
+        clr.opacity = 1;
+        clr.hex = rgb.hex;
+    } else if (is(clr, "object") && "h" in clr && "s" in clr && "l" in clr) {
+        rgb = Snap.hsl2rgb(clr);
+        clr.r = rgb.r;
+        clr.g = rgb.g;
+        clr.b = rgb.b;
+        clr.opacity = 1;
+        clr.hex = rgb.hex;
+    } else {
+        if (is(clr, "string")) {
+            clr = Snap.getRGB(clr);
+        }
+        if (is(clr, "object") && "r" in clr && "g" in clr && "b" in clr && !("error" in clr)) {
+            rgb = Snap.rgb2hsl(clr);
+            clr.h = rgb.h;
+            clr.s = rgb.s;
+            clr.l = rgb.l;
+            rgb = Snap.rgb2hsb(clr);
+            clr.v = rgb.b;
+        } else {
+            clr = {hex: "none"};
+            clr.r = clr.g = clr.b = clr.h = clr.s = clr.v = clr.l = -1;
+            clr.error = 1;
+        }
+    }
+    clr.toString = rgbtoString;
+    return clr;
+};
+/*\
+ * Snap.hsb2rgb
+ [ method ]
+ **
+ * Converts HSB values to an RGB object
+ - h (number) hue
+ - s (number) saturation
+ - v (number) value or brightness
+ = (object) RGB object in the following format:
+ o {
+ o     r (number) red,
+ o     g (number) green,
+ o     b (number) blue,
+ o     hex (string) color in HTML/CSS format: #••••••
+ o }
+\*/
+Snap.hsb2rgb = function (h, s, v, o) {
+    if (is(h, "object") && "h" in h && "s" in h && "b" in h) {
+        v = h.b;
+        s = h.s;
+        o = h.o;
+        h = h.h;
+    }
+    h *= 360;
+    var R, G, B, X, C;
+    h = h % 360 / 60;
+    C = v * s;
+    X = C * (1 - abs(h % 2 - 1));
+    R = G = B = v - C;
+
+    h = ~~h;
+    R += [C, X, 0, 0, X, C][h];
+    G += [X, C, C, X, 0, 0][h];
+    B += [0, 0, X, C, C, X][h];
+    return packageRGB(R, G, B, o);
+};
+/*\
+ * Snap.hsl2rgb
+ [ method ]
+ **
+ * Converts HSL values to an RGB object
+ - h (number) hue
+ - s (number) saturation
+ - l (number) luminosity
+ = (object) RGB object in the following format:
+ o {
+ o     r (number) red,
+ o     g (number) green,
+ o     b (number) blue,
+ o     hex (string) color in HTML/CSS format: #••••••
+ o }
+\*/
+Snap.hsl2rgb = function (h, s, l, o) {
+    if (is(h, "object") && "h" in h && "s" in h && "l" in h) {
+        l = h.l;
+        s = h.s;
+        h = h.h;
+    }
+    if (h > 1 || s > 1 || l > 1) {
+        h /= 360;
+        s /= 100;
+        l /= 100;
+    }
+    h *= 360;
+    var R, G, B, X, C;
+    h = h % 360 / 60;
+    C = 2 * s * (l < .5 ? l : 1 - l);
+    X = C * (1 - abs(h % 2 - 1));
+    R = G = B = l - C / 2;
+
+    h = ~~h;
+    R += [C, X, 0, 0, X, C][h];
+    G += [X, C, C, X, 0, 0][h];
+    B += [0, 0, X, C, C, X][h];
+    return packageRGB(R, G, B, o);
+};
+/*\
+ * Snap.rgb2hsb
+ [ method ]
+ **
+ * Converts RGB values to an HSB object
+ - r (number) red
+ - g (number) green
+ - b (number) blue
+ = (object) HSB object in the following format:
+ o {
+ o     h (number) hue,
+ o     s (number) saturation,
+ o     b (number) brightness
+ o }
+\*/
+Snap.rgb2hsb = function (r, g, b) {
+    b = prepareRGB(r, g, b);
+    r = b[0];
+    g = b[1];
+    b = b[2];
+
+    var H, S, V, C;
+    V = mmax(r, g, b);
+    C = V - mmin(r, g, b);
+    H = C == 0 ? null :
+        V == r ? (g - b) / C :
+        V == g ? (b - r) / C + 2 :
+                 (r - g) / C + 4;
+    H = (H + 360) % 6 * 60 / 360;
+    S = C == 0 ? 0 : C / V;
+    return {h: H, s: S, b: V, toString: hsbtoString};
+};
+/*\
+ * Snap.rgb2hsl
+ [ method ]
+ **
+ * Converts RGB values to an HSL object
+ - r (number) red
+ - g (number) green
+ - b (number) blue
+ = (object) HSL object in the following format:
+ o {
+ o     h (number) hue,
+ o     s (number) saturation,
+ o     l (number) luminosity
+ o }
+\*/
+Snap.rgb2hsl = function (r, g, b) {
+    b = prepareRGB(r, g, b);
+    r = b[0];
+    g = b[1];
+    b = b[2];
+
+    var H, S, L, M, m, C;
+    M = mmax(r, g, b);
+    m = mmin(r, g, b);
+    C = M - m;
+    H = C == 0 ? null :
+        M == r ? (g - b) / C :
+        M == g ? (b - r) / C + 2 :
+                 (r - g) / C + 4;
+    H = (H + 360) % 6 * 60 / 360;
+    L = (M + m) / 2;
+    S = C == 0 ? 0 :
+         L < .5 ? C / (2 * L) :
+                  C / (2 - 2 * L);
+    return {h: H, s: S, l: L, toString: hsltoString};
+};
+
+// Transformations
+/*\
+ * Snap.parsePathString
+ [ method ]
+ **
+ * Utility method
+ **
+ * Parses given path string into an array of arrays of path segments
+ - pathString (string|array) path string or array of segments (in the last case it is returned straight away)
+ = (array) array of segments
+\*/
+Snap.parsePathString = function (pathString) {
+    if (!pathString) {
+        return null;
+    }
+    var pth = Snap.path(pathString);
+    if (pth.arr) {
+        return Snap.path.clone(pth.arr);
+    }
+
+    var paramCounts = {a: 7, c: 6, o: 2, h: 1, l: 2, m: 2, r: 4, q: 4, s: 4, t: 2, v: 1, u: 3, z: 0},
+        data = [];
+    if (is(pathString, "array") && is(pathString[0], "array")) { // rough assumption
+        data = Snap.path.clone(pathString);
+    }
+    if (!data.length) {
+        Str(pathString).replace(pathCommand, function (a, b, c) {
+            var params = [],
+                name = b.toLowerCase();
+            c.replace(pathValues, function (a, b) {
+                b && params.push(+b);
+            });
+            if (name == "m" && params.length > 2) {
+                data.push([b].concat(params.splice(0, 2)));
+                name = "l";
+                b = b == "m" ? "l" : "L";
+            }
+            if (name == "o" && params.length == 1) {
+                data.push([b, params[0]]);
+            }
+            if (name == "r") {
+                data.push([b].concat(params));
+            } else while (params.length >= paramCounts[name]) {
+                data.push([b].concat(params.splice(0, paramCounts[name])));
+                if (!paramCounts[name]) {
+                    break;
+                }
+            }
+        });
+    }
+    data.toString = Snap.path.toString;
+    pth.arr = Snap.path.clone(data);
+    return data;
+};
+/*\
+ * Snap.parseTransformString
+ [ method ]
+ **
+ * Utility method
+ **
+ * Parses given transform string into an array of transformations
+ - TString (string|array) transform string or array of transformations (in the last case it is returned straight away)
+ = (array) array of transformations
+\*/
+var parseTransformString = Snap.parseTransformString = function (TString) {
+    if (!TString) {
+        return null;
+    }
+    var paramCounts = {r: 3, s: 4, t: 2, m: 6},
+        data = [];
+    if (is(TString, "array") && is(TString[0], "array")) { // rough assumption
+        data = Snap.path.clone(TString);
+    }
+    if (!data.length) {
+        Str(TString).replace(tCommand, function (a, b, c) {
+            var params = [],
+                name = b.toLowerCase();
+            c.replace(pathValues, function (a, b) {
+                b && params.push(+b);
+            });
+            data.push([b].concat(params));
+        });
+    }
+    data.toString = Snap.path.toString;
+    return data;
+};
+function svgTransform2string(tstr) {
+    var res = [];
+    tstr = tstr.replace(/(?:^|\s)(\w+)\(([^)]+)\)/g, function (all, name, params) {
+        params = params.split(/\s*,\s*|\s+/);
+        if (name == "rotate" && params.length == 1) {
+            params.push(0, 0);
+        }
+        if (name == "scale") {
+            if (params.length > 2) {
+                params = params.slice(0, 2);
+            } else if (params.length == 2) {
+                params.push(0, 0);
+            }
+            if (params.length == 1) {
+                params.push(params[0], 0, 0);
+            }
+        }
+        if (name == "skewX") {
+            res.push(["m", 1, 0, math.tan(rad(params[0])), 1, 0, 0]);
+        } else if (name == "skewY") {
+            res.push(["m", 1, math.tan(rad(params[0])), 0, 1, 0, 0]);
+        } else {
+            res.push([name.charAt(0)].concat(params));
+        }
+        return all;
+    });
+    return res;
+}
+Snap._.svgTransform2string = svgTransform2string;
+Snap._.rgTransform = /^[a-z][\s]*-?\.?\d/i;
+function transform2matrix(tstr, bbox) {
+    var tdata = parseTransformString(tstr),
+        m = new Snap.Matrix;
+    if (tdata) {
+        for (var i = 0, ii = tdata.length; i < ii; i++) {
+            var t = tdata[i],
+                tlen = t.length,
+                command = Str(t[0]).toLowerCase(),
+                absolute = t[0] != command,
+                inver = absolute ? m.invert() : 0,
+                x1,
+                y1,
+                x2,
+                y2,
+                bb;
+            if (command == "t" && tlen == 2){
+                m.translate(t[1], 0);
+            } else if (command == "t" && tlen == 3) {
+                if (absolute) {
+                    x1 = inver.x(0, 0);
+                    y1 = inver.y(0, 0);
+                    x2 = inver.x(t[1], t[2]);
+                    y2 = inver.y(t[1], t[2]);
+                    m.translate(x2 - x1, y2 - y1);
+                } else {
+                    m.translate(t[1], t[2]);
+                }
+            } else if (command == "r") {
+                if (tlen == 2) {
+                    bb = bb || bbox;
+                    m.rotate(t[1], bb.x + bb.width / 2, bb.y + bb.height / 2);
+                } else if (tlen == 4) {
+                    if (absolute) {
+                        x2 = inver.x(t[2], t[3]);
+                        y2 = inver.y(t[2], t[3]);
+                        m.rotate(t[1], x2, y2);
+                    } else {
+                        m.rotate(t[1], t[2], t[3]);
+                    }
+                }
+            } else if (command == "s") {
+                if (tlen == 2 || tlen == 3) {
+                    bb = bb || bbox;
+                    m.scale(t[1], t[tlen - 1], bb.x + bb.width / 2, bb.y + bb.height / 2);
+                } else if (tlen == 4) {
+                    if (absolute) {
+                        x2 = inver.x(t[2], t[3]);
+                        y2 = inver.y(t[2], t[3]);
+                        m.scale(t[1], t[1], x2, y2);
+                    } else {
+                        m.scale(t[1], t[1], t[2], t[3]);
+                    }
+                } else if (tlen == 5) {
+                    if (absolute) {
+                        x2 = inver.x(t[3], t[4]);
+                        y2 = inver.y(t[3], t[4]);
+                        m.scale(t[1], t[2], x2, y2);
+                    } else {
+                        m.scale(t[1], t[2], t[3], t[4]);
+                    }
+                }
+            } else if (command == "m" && tlen == 7) {
+                m.add(t[1], t[2], t[3], t[4], t[5], t[6]);
+            }
+        }
+    }
+    return m;
+}
+Snap._.transform2matrix = transform2matrix;
+Snap._unit2px = unit2px;
+var contains = glob.doc.contains || glob.doc.compareDocumentPosition ?
+    function (a, b) {
+        var adown = a.nodeType == 9 ? a.documentElement : a,
+            bup = b && b.parentNode;
+            return a == bup || !!(bup && bup.nodeType == 1 && (
+                adown.contains ?
+                    adown.contains(bup) :
+                    a.compareDocumentPosition && a.compareDocumentPosition(bup) & 16
+            ));
+    } :
+    function (a, b) {
+        if (b) {
+            while (b) {
+                b = b.parentNode;
+                if (b == a) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+function getSomeDefs(el) {
+    var p = el.node.ownerSVGElement && wrap(el.node.ownerSVGElement) ||
+            el.node.parentNode && wrap(el.node.parentNode) ||
+            Snap.select("svg") ||
+            Snap(0, 0),
+        pdefs = p.select("defs"),
+        defs  = pdefs == null ? false : pdefs.node;
+    if (!defs) {
+        defs = make("defs", p.node).node;
+    }
+    return defs;
+}
+function getSomeSVG(el) {
+    return el.node.ownerSVGElement && wrap(el.node.ownerSVGElement) || Snap.select("svg");
+}
+Snap._.getSomeDefs = getSomeDefs;
+Snap._.getSomeSVG = getSomeSVG;
+function unit2px(el, name, value) {
+    var svg = getSomeSVG(el).node,
+        out = {},
+        mgr = svg.querySelector(".svg---mgr");
+    if (!mgr) {
+        mgr = $("rect");
+        $(mgr, {x: -9e9, y: -9e9, width: 10, height: 10, "class": "svg---mgr", fill: "none"});
+        svg.appendChild(mgr);
+    }
+    function getW(val) {
+        if (val == null) {
+            return E;
+        }
+        if (val == +val) {
+            return val;
+        }
+        $(mgr, {width: val});
+        try {
+            return mgr.getBBox().width;
+        } catch (e) {
+            return 0;
+        }
+    }
+    function getH(val) {
+        if (val == null) {
+            return E;
+        }
+        if (val == +val) {
+            return val;
+        }
+        $(mgr, {height: val});
+        try {
+            return mgr.getBBox().height;
+        } catch (e) {
+            return 0;
+        }
+    }
+    function set(nam, f) {
+        if (name == null) {
+            out[nam] = f(el.attr(nam) || 0);
+        } else if (nam == name) {
+            out = f(value == null ? el.attr(nam) || 0 : value);
+        }
+    }
+    switch (el.type) {
+        case "rect":
+            set("rx", getW);
+            set("ry", getH);
+        case "image":
+            set("width", getW);
+            set("height", getH);
+        case "text":
+            set("x", getW);
+            set("y", getH);
+        break;
+        case "circle":
+            set("cx", getW);
+            set("cy", getH);
+            set("r", getW);
+        break;
+        case "ellipse":
+            set("cx", getW);
+            set("cy", getH);
+            set("rx", getW);
+            set("ry", getH);
+        break;
+        case "line":
+            set("x1", getW);
+            set("x2", getW);
+            set("y1", getH);
+            set("y2", getH);
+        break;
+        case "marker":
+            set("refX", getW);
+            set("markerWidth", getW);
+            set("refY", getH);
+            set("markerHeight", getH);
+        break;
+        case "radialGradient":
+            set("fx", getW);
+            set("fy", getH);
+        break;
+        case "tspan":
+            set("dx", getW);
+            set("dy", getH);
+        break;
+        default:
+            set(name, getW);
+    }
+    svg.removeChild(mgr);
+    return out;
+}
+/*\
+ * Snap.select
+ [ method ]
+ **
+ * Wraps a DOM element specified by CSS selector as @Element
+ - query (string) CSS selector of the element
+ = (Element) the current element
+\*/
+Snap.select = function (query) {
+    query = Str(query).replace(/([^\\]):/g, "$1\\:");
+    return wrap(glob.doc.querySelector(query));
+};
+/*\
+ * Snap.selectAll
+ [ method ]
+ **
+ * Wraps DOM elements specified by CSS selector as set or array of @Element
+ - query (string) CSS selector of the element
+ = (Element) the current element
+\*/
+Snap.selectAll = function (query) {
+    var nodelist = glob.doc.querySelectorAll(query),
+        set = (Snap.set || Array)();
+    for (var i = 0; i < nodelist.length; i++) {
+        set.push(wrap(nodelist[i]));
+    }
+    return set;
+};
+
+function add2group(list) {
+    if (!is(list, "array")) {
+        list = Array.prototype.slice.call(arguments, 0);
+    }
+    var i = 0,
+        j = 0,
+        node = this.node;
+    while (this[i]) delete this[i++];
+    for (i = 0; i < list.length; i++) {
+        if (list[i].type == "set") {
+            list[i].forEach(function (el) {
+                node.appendChild(el.node);
+            });
+        } else {
+            node.appendChild(list[i].node);
+        }
+    }
+    var children = node.childNodes;
+    for (i = 0; i < children.length; i++) {
+        this[j++] = wrap(children[i]);
+    }
+    return this;
+}
+// Hub garbage collector every 10s
+setInterval(function () {
+    for (var key in hub) if (hub[has](key)) {
+        var el = hub[key],
+            node = el.node;
+        if (el.type != "svg" && !node.ownerSVGElement || el.type == "svg" && (!node.parentNode || "ownerSVGElement" in node.parentNode && !node.ownerSVGElement)) {
+            delete hub[key];
+        }
+    }
+}, 1e4);
+function Element(el) {
+    if (el.snap in hub) {
+        return hub[el.snap];
+    }
+    var svg;
+    try {
+        svg = el.ownerSVGElement;
+    } catch(e) {}
+    /*\
+     * Element.node
+     [ property (object) ]
+     **
+     * Gives you a reference to the DOM object, so you can assign event handlers or just mess around.
+     > Usage
+     | // draw a circle at coordinate 10,10 with radius of 10
+     | var c = paper.circle(10, 10, 10);
+     | c.node.onclick = function () {
+     |     c.attr("fill", "red");
+     | };
+    \*/
+    this.node = el;
+    if (svg) {
+        this.paper = new Paper(svg);
+    }
+    /*\
+     * Element.type
+     [ property (string) ]
+     **
+     * SVG tag name of the given element.
+    \*/
+    this.type = el.tagName || el.nodeName;
+    var id = this.id = ID(this);
+    this.anims = {};
+    this._ = {
+        transform: []
+    };
+    el.snap = id;
+    hub[id] = this;
+    if (this.type == "g") {
+        this.add = add2group;
+    }
+    if (this.type in {g: 1, mask: 1, pattern: 1, symbol: 1}) {
+        for (var method in Paper.prototype) if (Paper.prototype[has](method)) {
+            this[method] = Paper.prototype[method];
+        }
+    }
+}
+   /*\
+     * Element.attr
+     [ method ]
+     **
+     * Gets or sets given attributes of the element.
+     **
+     - params (object) contains key-value pairs of attributes you want to set
+     * or
+     - param (string) name of the attribute
+     = (Element) the current element
+     * or
+     = (string) value of attribute
+     > Usage
+     | el.attr({
+     |     fill: "#fc0",
+     |     stroke: "#000",
+     |     strokeWidth: 2, // CamelCase...
+     |     "fill-opacity": 0.5, // or dash-separated names
+     |     width: "*=2" // prefixed values
+     | });
+     | console.log(el.attr("fill")); // #fc0
+     * Prefixed values in format `"+=10"` supported. All four operations
+     * (`+`, `-`, `*` and `/`) could be used. Optionally you can use units for `+`
+     * and `-`: `"+=2em"`.
+    \*/
+    Element.prototype.attr = function (params, value) {
+        var el = this,
+            node = el.node;
+        if (!params) {
+            if (node.nodeType != 1) {
+                return {
+                    text: node.nodeValue
+                };
+            }
+            var attr = node.attributes,
+                out = {};
+            for (var i = 0, ii = attr.length; i < ii; i++) {
+                out[attr[i].nodeName] = attr[i].nodeValue;
+            }
+            return out;
+        }
+        if (is(params, "string")) {
+            if (arguments.length > 1) {
+                var json = {};
+                json[params] = value;
+                params = json;
+            } else {
+                return eve("snap.util.getattr." + params, el).firstDefined();
+            }
+        }
+        for (var att in params) {
+            if (params[has](att)) {
+                eve("snap.util.attr." + att, el, params[att]);
+            }
+        }
+        return el;
+    };
+/*\
+ * Snap.parse
+ [ method ]
+ **
+ * Parses SVG fragment and converts it into a @Fragment
+ **
+ - svg (string) SVG string
+ = (Fragment) the @Fragment
+\*/
+Snap.parse = function (svg) {
+    var f = glob.doc.createDocumentFragment(),
+        full = true,
+        div = glob.doc.createElement("div");
+    svg = Str(svg);
+    if (!svg.match(/^\s*<\s*svg(?:\s|>)/)) {
+        svg = "<svg>" + svg + "</svg>";
+        full = false;
+    }
+    div.innerHTML = svg;
+    svg = div.getElementsByTagName("svg")[0];
+    if (svg) {
+        if (full) {
+            f = svg;
+        } else {
+            while (svg.firstChild) {
+                f.appendChild(svg.firstChild);
+            }
+        }
+    }
+    return new Fragment(f);
+};
+function Fragment(frag) {
+    this.node = frag;
+}
+/*\
+ * Snap.fragment
+ [ method ]
+ **
+ * Creates a DOM fragment from a given list of elements or strings
+ **
+ - varargs (…) SVG string
+ = (Fragment) the @Fragment
+\*/
+Snap.fragment = function () {
+    var args = Array.prototype.slice.call(arguments, 0),
+        f = glob.doc.createDocumentFragment();
+    for (var i = 0, ii = args.length; i < ii; i++) {
+        var item = args[i];
+        if (item.node && item.node.nodeType) {
+            f.appendChild(item.node);
+        }
+        if (item.nodeType) {
+            f.appendChild(item);
+        }
+        if (typeof item == "string") {
+            f.appendChild(Snap.parse(item).node);
+        }
+    }
+    return new Fragment(f);
+};
+
+function make(name, parent) {
+    var res = $(name);
+    parent.appendChild(res);
+    var el = wrap(res);
+    return el;
+}
+function Paper(w, h) {
+    var res,
+        desc,
+        defs,
+        proto = Paper.prototype;
+    if (w && w.tagName && w.tagName.toLowerCase() == "svg") {
+        if (w.snap in hub) {
+            return hub[w.snap];
+        }
+        var doc = w.ownerDocument;
+        res = new Element(w);
+        desc = w.getElementsByTagName("desc")[0];
+        defs = w.getElementsByTagName("defs")[0];
+        if (!desc) {
+            desc = $("desc");
+            desc.appendChild(doc.createTextNode("Created with Snap"));
+            res.node.appendChild(desc);
+        }
+        if (!defs) {
+            defs = $("defs");
+            res.node.appendChild(defs);
+        }
+        res.defs = defs;
+        for (var key in proto) if (proto[has](key)) {
+            res[key] = proto[key];
+        }
+        res.paper = res.root = res;
+    } else {
+        res = make("svg", glob.doc.body);
+        $(res.node, {
+            height: h,
+            version: 1.1,
+            width: w,
+            xmlns: xmlns
+        });
+    }
+    return res;
+}
+function wrap(dom) {
+    if (!dom) {
+        return dom;
+    }
+    if (dom instanceof Element || dom instanceof Fragment) {
+        return dom;
+    }
+    if (dom.tagName && dom.tagName.toLowerCase() == "svg") {
+        return new Paper(dom);
+    }
+    if (dom.tagName && dom.tagName.toLowerCase() == "object" && dom.type == "image/svg+xml") {
+        return new Paper(dom.contentDocument.getElementsByTagName("svg")[0]);
+    }
+    return new Element(dom);
+}
+
+Snap._.make = make;
+Snap._.wrap = wrap;
+/*\
+ * Paper.el
+ [ method ]
+ **
+ * Creates an element on paper with a given name and no attributes
+ **
+ - name (string) tag name
+ - attr (object) attributes
+ = (Element) the current element
+ > Usage
+ | var c = paper.circle(10, 10, 10); // is the same as...
+ | var c = paper.el("circle").attr({
+ |     cx: 10,
+ |     cy: 10,
+ |     r: 10
+ | });
+ | // and the same as
+ | var c = paper.el("circle", {
+ |     cx: 10,
+ |     cy: 10,
+ |     r: 10
+ | });
+\*/
+Paper.prototype.el = function (name, attr) {
+    var el = make(name, this.node);
+    attr && el.attr(attr);
+    return el;
+};
+/*\
+ * Element.children
+ [ method ]
+ **
+ * Returns array of all the children of the element.
+ = (array) array of Elements
+\*/
+Element.prototype.children = function () {
+    var out = [],
+        ch = this.node.childNodes;
+    for (var i = 0, ii = ch.length; i < ii; i++) {
+        out[i] = Snap(ch[i]);
+    }
+    return out;
+};
+function jsonFiller(root, o) {
+    for (var i = 0, ii = root.length; i < ii; i++) {
+        var item = {
+                type: root[i].type,
+                attr: root[i].attr()
+            },
+            children = root[i].children();
+        o.push(item);
+        if (children.length) {
+            jsonFiller(children, item.childNodes = []);
+        }
+    }
+}
+/*\
+ * Element.toJSON
+ [ method ]
+ **
+ * Returns object representation of the given element and all its children.
+ = (object) in format
+ o {
+ o     type (string) this.type,
+ o     attr (object) attributes map,
+ o     childNodes (array) optional array of children in the same format
+ o }
+\*/
+Element.prototype.toJSON = function () {
+    var out = [];
+    jsonFiller([this], out);
+    return out[0];
+};
+// default
+eve.on("snap.util.getattr", function () {
+    var att = eve.nt();
+    att = att.substring(att.lastIndexOf(".") + 1);
+    var css = att.replace(/[A-Z]/g, function (letter) {
+        return "-" + letter.toLowerCase();
+    });
+    if (cssAttr[has](css)) {
+        return this.node.ownerDocument.defaultView.getComputedStyle(this.node, null).getPropertyValue(css);
+    } else {
+        return $(this.node, att);
+    }
+});
+var cssAttr = {
+    "alignment-baseline": 0,
+    "baseline-shift": 0,
+    "clip": 0,
+    "clip-path": 0,
+    "clip-rule": 0,
+    "color": 0,
+    "color-interpolation": 0,
+    "color-interpolation-filters": 0,
+    "color-profile": 0,
+    "color-rendering": 0,
+    "cursor": 0,
+    "direction": 0,
+    "display": 0,
+    "dominant-baseline": 0,
+    "enable-background": 0,
+    "fill": 0,
+    "fill-opacity": 0,
+    "fill-rule": 0,
+    "filter": 0,
+    "flood-color": 0,
+    "flood-opacity": 0,
+    "font": 0,
+    "font-family": 0,
+    "font-size": 0,
+    "font-size-adjust": 0,
+    "font-stretch": 0,
+    "font-style": 0,
+    "font-variant": 0,
+    "font-weight": 0,
+    "glyph-orientation-horizontal": 0,
+    "glyph-orientation-vertical": 0,
+    "image-rendering": 0,
+    "kerning": 0,
+    "letter-spacing": 0,
+    "lighting-color": 0,
+    "marker": 0,
+    "marker-end": 0,
+    "marker-mid": 0,
+    "marker-start": 0,
+    "mask": 0,
+    "opacity": 0,
+    "overflow": 0,
+    "pointer-events": 0,
+    "shape-rendering": 0,
+    "stop-color": 0,
+    "stop-opacity": 0,
+    "stroke": 0,
+    "stroke-dasharray": 0,
+    "stroke-dashoffset": 0,
+    "stroke-linecap": 0,
+    "stroke-linejoin": 0,
+    "stroke-miterlimit": 0,
+    "stroke-opacity": 0,
+    "stroke-width": 0,
+    "text-anchor": 0,
+    "text-decoration": 0,
+    "text-rendering": 0,
+    "unicode-bidi": 0,
+    "visibility": 0,
+    "word-spacing": 0,
+    "writing-mode": 0
+};
+
+eve.on("snap.util.attr", function (value) {
+    var att = eve.nt(),
+        attr = {};
+    att = att.substring(att.lastIndexOf(".") + 1);
+    attr[att] = value;
+    var style = att.replace(/-(\w)/gi, function (all, letter) {
+            return letter.toUpperCase();
+        }),
+        css = att.replace(/[A-Z]/g, function (letter) {
+            return "-" + letter.toLowerCase();
+        });
+    if (cssAttr[has](css)) {
+        this.node.style[style] = value == null ? E : value;
+    } else {
+        $(this.node, attr);
+    }
+});
+(function (proto) {}(Paper.prototype));
+
+// simple ajax
+/*\
+ * Snap.ajax
+ [ method ]
+ **
+ * Simple implementation of Ajax
+ **
+ - url (string) URL
+ - postData (object|string) data for post request
+ - callback (function) callback
+ - scope (object) #optional scope of callback
+ * or
+ - url (string) URL
+ - callback (function) callback
+ - scope (object) #optional scope of callback
+ = (XMLHttpRequest) the XMLHttpRequest object, just in case
+\*/
+Snap.ajax = function (url, postData, callback, scope){
+    var req = new XMLHttpRequest,
+        id = ID();
+    if (req) {
+        if (is(postData, "function")) {
+            scope = callback;
+            callback = postData;
+            postData = null;
+        } else if (is(postData, "object")) {
+            var pd = [];
+            for (var key in postData) if (postData.hasOwnProperty(key)) {
+                pd.push(encodeURIComponent(key) + "=" + encodeURIComponent(postData[key]));
+            }
+            postData = pd.join("&");
+        }
+        req.open(postData ? "POST" : "GET", url, true);
+        if (postData) {
+            req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        }
+        if (callback) {
+            eve.once("snap.ajax." + id + ".0", callback);
+            eve.once("snap.ajax." + id + ".200", callback);
+            eve.once("snap.ajax." + id + ".304", callback);
+        }
+        req.onreadystatechange = function() {
+            if (req.readyState != 4) return;
+            eve("snap.ajax." + id + "." + req.status, scope, req);
+        };
+        if (req.readyState == 4) {
+            return req;
+        }
+        req.send(postData);
+        return req;
+    }
+};
+/*\
+ * Snap.load
+ [ method ]
+ **
+ * Loads external SVG file as a @Fragment (see @Snap.ajax for more advanced AJAX)
+ **
+ - url (string) URL
+ - callback (function) callback
+ - scope (object) #optional scope of callback
+\*/
+Snap.load = function (url, callback, scope) {
+    Snap.ajax(url, function (req) {
+        var f = Snap.parse(req.responseText);
+        scope ? callback.call(scope, f) : callback(f);
+    });
+};
+var getOffset = function (elem) {
+    var box = elem.getBoundingClientRect(),
+        doc = elem.ownerDocument,
+        body = doc.body,
+        docElem = doc.documentElement,
+        clientTop = docElem.clientTop || body.clientTop || 0, clientLeft = docElem.clientLeft || body.clientLeft || 0,
+        top  = box.top  + (g.win.pageYOffset || docElem.scrollTop || body.scrollTop ) - clientTop,
+        left = box.left + (g.win.pageXOffset || docElem.scrollLeft || body.scrollLeft) - clientLeft;
+    return {
+        y: top,
+        x: left
+    };
+};
+/*\
+ * Snap.getElementByPoint
+ [ method ]
+ **
+ * Returns you topmost element under given point.
+ **
+ = (object) Snap element object
+ - x (number) x coordinate from the top left corner of the window
+ - y (number) y coordinate from the top left corner of the window
+ > Usage
+ | Snap.getElementByPoint(mouseX, mouseY).attr({stroke: "#f00"});
+\*/
+Snap.getElementByPoint = function (x, y) {
+    var paper = this,
+        svg = paper.canvas,
+        target = glob.doc.elementFromPoint(x, y);
+    if (glob.win.opera && target.tagName == "svg") {
+        var so = getOffset(target),
+            sr = target.createSVGRect();
+        sr.x = x - so.x;
+        sr.y = y - so.y;
+        sr.width = sr.height = 1;
+        var hits = target.getIntersectionList(sr, null);
+        if (hits.length) {
+            target = hits[hits.length - 1];
+        }
+    }
+    if (!target) {
+        return null;
+    }
+    return wrap(target);
+};
+/*\
+ * Snap.plugin
+ [ method ]
+ **
+ * Let you write plugins. You pass in a function with five arguments, like this:
+ | Snap.plugin(function (Snap, Element, Paper, global, Fragment) {
+ |     Snap.newmethod = function () {};
+ |     Element.prototype.newmethod = function () {};
+ |     Paper.prototype.newmethod = function () {};
+ | });
+ * Inside the function you have access to all main objects (and their
+ * prototypes). This allow you to extend anything you want.
+ **
+ - f (function) your plugin body
+\*/
+Snap.plugin = function (f) {
+    f(Snap, Element, Paper, glob, Fragment);
+};
+glob.win.Snap = Snap;
+return Snap;
+}(window || this));
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
+    var elproto = Element.prototype,
+        is = Snap.is,
+        Str = String,
+        unit2px = Snap._unit2px,
+        $ = Snap._.$,
+        make = Snap._.make,
+        getSomeDefs = Snap._.getSomeDefs,
+        has = "hasOwnProperty",
+        wrap = Snap._.wrap;
+    /*\
+     * Element.getBBox
+     [ method ]
+     **
+     * Returns the bounding box descriptor for the given element
+     **
+     = (object) bounding box descriptor:
+     o {
+     o     cx: (number) x of the center,
+     o     cy: (number) x of the center,
+     o     h: (number) height,
+     o     height: (number) height,
+     o     path: (string) path command for the box,
+     o     r0: (number) radius of a circle that fully encloses the box,
+     o     r1: (number) radius of the smallest circle that can be enclosed,
+     o     r2: (number) radius of the largest circle that can be enclosed,
+     o     vb: (string) box as a viewbox command,
+     o     w: (number) width,
+     o     width: (number) width,
+     o     x2: (number) x of the right side,
+     o     x: (number) x of the left side,
+     o     y2: (number) y of the bottom edge,
+     o     y: (number) y of the top edge
+     o }
+    \*/
+    elproto.getBBox = function (isWithoutTransform) {
+        if (this.type == "tspan") {
+            return Snap._.box(this.node.getClientRects().item(0));
+        }
+        if (!Snap.Matrix || !Snap.path) {
+            return this.node.getBBox();
+        }
+        var el = this,
+            m = new Snap.Matrix;
+        if (el.removed) {
+            return Snap._.box();
+        }
+        while (el.type == "use") {
+            if (!isWithoutTransform) {
+                m = m.add(el.transform().localMatrix.translate(el.attr("x") || 0, el.attr("y") || 0));
+            }
+            if (el.original) {
+                el = el.original;
+            } else {
+                var href = el.attr("xlink:href");
+                el = el.original = el.node.ownerDocument.getElementById(href.substring(href.indexOf("#") + 1));
+            }
+        }
+        var _ = el._,
+            pathfinder = Snap.path.get[el.type] || Snap.path.get.deflt;
+        try {
+            if (isWithoutTransform) {
+                _.bboxwt = pathfinder ? Snap.path.getBBox(el.realPath = pathfinder(el)) : Snap._.box(el.node.getBBox());
+                return Snap._.box(_.bboxwt);
+            } else {
+                el.realPath = pathfinder(el);
+                el.matrix = el.transform().localMatrix;
+                _.bbox = Snap.path.getBBox(Snap.path.map(el.realPath, m.add(el.matrix)));
+                return Snap._.box(_.bbox);
+            }
+        } catch (e) {
+            // Firefox doesn’t give you bbox of hidden element
+            return Snap._.box();
+        }
+    };
+    var propString = function () {
+        return this.string;
+    };
+    function extractTransform(el, tstr) {
+        if (tstr == null) {
+            var doReturn = true;
+            if (el.type == "linearGradient" || el.type == "radialGradient") {
+                tstr = el.node.getAttribute("gradientTransform");
+            } else if (el.type == "pattern") {
+                tstr = el.node.getAttribute("patternTransform");
+            } else {
+                tstr = el.node.getAttribute("transform");
+            }
+            if (!tstr) {
+                return new Snap.Matrix;
+            }
+            tstr = Snap._.svgTransform2string(tstr);
+        } else {
+            if (!Snap._.rgTransform.test(tstr)) {
+                tstr = Snap._.svgTransform2string(tstr);
+            } else {
+                tstr = Str(tstr).replace(/\.{3}|\u2026/g, el._.transform || "");
+            }
+            if (is(tstr, "array")) {
+                tstr = Snap.path ? Snap.path.toString.call(tstr) : Str(tstr);
+            }
+            el._.transform = tstr;
+        }
+        var m = Snap._.transform2matrix(tstr, el.getBBox(1));
+        if (doReturn) {
+            return m;
+        } else {
+            el.matrix = m;
+        }
+    }
+    /*\
+     * Element.transform
+     [ method ]
+     **
+     * Gets or sets transformation of the element
+     **
+     - tstr (string) transform string in Snap or SVG format
+     = (Element) the current element
+     * or
+     = (object) transformation descriptor:
+     o {
+     o     string (string) transform string,
+     o     globalMatrix (Matrix) matrix of all transformations applied to element or its parents,
+     o     localMatrix (Matrix) matrix of transformations applied only to the element,
+     o     diffMatrix (Matrix) matrix of difference between global and local transformations,
+     o     global (string) global transformation as string,
+     o     local (string) local transformation as string,
+     o     toString (function) returns `string` property
+     o }
+    \*/
+    elproto.transform = function (tstr) {
+        var _ = this._;
+        if (tstr == null) {
+            var papa = this,
+                global = new Snap.Matrix(this.node.getCTM()),
+                local = extractTransform(this),
+                ms = [local],
+                m = new Snap.Matrix,
+                i,
+                localString = local.toTransformString(),
+                string = Str(local) == Str(this.matrix) ?
+                            Str(_.transform) : localString;
+            while (papa.type != "svg" && (papa = papa.parent())) {
+                ms.push(extractTransform(papa));
+            }
+            i = ms.length;
+            while (i--) {
+                m.add(ms[i]);
+            }
+            return {
+                string: string,
+                globalMatrix: global,
+                totalMatrix: m,
+                localMatrix: local,
+                diffMatrix: global.clone().add(local.invert()),
+                global: global.toTransformString(),
+                total: m.toTransformString(),
+                local: localString,
+                toString: propString
+            };
+        }
+        if (tstr instanceof Snap.Matrix) {
+            this.matrix = tstr;
+            this._.transform = tstr.toTransformString();
+        } else {
+            extractTransform(this, tstr);
+        }
+
+        if (this.node) {
+            if (this.type == "linearGradient" || this.type == "radialGradient") {
+                $(this.node, {gradientTransform: this.matrix});
+            } else if (this.type == "pattern") {
+                $(this.node, {patternTransform: this.matrix});
+            } else {
+                $(this.node, {transform: this.matrix});
+            }
+        }
+
+        return this;
+    };
+    /*\
+     * Element.parent
+     [ method ]
+     **
+     * Returns the element's parent
+     **
+     = (Element) the parent element
+    \*/
+    elproto.parent = function () {
+        return wrap(this.node.parentNode);
+    };
+    /*\
+     * Element.append
+     [ method ]
+     **
+     * Appends the given element to current one
+     **
+     - el (Element|Set) element to append
+     = (Element) the parent element
+    \*/
+    /*\
+     * Element.add
+     [ method ]
+     **
+     * See @Element.append
+    \*/
+    elproto.append = elproto.add = function (el) {
+        if (el) {
+            if (el.type == "set") {
+                var it = this;
+                el.forEach(function (el) {
+                    it.add(el);
+                });
+                return this;
+            }
+            el = wrap(el);
+            this.node.appendChild(el.node);
+            el.paper = this.paper;
+        }
+        return this;
+    };
+    /*\
+     * Element.appendTo
+     [ method ]
+     **
+     * Appends the current element to the given one
+     **
+     - el (Element) parent element to append to
+     = (Element) the child element
+    \*/
+    elproto.appendTo = function (el) {
+        if (el) {
+            el = wrap(el);
+            el.append(this);
+        }
+        return this;
+    };
+    /*\
+     * Element.prepend
+     [ method ]
+     **
+     * Prepends the given element to the current one
+     **
+     - el (Element) element to prepend
+     = (Element) the parent element
+    \*/
+    elproto.prepend = function (el) {
+        if (el) {
+            if (el.type == "set") {
+                var it = this,
+                    first;
+                el.forEach(function (el) {
+                    if (first) {
+                        first.after(el);
+                    } else {
+                        it.prepend(el);
+                    }
+                    first = el;
+                });
+                return this;
+            }
+            el = wrap(el);
+            var parent = el.parent();
+            this.node.insertBefore(el.node, this.node.firstChild);
+            this.add && this.add();
+            el.paper = this.paper;
+            this.parent() && this.parent().add();
+            parent && parent.add();
+        }
+        return this;
+    };
+    /*\
+     * Element.prependTo
+     [ method ]
+     **
+     * Prepends the current element to the given one
+     **
+     - el (Element) parent element to prepend to
+     = (Element) the child element
+    \*/
+    elproto.prependTo = function (el) {
+        el = wrap(el);
+        el.prepend(this);
+        return this;
+    };
+    /*\
+     * Element.before
+     [ method ]
+     **
+     * Inserts given element before the current one
+     **
+     - el (Element) element to insert
+     = (Element) the parent element
+    \*/
+    elproto.before = function (el) {
+        if (el.type == "set") {
+            var it = this;
+            el.forEach(function (el) {
+                var parent = el.parent();
+                it.node.parentNode.insertBefore(el.node, it.node);
+                parent && parent.add();
+            });
+            this.parent().add();
+            return this;
+        }
+        el = wrap(el);
+        var parent = el.parent();
+        this.node.parentNode.insertBefore(el.node, this.node);
+        this.parent() && this.parent().add();
+        parent && parent.add();
+        el.paper = this.paper;
+        return this;
+    };
+    /*\
+     * Element.after
+     [ method ]
+     **
+     * Inserts given element after the current one
+     **
+     - el (Element) element to insert
+     = (Element) the parent element
+    \*/
+    elproto.after = function (el) {
+        el = wrap(el);
+        var parent = el.parent();
+        if (this.node.nextSibling) {
+            this.node.parentNode.insertBefore(el.node, this.node.nextSibling);
+        } else {
+            this.node.parentNode.appendChild(el.node);
+        }
+        this.parent() && this.parent().add();
+        parent && parent.add();
+        el.paper = this.paper;
+        return this;
+    };
+    /*\
+     * Element.insertBefore
+     [ method ]
+     **
+     * Inserts the element after the given one
+     **
+     - el (Element) element next to whom insert to
+     = (Element) the parent element
+    \*/
+    elproto.insertBefore = function (el) {
+        el = wrap(el);
+        var parent = this.parent();
+        el.node.parentNode.insertBefore(this.node, el.node);
+        this.paper = el.paper;
+        parent && parent.add();
+        el.parent() && el.parent().add();
+        return this;
+    };
+    /*\
+     * Element.insertAfter
+     [ method ]
+     **
+     * Inserts the element after the given one
+     **
+     - el (Element) element next to whom insert to
+     = (Element) the parent element
+    \*/
+    elproto.insertAfter = function (el) {
+        el = wrap(el);
+        var parent = this.parent();
+        el.node.parentNode.insertBefore(this.node, el.node.nextSibling);
+        this.paper = el.paper;
+        parent && parent.add();
+        el.parent() && el.parent().add();
+        return this;
+    };
+    /*\
+     * Element.remove
+     [ method ]
+     **
+     * Removes element from the DOM
+     = (Element) the detached element
+    \*/
+    elproto.remove = function () {
+        var parent = this.parent();
+        this.node.parentNode && this.node.parentNode.removeChild(this.node);
+        delete this.paper;
+        this.removed = true;
+        parent && parent.add();
+        return this;
+    };
+    /*\
+     * Element.select
+     [ method ]
+     **
+     * Gathers the nested @Element matching the given set of CSS selectors
+     **
+     - query (string) CSS selector
+     = (Element) result of query selection
+    \*/
+    elproto.select = function (query) {
+        return wrap(this.node.querySelector(query));
+    };
+    /*\
+     * Element.selectAll
+     [ method ]
+     **
+     * Gathers nested @Element objects matching the given set of CSS selectors
+     **
+     - query (string) CSS selector
+     = (Set|array) result of query selection
+    \*/
+    elproto.selectAll = function (query) {
+        var nodelist = this.node.querySelectorAll(query),
+            set = (Snap.set || Array)();
+        for (var i = 0; i < nodelist.length; i++) {
+            set.push(wrap(nodelist[i]));
+        }
+        return set;
+    };
+    /*\
+     * Element.asPX
+     [ method ]
+     **
+     * Returns given attribute of the element as a `px` value (not %, em, etc.)
+     **
+     - attr (string) attribute name
+     - value (string) #optional attribute value
+     = (Element) result of query selection
+    \*/
+    elproto.asPX = function (attr, value) {
+        if (value == null) {
+            value = this.attr(attr);
+        }
+        return +unit2px(this, attr, value);
+    };
+    // SIERRA Element.use(): I suggest adding a note about how to access the original element the returned <use> instantiates. It's a part of SVG with which ordinary web developers may be least familiar.
+    /*\
+     * Element.use
+     [ method ]
+     **
+     * Creates a `<use>` element linked to the current element
+     **
+     = (Element) the `<use>` element
+    \*/
+    elproto.use = function () {
+        var use,
+            id = this.node.id;
+        if (!id) {
+            id = this.id;
+            $(this.node, {
+                id: id
+            });
+        }
+        if (this.type == "linearGradient" || this.type == "radialGradient" ||
+            this.type == "pattern") {
+            use = make(this.type, this.node.parentNode);
+        } else {
+            use = make("use", this.node.parentNode);
+        }
+        $(use.node, {
+            "xlink:href": "#" + id
+        });
+        use.original = this;
+        return use;
+    };
+    function fixids(el) {
+        var els = el.selectAll("*"),
+            it,
+            url = /^\s*url\(("|'|)(.*)\1\)\s*$/,
+            ids = [],
+            uses = {};
+        function urltest(it, name) {
+            var val = $(it.node, name);
+            val = val && val.match(url);
+            val = val && val[2];
+            if (val && val.charAt() == "#") {
+                val = val.substring(1);
+            } else {
+                return;
+            }
+            if (val) {
+                uses[val] = (uses[val] || []).concat(function (id) {
+                    var attr = {};
+                    attr[name] = Snap.url(id);
+                    $(it.node, attr);
+                });
+            }
+        }
+        function linktest(it) {
+            var val = $(it.node, "xlink:href");
+            if (val && val.charAt() == "#") {
+                val = val.substring(1);
+            } else {
+                return;
+            }
+            if (val) {
+                uses[val] = (uses[val] || []).concat(function (id) {
+                    it.attr("xlink:href", "#" + id);
+                });
+            }
+        }
+        for (var i = 0, ii = els.length; i < ii; i++) {
+            it = els[i];
+            urltest(it, "fill");
+            urltest(it, "stroke");
+            urltest(it, "filter");
+            urltest(it, "mask");
+            urltest(it, "clip-path");
+            linktest(it);
+            var oldid = $(it.node, "id");
+            if (oldid) {
+                $(it.node, {id: it.id});
+                ids.push({
+                    old: oldid,
+                    id: it.id
+                });
+            }
+        }
+        for (i = 0, ii = ids.length; i < ii; i++) {
+            var fs = uses[ids[i].old];
+            if (fs) {
+                for (var j = 0, jj = fs.length; j < jj; j++) {
+                    fs[j](ids[i].id);
+                }
+            }
+        }
+    }
+    /*\
+     * Element.clone
+     [ method ]
+     **
+     * Creates a clone of the element and inserts it after the element
+     **
+     = (Element) the clone
+    \*/
+    elproto.clone = function () {
+        var clone = wrap(this.node.cloneNode(true));
+        if ($(clone.node, "id")) {
+            $(clone.node, {id: clone.id});
+        }
+        fixids(clone);
+        clone.insertAfter(this);
+        return clone;
+    };
+    /*\
+     * Element.toDefs
+     [ method ]
+     **
+     * Moves element to the shared `<defs>` area
+     **
+     = (Element) the element
+    \*/
+    elproto.toDefs = function () {
+        var defs = getSomeDefs(this);
+        defs.appendChild(this.node);
+        return this;
+    };
+    /*\
+     * Element.toPattern
+     [ method ]
+     **
+     * Creates a `<pattern>` element from the current element
+     **
+     * To create a pattern you have to specify the pattern rect:
+     - x (string|number)
+     - y (string|number)
+     - width (string|number)
+     - height (string|number)
+     = (Element) the `<pattern>` element
+     * You can use pattern later on as an argument for `fill` attribute:
+     | var p = paper.path("M10-5-10,15M15,0,0,15M0-5-20,15").attr({
+     |         fill: "none",
+     |         stroke: "#bada55",
+     |         strokeWidth: 5
+     |     }).pattern(0, 0, 10, 10),
+     |     c = paper.circle(200, 200, 100);
+     | c.attr({
+     |     fill: p
+     | });
+    \*/
+    elproto.pattern = elproto.toPattern = function (x, y, width, height) {
+        var p = make("pattern", getSomeDefs(this));
+        if (x == null) {
+            x = this.getBBox();
+        }
+        if (is(x, "object") && "x" in x) {
+            y = x.y;
+            width = x.width;
+            height = x.height;
+            x = x.x;
+        }
+        $(p.node, {
+            x: x,
+            y: y,
+            width: width,
+            height: height,
+            patternUnits: "userSpaceOnUse",
+            id: p.id,
+            viewBox: [x, y, width, height].join(" ")
+        });
+        p.node.appendChild(this.node);
+        return p;
+    };
+// SIERRA Element.marker(): clarify what a reference point is. E.g., helps you offset the object from its edge such as when centering it over a path.
+// SIERRA Element.marker(): I suggest the method should accept default reference point values.  Perhaps centered with (refX = width/2) and (refY = height/2)? Also, couldn't it assume the element's current _width_ and _height_? And please specify what _x_ and _y_ mean: offsets? If so, from where?  Couldn't they also be assigned default values?
+    /*\
+     * Element.marker
+     [ method ]
+     **
+     * Creates a `<marker>` element from the current element
+     **
+     * To create a marker you have to specify the bounding rect and reference point:
+     - x (number)
+     - y (number)
+     - width (number)
+     - height (number)
+     - refX (number)
+     - refY (number)
+     = (Element) the `<marker>` element
+     * You can specify the marker later as an argument for `marker-start`, `marker-end`, `marker-mid`, and `marker` attributes. The `marker` attribute places the marker at every point along the path, and `marker-mid` places them at every point except the start and end.
+    \*/
+    // TODO add usage for markers
+    elproto.marker = function (x, y, width, height, refX, refY) {
+        var p = make("marker", getSomeDefs(this));
+        if (x == null) {
+            x = this.getBBox();
+        }
+        if (is(x, "object") && "x" in x) {
+            y = x.y;
+            width = x.width;
+            height = x.height;
+            refX = x.refX || x.cx;
+            refY = x.refY || x.cy;
+            x = x.x;
+        }
+        $(p.node, {
+            viewBox: [x, y, width, height].join(" "),
+            markerWidth: width,
+            markerHeight: height,
+            orient: "auto",
+            refX: refX || 0,
+            refY: refY || 0,
+            id: p.id
+        });
+        p.node.appendChild(this.node);
+        return p;
+    };
+    var eldata = {};
+    /*\
+     * Element.data
+     [ method ]
+     **
+     * Adds or retrieves given value associated with given key. (Don’t confuse
+     * with `data-` attributes)
+     *
+     * See also @Element.removeData
+     - key (string) key to store data
+     - value (any) #optional value to store
+     = (object) @Element
+     * or, if value is not specified:
+     = (any) value
+     > Usage
+     | for (var i = 0, i < 5, i++) {
+     |     paper.circle(10 + 15 * i, 10, 10)
+     |          .attr({fill: "#000"})
+     |          .data("i", i)
+     |          .click(function () {
+     |             alert(this.data("i"));
+     |          });
+     | }
+    \*/
+    elproto.data = function (key, value) {
+        var data = eldata[this.id] = eldata[this.id] || {};
+        if (arguments.length == 0){
+            eve("snap.data.get." + this.id, this, data, null);
+            return data;
+        }
+        if (arguments.length == 1) {
+            if (Snap.is(key, "object")) {
+                for (var i in key) if (key[has](i)) {
+                    this.data(i, key[i]);
+                }
+                return this;
+            }
+            eve("snap.data.get." + this.id, this, data[key], key);
+            return data[key];
+        }
+        data[key] = value;
+        eve("snap.data.set." + this.id, this, value, key);
+        return this;
+    };
+    /*\
+     * Element.removeData
+     [ method ]
+     **
+     * Removes value associated with an element by given key.
+     * If key is not provided, removes all the data of the element.
+     - key (string) #optional key
+     = (object) @Element
+    \*/
+    elproto.removeData = function (key) {
+        if (key == null) {
+            eldata[this.id] = {};
+        } else {
+            eldata[this.id] && delete eldata[this.id][key];
+        }
+        return this;
+    };
+    /*\
+     * Element.outerSVG
+     [ method ]
+     **
+     * Returns SVG code for the element, equivalent to HTML's `outerHTML`.
+     *
+     * See also @Element.innerSVG
+     = (string) SVG code for the element
+    \*/
+    /*\
+     * Element.toString
+     [ method ]
+     **
+     * See @Element.outerSVG
+    \*/
+    elproto.outerSVG = elproto.toString = toString(1);
+    /*\
+     * Element.innerSVG
+     [ method ]
+     **
+     * Returns SVG code for the element's contents, equivalent to HTML's `innerHTML`
+     = (string) SVG code for the element
+    \*/
+    elproto.innerSVG = toString();
+    function toString(type) {
+        return function () {
+            var res = type ? "<" + this.type : "",
+                attr = this.node.attributes,
+                chld = this.node.childNodes;
+            if (type) {
+                for (var i = 0, ii = attr.length; i < ii; i++) {
+                    res += " " + attr[i].name + '="' +
+                            attr[i].value.replace(/"/g, '\\"') + '"';
+                }
+            }
+            if (chld.length) {
+                type && (res += ">");
+                for (i = 0, ii = chld.length; i < ii; i++) {
+                    if (chld[i].nodeType == 3) {
+                        res += chld[i].nodeValue;
+                    } else if (chld[i].nodeType == 1) {
+                        res += wrap(chld[i]).toString();
+                    }
+                }
+                type && (res += "</" + this.type + ">");
+            } else {
+                type && (res += "/>");
+            }
+            return res;
+        };
+    }
+    elproto.toDataURL = function () {
+        if (window && window.btoa) {
+            var bb = this.getBBox(),
+                svg = Snap.format('<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{width}" height="{height}" viewBox="{x} {y} {width} {height}">{contents}</svg>', {
+                x: +bb.x.toFixed(3),
+                y: +bb.y.toFixed(3),
+                width: +bb.width.toFixed(3),
+                height: +bb.height.toFixed(3),
+                contents: this.outerSVG()
+            });
+            return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
+        }
+    };
+    /*\
+     * Fragment.select
+     [ method ]
+     **
+     * See @Element.select
+    \*/
+    Fragment.prototype.select = elproto.select;
+    /*\
+     * Fragment.selectAll
+     [ method ]
+     **
+     * See @Element.selectAll
+    \*/
+    Fragment.prototype.selectAll = elproto.selectAll;
+});
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
+    var objectToString = Object.prototype.toString,
+        Str = String,
+        math = Math,
+        E = "";
+    function Matrix(a, b, c, d, e, f) {
+        if (b == null && objectToString.call(a) == "[object SVGMatrix]") {
+            this.a = a.a;
+            this.b = a.b;
+            this.c = a.c;
+            this.d = a.d;
+            this.e = a.e;
+            this.f = a.f;
+            return;
+        }
+        if (a != null) {
+            this.a = +a;
+            this.b = +b;
+            this.c = +c;
+            this.d = +d;
+            this.e = +e;
+            this.f = +f;
+        } else {
+            this.a = 1;
+            this.b = 0;
+            this.c = 0;
+            this.d = 1;
+            this.e = 0;
+            this.f = 0;
+        }
+    }
+    (function (matrixproto) {
+        /*\
+         * Matrix.add
+         [ method ]
+         **
+         * Adds the given matrix to existing one
+         - a (number)
+         - b (number)
+         - c (number)
+         - d (number)
+         - e (number)
+         - f (number)
+         * or
+         - matrix (object) @Matrix
+        \*/
+        matrixproto.add = function (a, b, c, d, e, f) {
+            if (a && a instanceof Matrix) {
+                return this.add(a.a, a.b, a.c, a.d, a.e, a.f);
+            }
+            var aNew = a * this.a + b * this.c,
+                bNew = a * this.b + b * this.d;
+            this.e += e * this.a + f * this.c;
+            this.f += e * this.b + f * this.d;
+            this.c = c * this.a + d * this.c;
+            this.d = c * this.b + d * this.d;
+
+            this.a = aNew;
+            this.b = bNew;
+            return this;
+        };
+        /*\
+         * Matrix.multLeft
+         [ method ]
+         **
+         * Multiplies a passed affine transform to the left: M * this.
+         - a (number)
+         - b (number)
+         - c (number)
+         - d (number)
+         - e (number)
+         - f (number)
+         * or
+         - matrix (object) @Matrix
+        \*/
+        Matrix.prototype.multLeft = function (a, b, c, d, e, f) {
+            if (a && a instanceof Matrix) {
+                return this.multLeft(a.a, a.b, a.c, a.d, a.e, a.f);
+            }
+            var aNew = a * this.a + c * this.b,
+                cNew = a * this.c + c * this.d,
+                eNew = a * this.e + c * this.f + e;
+            this.b = b * this.a + d * this.b;
+            this.d = b * this.c + d * this.d;
+            this.f = b * this.e + d * this.f + f;
+
+            this.a = aNew;
+            this.c = cNew;
+            this.e = eNew;
+            return this;
+        };
+        /*\
+         * Matrix.invert
+         [ method ]
+         **
+         * Returns an inverted version of the matrix
+         = (object) @Matrix
+        \*/
+        matrixproto.invert = function () {
+            var me = this,
+                x = me.a * me.d - me.b * me.c;
+            return new Matrix(me.d / x, -me.b / x, -me.c / x, me.a / x, (me.c * me.f - me.d * me.e) / x, (me.b * me.e - me.a * me.f) / x);
+        };
+        /*\
+         * Matrix.clone
+         [ method ]
+         **
+         * Returns a copy of the matrix
+         = (object) @Matrix
+        \*/
+        matrixproto.clone = function () {
+            return new Matrix(this.a, this.b, this.c, this.d, this.e, this.f);
+        };
+        /*\
+         * Matrix.translate
+         [ method ]
+         **
+         * Translate the matrix
+         - x (number) horizontal offset distance
+         - y (number) vertical offset distance
+        \*/
+        matrixproto.translate = function (x, y) {
+            this.e += x * this.a + y * this.c;
+            this.f += x * this.b + y * this.d;
+            return this;
+        };
+        /*\
+         * Matrix.scale
+         [ method ]
+         **
+         * Scales the matrix
+         - x (number) amount to be scaled, with `1` resulting in no change
+         - y (number) #optional amount to scale along the vertical axis. (Otherwise `x` applies to both axes.)
+         - cx (number) #optional horizontal origin point from which to scale
+         - cy (number) #optional vertical origin point from which to scale
+         * Default cx, cy is the middle point of the element.
+        \*/
+        matrixproto.scale = function (x, y, cx, cy) {
+            y == null && (y = x);
+            (cx || cy) && this.translate(cx, cy);
+            this.a *= x;
+            this.b *= x;
+            this.c *= y;
+            this.d *= y;
+            (cx || cy) && this.translate(-cx, -cy);
+            return this;
+        };
+        /*\
+         * Matrix.rotate
+         [ method ]
+         **
+         * Rotates the matrix
+         - a (number) angle of rotation, in degrees
+         - x (number) horizontal origin point from which to rotate
+         - y (number) vertical origin point from which to rotate
+        \*/
+        matrixproto.rotate = function (a, x, y) {
+            a = Snap.rad(a);
+            x = x || 0;
+            y = y || 0;
+            var cos = +math.cos(a).toFixed(9),
+                sin = +math.sin(a).toFixed(9);
+            this.add(cos, sin, -sin, cos, x, y);
+            return this.add(1, 0, 0, 1, -x, -y);
+        };
+        /*\
+         * Matrix.skewX
+         [ method ]
+         **
+         * Skews the matrix along the x-axis
+         - x (number) Angle to skew along the x-axis (in degrees).
+        \*/
+        matrixproto.skewX = function (x) {
+            return this.skew(x, 0);
+        };
+        /*\
+         * Matrix.skewY
+         [ method ]
+         **
+         * Skews the matrix along the y-axis
+         - y (number) Angle to skew along the y-axis (in degrees).
+        \*/
+        matrixproto.skewY = function (y) {
+            return this.skew(0, y);
+        };
+        /*\
+         * Matrix.skew
+         [ method ]
+         **
+         * Skews the matrix
+         - y (number) Angle to skew along the y-axis (in degrees).
+         - x (number) Angle to skew along the x-axis (in degrees).
+        \*/
+        matrixproto.skew = function (x, y) {
+            x = x || 0;
+            y = y || 0;
+            x = Snap.rad(x);
+            y = Snap.rad(y);
+            var c = math.tan(x).toFixed(9);
+            var b = math.tan(y).toFixed(9);
+            return this.add(1, b, c, 1, 0, 0);
+        };
+        /*\
+         * Matrix.x
+         [ method ]
+         **
+         * Returns x coordinate for given point after transformation described by the matrix. See also @Matrix.y
+         - x (number)
+         - y (number)
+         = (number) x
+        \*/
+        matrixproto.x = function (x, y) {
+            return x * this.a + y * this.c + this.e;
+        };
+        /*\
+         * Matrix.y
+         [ method ]
+         **
+         * Returns y coordinate for given point after transformation described by the matrix. See also @Matrix.x
+         - x (number)
+         - y (number)
+         = (number) y
+        \*/
+        matrixproto.y = function (x, y) {
+            return x * this.b + y * this.d + this.f;
+        };
+        matrixproto.get = function (i) {
+            return +this[Str.fromCharCode(97 + i)].toFixed(4);
+        };
+        matrixproto.toString = function () {
+            return "matrix(" + [this.get(0), this.get(1), this.get(2), this.get(3), this.get(4), this.get(5)].join() + ")";
+        };
+        matrixproto.offset = function () {
+            return [this.e.toFixed(4), this.f.toFixed(4)];
+        };
+        function norm(a) {
+            return a[0] * a[0] + a[1] * a[1];
+        }
+        function normalize(a) {
+            var mag = math.sqrt(norm(a));
+            a[0] && (a[0] /= mag);
+            a[1] && (a[1] /= mag);
+        }
+        /*\
+         * Matrix.determinant
+         [ method ]
+         **
+         * Finds determinant of the given matrix.
+         = (number) determinant
+        \*/
+        matrixproto.determinant = function () {
+            return this.a * this.d - this.b * this.c;
+        };
+        /*\
+         * Matrix.split
+         [ method ]
+         **
+         * Splits matrix into primitive transformations
+         = (object) in format:
+         o dx (number) translation by x
+         o dy (number) translation by y
+         o scalex (number) scale by x
+         o scaley (number) scale by y
+         o shear (number) shear
+         o rotate (number) rotation in deg
+         o isSimple (boolean) could it be represented via simple transformations
+        \*/
+        matrixproto.split = function () {
+            var out = {};
+            // translation
+            out.dx = this.e;
+            out.dy = this.f;
+
+            // scale and shear
+            var row = [[this.a, this.b], [this.c, this.d]];
+            out.scalex = math.sqrt(norm(row[0]));
+            normalize(row[0]);
+
+            out.shear = row[0][0] * row[1][0] + row[0][1] * row[1][1];
+            row[1] = [row[1][0] - row[0][0] * out.shear, row[1][1] - row[0][1] * out.shear];
+
+            out.scaley = math.sqrt(norm(row[1]));
+            normalize(row[1]);
+            out.shear /= out.scaley;
+
+            if (this.determinant() < 0) {
+                out.scalex = -out.scalex;
+            }
+
+            // rotation
+            var sin = row[0][1],
+                cos = row[1][1];
+            if (cos < 0) {
+                out.rotate = Snap.deg(math.acos(cos));
+                if (sin < 0) {
+                    out.rotate = 360 - out.rotate;
+                }
+            } else {
+                out.rotate = Snap.deg(math.asin(sin));
+            }
+
+            out.isSimple = !+out.shear.toFixed(9) && (out.scalex.toFixed(9) == out.scaley.toFixed(9) || !out.rotate);
+            out.isSuperSimple = !+out.shear.toFixed(9) && out.scalex.toFixed(9) == out.scaley.toFixed(9) && !out.rotate;
+            out.noRotation = !+out.shear.toFixed(9) && !out.rotate;
+            return out;
+        };
+        /*\
+         * Matrix.toTransformString
+         [ method ]
+         **
+         * Returns transform string that represents given matrix
+         = (string) transform string
+        \*/
+        matrixproto.toTransformString = function (shorter) {
+            var s = shorter || this.split();
+            if (!+s.shear.toFixed(9)) {
+                s.scalex = +s.scalex.toFixed(4);
+                s.scaley = +s.scaley.toFixed(4);
+                s.rotate = +s.rotate.toFixed(4);
+                return  (s.dx || s.dy ? "t" + [+s.dx.toFixed(4), +s.dy.toFixed(4)] : E) +
+                        (s.rotate ? "r" + [+s.rotate.toFixed(4), 0, 0] : E) +
+                        (s.scalex != 1 || s.scaley != 1 ? "s" + [s.scalex, s.scaley, 0, 0] : E);
+            } else {
+                return "m" + [this.get(0), this.get(1), this.get(2), this.get(3), this.get(4), this.get(5)];
+            }
+        };
+    })(Matrix.prototype);
+    /*\
+     * Snap.Matrix
+     [ method ]
+     **
+     * Matrix constructor, extend on your own risk.
+     * To create matrices use @Snap.matrix.
+    \*/
+    Snap.Matrix = Matrix;
+    /*\
+     * Snap.matrix
+     [ method ]
+     **
+     * Utility method
+     **
+     * Returns a matrix based on the given parameters
+     - a (number)
+     - b (number)
+     - c (number)
+     - d (number)
+     - e (number)
+     - f (number)
+     * or
+     - svgMatrix (SVGMatrix)
+     = (object) @Matrix
+    \*/
+    Snap.matrix = function (a, b, c, d, e, f) {
+        return new Matrix(a, b, c, d, e, f);
+    };
+});
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
+    var has = "hasOwnProperty",
+        make = Snap._.make,
+        wrap = Snap._.wrap,
+        is = Snap.is,
+        getSomeDefs = Snap._.getSomeDefs,
+        reURLValue = /^url\((['"]?)([^)]+)\1\)$/,
+        $ = Snap._.$,
+        URL = Snap.url,
+        Str = String,
+        separator = Snap._.separator,
+        E = "";
+    /*\
+     * Snap.deurl
+     [ method ]
+     **
+     * Unwraps path from `"url(<path>)"`.
+     - value (string) url path
+     = (string) unwrapped path
+    \*/
+    Snap.deurl = function (value) {
+        var res = String(value).match(reURLValue);
+        return res ? res[2] : value;
+    }
+    // Attributes event handlers
+    eve.on("snap.util.attr.mask", function (value) {
+        if (value instanceof Element || value instanceof Fragment) {
+            eve.stop();
+            if (value instanceof Fragment && value.node.childNodes.length == 1) {
+                value = value.node.firstChild;
+                getSomeDefs(this).appendChild(value);
+                value = wrap(value);
+            }
+            if (value.type == "mask") {
+                var mask = value;
+            } else {
+                mask = make("mask", getSomeDefs(this));
+                mask.node.appendChild(value.node);
+            }
+            !mask.node.id && $(mask.node, {
+                id: mask.id
+            });
+            $(this.node, {
+                mask: URL(mask.id)
+            });
+        }
+    });
+    (function (clipIt) {
+        eve.on("snap.util.attr.clip", clipIt);
+        eve.on("snap.util.attr.clip-path", clipIt);
+        eve.on("snap.util.attr.clipPath", clipIt);
+    }(function (value) {
+        if (value instanceof Element || value instanceof Fragment) {
+            eve.stop();
+            var clip,
+                node = value.node;
+            while (node) {
+                if (node.nodeName === "clipPath") {
+                    clip = new Element(node);
+                    break;
+                }
+                if (node.nodeName === "svg") {
+                    clip = undefined;
+                    break;
+                }
+                node = node.parentNode;
+            }
+            if (!clip) {
+                clip = make("clipPath", getSomeDefs(this));
+                clip.node.appendChild(value.node);
+                !clip.node.id && $(clip.node, {
+                    id: clip.id
+                });
+            }
+            $(this.node, {
+                "clip-path": URL(clip.node.id || clip.id)
+            });
+        }
+    }));
+    function fillStroke(name) {
+        return function (value) {
+            eve.stop();
+            if (value instanceof Fragment && value.node.childNodes.length == 1 &&
+                (value.node.firstChild.tagName == "radialGradient" ||
+                value.node.firstChild.tagName == "linearGradient" ||
+                value.node.firstChild.tagName == "pattern")) {
+                value = value.node.firstChild;
+                getSomeDefs(this).appendChild(value);
+                value = wrap(value);
+            }
+            if (value instanceof Element) {
+                if (value.type == "radialGradient" || value.type == "linearGradient"
+                   || value.type == "pattern") {
+                    if (!value.node.id) {
+                        $(value.node, {
+                            id: value.id
+                        });
+                    }
+                    var fill = URL(value.node.id);
+                } else {
+                    fill = value.attr(name);
+                }
+            } else {
+                fill = Snap.color(value);
+                if (fill.error) {
+                    var grad = Snap(getSomeDefs(this).ownerSVGElement).gradient(value);
+                    if (grad) {
+                        if (!grad.node.id) {
+                            $(grad.node, {
+                                id: grad.id
+                            });
+                        }
+                        fill = URL(grad.node.id);
+                    } else {
+                        fill = value;
+                    }
+                } else {
+                    fill = Str(fill);
+                }
+            }
+            var attrs = {};
+            attrs[name] = fill;
+            $(this.node, attrs);
+            this.node.style[name] = E;
+        };
+    }
+    eve.on("snap.util.attr.fill", fillStroke("fill"));
+    eve.on("snap.util.attr.stroke", fillStroke("stroke"));
+    var gradrg = /^([lr])(?:\(([^)]*)\))?(.*)$/i;
+    eve.on("snap.util.grad.parse", function parseGrad(string) {
+        string = Str(string);
+        var tokens = string.match(gradrg);
+        if (!tokens) {
+            return null;
+        }
+        var type = tokens[1],
+            params = tokens[2],
+            stops = tokens[3];
+        params = params.split(/\s*,\s*/).map(function (el) {
+            return +el == el ? +el : el;
+        });
+        if (params.length == 1 && params[0] == 0) {
+            params = [];
+        }
+        stops = stops.split("-");
+        stops = stops.map(function (el) {
+            el = el.split(":");
+            var out = {
+                color: el[0]
+            };
+            if (el[1]) {
+                out.offset = parseFloat(el[1]);
+            }
+            return out;
+        });
+        var len = stops.length,
+            start = 0,
+            j = 0;
+        function seed(i, end) {
+            var step = (end - start) / (i - j);
+            for (var k = j; k < i; k++) {
+                stops[k].offset = +(+start + step * (k - j)).toFixed(2);
+            }
+            j = i;
+            start = end;
+        }
+        len--;
+        for (var i = 0; i < len; i++) if ("offset" in stops[i]) {
+            seed(i, stops[i].offset);
+        }
+        stops[len].offset = stops[len].offset || 100;
+        seed(len, stops[len].offset);
+        return {
+            type: type,
+            params: params,
+            stops: stops
+        };
+    });
+
+    eve.on("snap.util.attr.d", function (value) {
+        eve.stop();
+        if (is(value, "array") && is(value[0], "array")) {
+            value = Snap.path.toString.call(value);
+        }
+        value = Str(value);
+        if (value.match(/[ruo]/i)) {
+            value = Snap.path.toAbsolute(value);
+        }
+        $(this.node, {d: value});
+    })(-1);
+    eve.on("snap.util.attr.#text", function (value) {
+        eve.stop();
+        value = Str(value);
+        var txt = glob.doc.createTextNode(value);
+        while (this.node.firstChild) {
+            this.node.removeChild(this.node.firstChild);
+        }
+        this.node.appendChild(txt);
+    })(-1);
+    eve.on("snap.util.attr.path", function (value) {
+        eve.stop();
+        this.attr({d: value});
+    })(-1);
+    eve.on("snap.util.attr.class", function (value) {
+        eve.stop();
+        this.node.className.baseVal = value;
+    })(-1);
+    eve.on("snap.util.attr.viewBox", function (value) {
+        var vb;
+        if (is(value, "object") && "x" in value) {
+            vb = [value.x, value.y, value.width, value.height].join(" ");
+        } else if (is(value, "array")) {
+            vb = value.join(" ");
+        } else {
+            vb = value;
+        }
+        $(this.node, {
+            viewBox: vb
+        });
+        eve.stop();
+    })(-1);
+    eve.on("snap.util.attr.transform", function (value) {
+        this.transform(value);
+        eve.stop();
+    })(-1);
+    eve.on("snap.util.attr.r", function (value) {
+        if (this.type == "rect") {
+            eve.stop();
+            $(this.node, {
+                rx: value,
+                ry: value
+            });
+        }
+    })(-1);
+    eve.on("snap.util.attr.textpath", function (value) {
+        eve.stop();
+        if (this.type == "text") {
+            var id, tp, node;
+            if (!value && this.textPath) {
+                tp = this.textPath;
+                while (tp.node.firstChild) {
+                    this.node.appendChild(tp.node.firstChild);
+                }
+                tp.remove();
+                delete this.textPath;
+                return;
+            }
+            if (is(value, "string")) {
+                var defs = getSomeDefs(this),
+                    path = wrap(defs.parentNode).path(value);
+                defs.appendChild(path.node);
+                id = path.id;
+                path.attr({id: id});
+            } else {
+                value = wrap(value);
+                if (value instanceof Element) {
+                    id = value.attr("id");
+                    if (!id) {
+                        id = value.id;
+                        value.attr({id: id});
+                    }
+                }
+            }
+            if (id) {
+                tp = this.textPath;
+                node = this.node;
+                if (tp) {
+                    tp.attr({"xlink:href": "#" + id});
+                } else {
+                    tp = $("textPath", {
+                        "xlink:href": "#" + id
+                    });
+                    while (node.firstChild) {
+                        tp.appendChild(node.firstChild);
+                    }
+                    node.appendChild(tp);
+                    this.textPath = wrap(tp);
+                }
+            }
+        }
+    })(-1);
+    eve.on("snap.util.attr.text", function (value) {
+        if (this.type == "text") {
+            var i = 0,
+                node = this.node,
+                tuner = function (chunk) {
+                    var out = $("tspan");
+                    if (is(chunk, "array")) {
+                        for (var i = 0; i < chunk.length; i++) {
+                            out.appendChild(tuner(chunk[i]));
+                        }
+                    } else {
+                        out.appendChild(glob.doc.createTextNode(chunk));
+                    }
+                    out.normalize && out.normalize();
+                    return out;
+                };
+            while (node.firstChild) {
+                node.removeChild(node.firstChild);
+            }
+            var tuned = tuner(value);
+            while (tuned.firstChild) {
+                node.appendChild(tuned.firstChild);
+            }
+        }
+        eve.stop();
+    })(-1);
+    function setFontSize(value) {
+        eve.stop();
+        if (value == +value) {
+            value += "px";
+        }
+        this.node.style.fontSize = value;
+    }
+    eve.on("snap.util.attr.fontSize", setFontSize)(-1);
+    eve.on("snap.util.attr.font-size", setFontSize)(-1);
+
+
+    eve.on("snap.util.getattr.transform", function () {
+        eve.stop();
+        return this.transform();
+    })(-1);
+    eve.on("snap.util.getattr.textpath", function () {
+        eve.stop();
+        return this.textPath;
+    })(-1);
+    // Markers
+    (function () {
+        function getter(end) {
+            return function () {
+                eve.stop();
+                var style = glob.doc.defaultView.getComputedStyle(this.node, null).getPropertyValue("marker-" + end);
+                if (style == "none") {
+                    return style;
+                } else {
+                    return Snap(glob.doc.getElementById(style.match(reURLValue)[1]));
+                }
+            };
+        }
+        function setter(end) {
+            return function (value) {
+                eve.stop();
+                var name = "marker" + end.charAt(0).toUpperCase() + end.substring(1);
+                if (value == "" || !value) {
+                    this.node.style[name] = "none";
+                    return;
+                }
+                if (value.type == "marker") {
+                    var id = value.node.id;
+                    if (!id) {
+                        $(value.node, {id: value.id});
+                    }
+                    this.node.style[name] = URL(id);
+                    return;
+                }
+            };
+        }
+        eve.on("snap.util.getattr.marker-end", getter("end"))(-1);
+        eve.on("snap.util.getattr.markerEnd", getter("end"))(-1);
+        eve.on("snap.util.getattr.marker-start", getter("start"))(-1);
+        eve.on("snap.util.getattr.markerStart", getter("start"))(-1);
+        eve.on("snap.util.getattr.marker-mid", getter("mid"))(-1);
+        eve.on("snap.util.getattr.markerMid", getter("mid"))(-1);
+        eve.on("snap.util.attr.marker-end", setter("end"))(-1);
+        eve.on("snap.util.attr.markerEnd", setter("end"))(-1);
+        eve.on("snap.util.attr.marker-start", setter("start"))(-1);
+        eve.on("snap.util.attr.markerStart", setter("start"))(-1);
+        eve.on("snap.util.attr.marker-mid", setter("mid"))(-1);
+        eve.on("snap.util.attr.markerMid", setter("mid"))(-1);
+    }());
+    eve.on("snap.util.getattr.r", function () {
+        if (this.type == "rect" && $(this.node, "rx") == $(this.node, "ry")) {
+            eve.stop();
+            return $(this.node, "rx");
+        }
+    })(-1);
+    function textExtract(node) {
+        var out = [];
+        var children = node.childNodes;
+        for (var i = 0, ii = children.length; i < ii; i++) {
+            var chi = children[i];
+            if (chi.nodeType == 3) {
+                out.push(chi.nodeValue);
+            }
+            if (chi.tagName == "tspan") {
+                if (chi.childNodes.length == 1 && chi.firstChild.nodeType == 3) {
+                    out.push(chi.firstChild.nodeValue);
+                } else {
+                    out.push(textExtract(chi));
+                }
+            }
+        }
+        return out;
+    }
+    eve.on("snap.util.getattr.text", function () {
+        if (this.type == "text" || this.type == "tspan") {
+            eve.stop();
+            var out = textExtract(this.node);
+            return out.length == 1 ? out[0] : out;
+        }
+    })(-1);
+    eve.on("snap.util.getattr.#text", function () {
+        return this.node.textContent;
+    })(-1);
+    eve.on("snap.util.getattr.fill", function (internal) {
+        if (internal) {
+            return;
+        }
+        eve.stop();
+        var value = eve("snap.util.getattr.fill", this, true).firstDefined();
+        return Snap(Snap.deurl(value)) || value;
+    })(-1);
+    eve.on("snap.util.getattr.stroke", function (internal) {
+        if (internal) {
+            return;
+        }
+        eve.stop();
+        var value = eve("snap.util.getattr.stroke", this, true).firstDefined();
+        return Snap(Snap.deurl(value)) || value;
+    })(-1);
+    eve.on("snap.util.getattr.viewBox", function () {
+        eve.stop();
+        var vb = $(this.node, "viewBox");
+        if (vb) {
+            vb = vb.split(separator);
+            return Snap._.box(+vb[0], +vb[1], +vb[2], +vb[3]);
+        } else {
+            return;
+        }
+    })(-1);
+    eve.on("snap.util.getattr.points", function () {
+        var p = $(this.node, "points");
+        eve.stop();
+        if (p) {
+            return p.split(separator);
+        } else {
+            return;
+        }
+    })(-1);
+    eve.on("snap.util.getattr.path", function () {
+        var p = $(this.node, "d");
+        eve.stop();
+        return p;
+    })(-1);
+    eve.on("snap.util.getattr.class", function () {
+        return this.node.className.baseVal;
+    })(-1);
+    function getFontSize() {
+        eve.stop();
+        return this.node.style.fontSize;
+    }
+    eve.on("snap.util.getattr.fontSize", getFontSize)(-1);
+    eve.on("snap.util.getattr.font-size", getFontSize)(-1);
+});
+
+// Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
+    var rgNotSpace = /\S+/g,
+        rgBadSpace = /[\t\r\n\f]/g,
+        rgTrim = /(^\s+|\s+$)/g,
+        Str = String,
+        elproto = Element.prototype;
+    /*\
+     * Element.addClass
+     [ method ]
+     **
+     * Adds given class name or list of class names to the element.
+     - value (string) class name or space separated list of class names
+     **
+     = (Element) original element.
+    \*/
+    elproto.addClass = function (value) {
+        var classes = Str(value || "").match(rgNotSpace) || [],
+            elem = this.node,
+            className = elem.className.baseVal,
+            curClasses = className.match(rgNotSpace) || [],
+            j,
+            pos,
+            clazz,
+            finalValue;
+
+        if (classes.length) {
+            j = 0;
+            while (clazz = classes[j++]) {
+                pos = curClasses.indexOf(clazz);
+                if (!~pos) {
+                    curClasses.push(clazz);
+                }
+            }
+
+            finalValue = curClasses.join(" ");
+            if (className != finalValue) {
+                elem.className.baseVal = finalValue;
+            }
+        }
+        return this;
+    };
+    /*\
+     * Element.removeClass
+     [ method ]
+     **
+     * Removes given class name or list of class names from the element.
+     - value (string) class name or space separated list of class names
+     **
+     = (Element) original element.
+    \*/
+    elproto.removeClass = function (value) {
+        var classes = Str(value || "").match(rgNotSpace) || [],
+            elem = this.node,
+            className = elem.className.baseVal,
+            curClasses = className.match(rgNotSpace) || [],
+            j,
+            pos,
+            clazz,
+            finalValue;
+        if (curClasses.length) {
+            j = 0;
+            while (clazz = classes[j++]) {
+                pos = curClasses.indexOf(clazz);
+                if (~pos) {
+                    curClasses.splice(pos, 1);
+                }
+            }
+
+            finalValue = curClasses.join(" ");
+            if (className != finalValue) {
+                elem.className.baseVal = finalValue;
+            }
+        }
+        return this;
+    };
+    /*\
+     * Element.hasClass
+     [ method ]
+     **
+     * Checks if the element has a given class name in the list of class names applied to it.
+     - value (string) class name
+     **
+     = (boolean) `true` if the element has given class
+    \*/
+    elproto.hasClass = function (value) {
+        var elem = this.node,
+            className = elem.className.baseVal,
+            curClasses = className.match(rgNotSpace) || [];
+        return !!~curClasses.indexOf(value);
+    };
+    /*\
+     * Element.toggleClass
+     [ method ]
+     **
+     * Add or remove one or more classes from the element, depending on either
+     * the class’s presence or the value of the `flag` argument.
+     - value (string) class name or space separated list of class names
+     - flag (boolean) value to determine whether the class should be added or removed
+     **
+     = (Element) original element.
+    \*/
+    elproto.toggleClass = function (value, flag) {
+        if (flag != null) {
+            if (flag) {
+                return this.addClass(value);
+            } else {
+                return this.removeClass(value);
+            }
+        }
+        var classes = (value || "").match(rgNotSpace) || [],
+            elem = this.node,
+            className = elem.className.baseVal,
+            curClasses = className.match(rgNotSpace) || [],
+            j,
+            pos,
+            clazz,
+            finalValue;
+        j = 0;
+        while (clazz = classes[j++]) {
+            pos = curClasses.indexOf(clazz);
+            if (~pos) {
+                curClasses.splice(pos, 1);
+            } else {
+                curClasses.push(clazz);
+            }
+        }
+
+        finalValue = curClasses.join(" ");
+        if (className != finalValue) {
+            elem.className.baseVal = finalValue;
+        }
+        return this;
+    };
+});
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
+    var operators = {
+            "+": function (x, y) {
+                    return x + y;
+                },
+            "-": function (x, y) {
+                    return x - y;
+                },
+            "/": function (x, y) {
+                    return x / y;
+                },
+            "*": function (x, y) {
+                    return x * y;
+                }
+        },
+        Str = String,
+        reUnit = /[a-z]+$/i,
+        reAddon = /^\s*([+\-\/*])\s*=\s*([\d.eE+\-]+)\s*([^\d\s]+)?\s*$/;
+    function getNumber(val) {
+        return val;
+    }
+    function getUnit(unit) {
+        return function (val) {
+            return +val.toFixed(3) + unit;
+        };
+    }
+    eve.on("snap.util.attr", function (val) {
+        var plus = Str(val).match(reAddon);
+        if (plus) {
+            var evnt = eve.nt(),
+                name = evnt.substring(evnt.lastIndexOf(".") + 1),
+                a = this.attr(name),
+                atr = {};
+            eve.stop();
+            var unit = plus[3] || "",
+                aUnit = a.match(reUnit),
+                op = operators[plus[1]];
+            if (aUnit && aUnit == unit) {
+                val = op(parseFloat(a), +plus[2]);
+            } else {
+                a = this.asPX(name);
+                val = op(this.asPX(name), this.asPX(name, plus[2] + unit));
+            }
+            if (isNaN(a) || isNaN(val)) {
+                return;
+            }
+            atr[name] = val;
+            this.attr(atr);
+        }
+    })(-10);
+    eve.on("snap.util.equal", function (name, b) {
+        var A, B, a = Str(this.attr(name) || ""),
+            el = this,
+            bplus = Str(b).match(reAddon);
+        if (bplus) {
+            eve.stop();
+            var unit = bplus[3] || "",
+                aUnit = a.match(reUnit),
+                op = operators[bplus[1]];
+            if (aUnit && aUnit == unit) {
+                return {
+                    from: parseFloat(a),
+                    to: op(parseFloat(a), +bplus[2]),
+                    f: getUnit(aUnit)
+                };
+            } else {
+                a = this.asPX(name);
+                return {
+                    from: a,
+                    to: op(a, this.asPX(name, bplus[2] + unit)),
+                    f: getNumber
+                };
+            }
+        }
+    })(-10);
+});
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
+    var proto = Paper.prototype,
+        is = Snap.is;
+    /*\
+     * Paper.rect
+     [ method ]
+     *
+     * Draws a rectangle
+     **
+     - x (number) x coordinate of the top left corner
+     - y (number) y coordinate of the top left corner
+     - width (number) width
+     - height (number) height
+     - rx (number) #optional horizontal radius for rounded corners, default is 0
+     - ry (number) #optional vertical radius for rounded corners, default is rx or 0
+     = (object) the `rect` element
+     **
+     > Usage
+     | // regular rectangle
+     | var c = paper.rect(10, 10, 50, 50);
+     | // rectangle with rounded corners
+     | var c = paper.rect(40, 40, 50, 50, 10);
+    \*/
+    proto.rect = function (x, y, w, h, rx, ry) {
+        var attr;
+        if (ry == null) {
+            ry = rx;
+        }
+        if (is(x, "object") && x == "[object Object]") {
+            attr = x;
+        } else if (x != null) {
+            attr = {
+                x: x,
+                y: y,
+                width: w,
+                height: h
+            };
+            if (rx != null) {
+                attr.rx = rx;
+                attr.ry = ry;
+            }
+        }
+        return this.el("rect", attr);
+    };
+    /*\
+     * Paper.circle
+     [ method ]
+     **
+     * Draws a circle
+     **
+     - x (number) x coordinate of the centre
+     - y (number) y coordinate of the centre
+     - r (number) radius
+     = (object) the `circle` element
+     **
+     > Usage
+     | var c = paper.circle(50, 50, 40);
+    \*/
+    proto.circle = function (cx, cy, r) {
+        var attr;
+        if (is(cx, "object") && cx == "[object Object]") {
+            attr = cx;
+        } else if (cx != null) {
+            attr = {
+                cx: cx,
+                cy: cy,
+                r: r
+            };
+        }
+        return this.el("circle", attr);
+    };
+
+    var preload = (function () {
+        function onerror() {
+            this.parentNode.removeChild(this);
+        }
+        return function (src, f) {
+            var img = glob.doc.createElement("img"),
+                body = glob.doc.body;
+            img.style.cssText = "position:absolute;left:-9999em;top:-9999em";
+            img.onload = function () {
+                f.call(img);
+                img.onload = img.onerror = null;
+                body.removeChild(img);
+            };
+            img.onerror = onerror;
+            body.appendChild(img);
+            img.src = src;
+        };
+    }());
+
+    /*\
+     * Paper.image
+     [ method ]
+     **
+     * Places an image on the surface
+     **
+     - src (string) URI of the source image
+     - x (number) x offset position
+     - y (number) y offset position
+     - width (number) width of the image
+     - height (number) height of the image
+     = (object) the `image` element
+     * or
+     = (object) Snap element object with type `image`
+     **
+     > Usage
+     | var c = paper.image("apple.png", 10, 10, 80, 80);
+    \*/
+    proto.image = function (src, x, y, width, height) {
+        var el = this.el("image");
+        if (is(src, "object") && "src" in src) {
+            el.attr(src);
+        } else if (src != null) {
+            var set = {
+                "xlink:href": src,
+                preserveAspectRatio: "none"
+            };
+            if (x != null && y != null) {
+                set.x = x;
+                set.y = y;
+            }
+            if (width != null && height != null) {
+                set.width = width;
+                set.height = height;
+            } else {
+                preload(src, function () {
+                    Snap._.$(el.node, {
+                        width: this.offsetWidth,
+                        height: this.offsetHeight
+                    });
+                });
+            }
+            Snap._.$(el.node, set);
+        }
+        return el;
+    };
+    /*\
+     * Paper.ellipse
+     [ method ]
+     **
+     * Draws an ellipse
+     **
+     - x (number) x coordinate of the centre
+     - y (number) y coordinate of the centre
+     - rx (number) horizontal radius
+     - ry (number) vertical radius
+     = (object) the `ellipse` element
+     **
+     > Usage
+     | var c = paper.ellipse(50, 50, 40, 20);
+    \*/
+    proto.ellipse = function (cx, cy, rx, ry) {
+        var attr;
+        if (is(cx, "object") && cx == "[object Object]") {
+            attr = cx;
+        } else if (cx != null) {
+            attr ={
+                cx: cx,
+                cy: cy,
+                rx: rx,
+                ry: ry
+            };
+        }
+        return this.el("ellipse", attr);
+    };
+    // SIERRA Paper.path(): Unclear from the link what a Catmull-Rom curveto is, and why it would make life any easier.
+    /*\
+     * Paper.path
+     [ method ]
+     **
+     * Creates a `<path>` element using the given string as the path's definition
+     - pathString (string) #optional path string in SVG format
+     * Path string consists of one-letter commands, followed by comma seprarated arguments in numerical form. Example:
+     | "M10,20L30,40"
+     * This example features two commands: `M`, with arguments `(10, 20)` and `L` with arguments `(30, 40)`. Uppercase letter commands express coordinates in absolute terms, while lowercase commands express them in relative terms from the most recently declared coordinates.
+     *
+     # <p>Here is short list of commands available, for more details see <a href="http://www.w3.org/TR/SVG/paths.html#PathData" title="Details of a path's data attribute's format are described in the SVG specification.">SVG path string format</a> or <a href="https://developer.mozilla.org/en/SVG/Tutorial/Paths">article about path strings at MDN</a>.</p>
+     # <table><thead><tr><th>Command</th><th>Name</th><th>Parameters</th></tr></thead><tbody>
+     # <tr><td>M</td><td>moveto</td><td>(x y)+</td></tr>
+     # <tr><td>Z</td><td>closepath</td><td>(none)</td></tr>
+     # <tr><td>L</td><td>lineto</td><td>(x y)+</td></tr>
+     # <tr><td>H</td><td>horizontal lineto</td><td>x+</td></tr>
+     # <tr><td>V</td><td>vertical lineto</td><td>y+</td></tr>
+     # <tr><td>C</td><td>curveto</td><td>(x1 y1 x2 y2 x y)+</td></tr>
+     # <tr><td>S</td><td>smooth curveto</td><td>(x2 y2 x y)+</td></tr>
+     # <tr><td>Q</td><td>quadratic Bézier curveto</td><td>(x1 y1 x y)+</td></tr>
+     # <tr><td>T</td><td>smooth quadratic Bézier curveto</td><td>(x y)+</td></tr>
+     # <tr><td>A</td><td>elliptical arc</td><td>(rx ry x-axis-rotation large-arc-flag sweep-flag x y)+</td></tr>
+     # <tr><td>R</td><td><a href="http://en.wikipedia.org/wiki/Catmull–Rom_spline#Catmull.E2.80.93Rom_spline">Catmull-Rom curveto</a>*</td><td>x1 y1 (x y)+</td></tr></tbody></table>
+     * * _Catmull-Rom curveto_ is a not standard SVG command and added to make life easier.
+     * Note: there is a special case when a path consists of only three commands: `M10,10R…z`. In this case the path connects back to its starting point.
+     > Usage
+     | var c = paper.path("M10 10L90 90");
+     | // draw a diagonal line:
+     | // move to 10,10, line to 90,90
+    \*/
+    proto.path = function (d) {
+        var attr;
+        if (is(d, "object") && !is(d, "array")) {
+            attr = d;
+        } else if (d) {
+            attr = {d: d};
+        }
+        return this.el("path", attr);
+    };
+    /*\
+     * Paper.g
+     [ method ]
+     **
+     * Creates a group element
+     **
+     - varargs (…) #optional elements to nest within the group
+     = (object) the `g` element
+     **
+     > Usage
+     | var c1 = paper.circle(),
+     |     c2 = paper.rect(),
+     |     g = paper.g(c2, c1); // note that the order of elements is different
+     * or
+     | var c1 = paper.circle(),
+     |     c2 = paper.rect(),
+     |     g = paper.g();
+     | g.add(c2, c1);
+    \*/
+    /*\
+     * Paper.group
+     [ method ]
+     **
+     * See @Paper.g
+    \*/
+    proto.group = proto.g = function (first) {
+        var attr,
+            el = this.el("g");
+        if (arguments.length == 1 && first && !first.type) {
+            el.attr(first);
+        } else if (arguments.length) {
+            el.add(Array.prototype.slice.call(arguments, 0));
+        }
+        return el;
+    };
+    /*\
+     * Paper.svg
+     [ method ]
+     **
+     * Creates a nested SVG element.
+     - x (number) @optional X of the element
+     - y (number) @optional Y of the element
+     - width (number) @optional width of the element
+     - height (number) @optional height of the element
+     - vbx (number) @optional viewbox X
+     - vby (number) @optional viewbox Y
+     - vbw (number) @optional viewbox width
+     - vbh (number) @optional viewbox height
+     **
+     = (object) the `svg` element
+     **
+    \*/
+    proto.svg = function (x, y, width, height, vbx, vby, vbw, vbh) {
+        var attrs = {};
+        if (is(x, "object") && y == null) {
+            attrs = x;
+        } else {
+            if (x != null) {
+                attrs.x = x;
+            }
+            if (y != null) {
+                attrs.y = y;
+            }
+            if (width != null) {
+                attrs.width = width;
+            }
+            if (height != null) {
+                attrs.height = height;
+            }
+            if (vbx != null && vby != null && vbw != null && vbh != null) {
+                attrs.viewBox = [vbx, vby, vbw, vbh];
+            }
+        }
+        return this.el("svg", attrs);
+    };
+    /*\
+     * Paper.mask
+     [ method ]
+     **
+     * Equivalent in behaviour to @Paper.g, except it’s a mask.
+     **
+     = (object) the `mask` element
+     **
+    \*/
+    proto.mask = function (first) {
+        var attr,
+            el = this.el("mask");
+        if (arguments.length == 1 && first && !first.type) {
+            el.attr(first);
+        } else if (arguments.length) {
+            el.add(Array.prototype.slice.call(arguments, 0));
+        }
+        return el;
+    };
+    /*\
+     * Paper.ptrn
+     [ method ]
+     **
+     * Equivalent in behaviour to @Paper.g, except it’s a pattern.
+     - x (number) @optional X of the element
+     - y (number) @optional Y of the element
+     - width (number) @optional width of the element
+     - height (number) @optional height of the element
+     - vbx (number) @optional viewbox X
+     - vby (number) @optional viewbox Y
+     - vbw (number) @optional viewbox width
+     - vbh (number) @optional viewbox height
+     **
+     = (object) the `pattern` element
+     **
+    \*/
+    proto.ptrn = function (x, y, width, height, vx, vy, vw, vh) {
+        if (is(x, "object")) {
+            var attr = x;
+        } else {
+            attr = {patternUnits: "userSpaceOnUse"};
+            if (x) {
+                attr.x = x;
+            }
+            if (y) {
+                attr.y = y;
+            }
+            if (width != null) {
+                attr.width = width;
+            }
+            if (height != null) {
+                attr.height = height;
+            }
+            if (vx != null && vy != null && vw != null && vh != null) {
+                attr.viewBox = [vx, vy, vw, vh];
+            } else {
+                attr.viewBox = [x || 0, y || 0, width || 0, height || 0];
+            }
+        }
+        return this.el("pattern", attr);
+    };
+    /*\
+     * Paper.use
+     [ method ]
+     **
+     * Creates a <use> element.
+     - id (string) @optional id of element to link
+     * or
+     - id (Element) @optional element to link
+     **
+     = (object) the `use` element
+     **
+    \*/
+    proto.use = function (id) {
+        if (id != null) {
+            if (id instanceof Element) {
+                if (!id.attr("id")) {
+                    id.attr({id: Snap._.id(id)});
+                }
+                id = id.attr("id");
+            }
+            if (String(id).charAt() == "#") {
+                id = id.substring(1);
+            }
+            return this.el("use", {"xlink:href": "#" + id});
+        } else {
+            return Element.prototype.use.call(this);
+        }
+    };
+    /*\
+     * Paper.symbol
+     [ method ]
+     **
+     * Creates a <symbol> element.
+     - vbx (number) @optional viewbox X
+     - vby (number) @optional viewbox Y
+     - vbw (number) @optional viewbox width
+     - vbh (number) @optional viewbox height
+     = (object) the `symbol` element
+     **
+    \*/
+    proto.symbol = function (vx, vy, vw, vh) {
+        var attr = {};
+        if (vx != null && vy != null && vw != null && vh != null) {
+            attr.viewBox = [vx, vy, vw, vh];
+        }
+
+        return this.el("symbol", attr);
+    };
+    /*\
+     * Paper.text
+     [ method ]
+     **
+     * Draws a text string
+     **
+     - x (number) x coordinate position
+     - y (number) y coordinate position
+     - text (string|array) The text string to draw or array of strings to nest within separate `<tspan>` elements
+     = (object) the `text` element
+     **
+     > Usage
+     | var t1 = paper.text(50, 50, "Snap");
+     | var t2 = paper.text(50, 50, ["S","n","a","p"]);
+     | // Text path usage
+     | t1.attr({textpath: "M10,10L100,100"});
+     | // or
+     | var pth = paper.path("M10,10L100,100");
+     | t1.attr({textpath: pth});
+    \*/
+    proto.text = function (x, y, text) {
+        var attr = {};
+        if (is(x, "object")) {
+            attr = x;
+        } else if (x != null) {
+            attr = {
+                x: x,
+                y: y,
+                text: text || ""
+            };
+        }
+        return this.el("text", attr);
+    };
+    /*\
+     * Paper.line
+     [ method ]
+     **
+     * Draws a line
+     **
+     - x1 (number) x coordinate position of the start
+     - y1 (number) y coordinate position of the start
+     - x2 (number) x coordinate position of the end
+     - y2 (number) y coordinate position of the end
+     = (object) the `line` element
+     **
+     > Usage
+     | var t1 = paper.line(50, 50, 100, 100);
+    \*/
+    proto.line = function (x1, y1, x2, y2) {
+        var attr = {};
+        if (is(x1, "object")) {
+            attr = x1;
+        } else if (x1 != null) {
+            attr = {
+                x1: x1,
+                x2: x2,
+                y1: y1,
+                y2: y2
+            };
+        }
+        return this.el("line", attr);
+    };
+    /*\
+     * Paper.polyline
+     [ method ]
+     **
+     * Draws a polyline
+     **
+     - points (array) array of points
+     * or
+     - varargs (…) points
+     = (object) the `polyline` element
+     **
+     > Usage
+     | var p1 = paper.polyline([10, 10, 100, 100]);
+     | var p2 = paper.polyline(10, 10, 100, 100);
+    \*/
+    proto.polyline = function (points) {
+        if (arguments.length > 1) {
+            points = Array.prototype.slice.call(arguments, 0);
+        }
+        var attr = {};
+        if (is(points, "object") && !is(points, "array")) {
+            attr = points;
+        } else if (points != null) {
+            attr = {points: points};
+        }
+        return this.el("polyline", attr);
+    };
+    /*\
+     * Paper.polygon
+     [ method ]
+     **
+     * Draws a polygon. See @Paper.polyline
+    \*/
+    proto.polygon = function (points) {
+        if (arguments.length > 1) {
+            points = Array.prototype.slice.call(arguments, 0);
+        }
+        var attr = {};
+        if (is(points, "object") && !is(points, "array")) {
+            attr = points;
+        } else if (points != null) {
+            attr = {points: points};
+        }
+        return this.el("polygon", attr);
+    };
+    // gradients
+    (function () {
+        var $ = Snap._.$;
+        // gradients' helpers
+        /*\
+         * Element.stops
+         [ method ]
+         **
+         * Only for gradients!
+         * Returns array of gradient stops elements.
+         = (array) the stops array.
+        \*/
+        function Gstops() {
+            return this.selectAll("stop");
+        }
+        /*\
+         * Element.addStop
+         [ method ]
+         **
+         * Only for gradients!
+         * Adds another stop to the gradient.
+         - color (string) stops color
+         - offset (number) stops offset 0..100
+         = (object) gradient element
+        \*/
+        function GaddStop(color, offset) {
+            var stop = $("stop"),
+                attr = {
+                    offset: +offset + "%"
+                };
+            color = Snap.color(color);
+            attr["stop-color"] = color.hex;
+            if (color.opacity < 1) {
+                attr["stop-opacity"] = color.opacity;
+            }
+            $(stop, attr);
+            var stops = this.stops(),
+                inserted;
+            for (var i = 0; i < stops.length; i++) {
+                var stopOffset = parseFloat(stops[i].attr("offset"));
+                if (stopOffset > offset) {
+                    this.node.insertBefore(stop, stops[i].node);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) {
+                this.node.appendChild(stop);
+            }
+            return this;
+        }
+        function GgetBBox() {
+            if (this.type == "linearGradient") {
+                var x1 = $(this.node, "x1") || 0,
+                    x2 = $(this.node, "x2") || 1,
+                    y1 = $(this.node, "y1") || 0,
+                    y2 = $(this.node, "y2") || 0;
+                return Snap._.box(x1, y1, math.abs(x2 - x1), math.abs(y2 - y1));
+            } else {
+                var cx = this.node.cx || .5,
+                    cy = this.node.cy || .5,
+                    r = this.node.r || 0;
+                return Snap._.box(cx - r, cy - r, r * 2, r * 2);
+            }
+        }
+        /*\
+         * Element.setStops
+         [ method ]
+         **
+         * Only for gradients!
+         * Updates stops of the gradient based on passed gradient descriptor. See @Ppaer.gradient
+         - str (string) gradient descriptor part after `()`.
+         = (object) gradient element
+         | var g = paper.gradient("l(0, 0, 1, 1)#000-#f00-#fff");
+         | g.setStops("#fff-#000-#f00-#fc0");
+        \*/
+        function GsetStops(str) {
+            var grad = str,
+                stops = this.stops();
+            if (typeof str == "string") {
+                grad = eve("snap.util.grad.parse", null, "l(0,0,0,1)" + str).firstDefined().stops;
+            }
+            if (!Snap.is(grad, "array")) {
+                return;
+            }
+            for (var i = 0; i < stops.length; i++) {
+                if (grad[i]) {
+                    var color = Snap.color(grad[i].color),
+                        attr = {"offset": grad[i].offset + "%"};
+                    attr["stop-color"] = color.hex;
+                    if (color.opacity < 1) {
+                        attr["stop-opacity"] = color.opacity;
+                    }
+                    stops[i].attr(attr);
+                } else {
+                    stops[i].remove();
+                }
+            }
+            for (i = stops.length; i < grad.length; i++) {
+                this.addStop(grad[i].color, grad[i].offset);
+            }
+            return this;
+        }
+        function gradient(defs, str) {
+            var grad = eve("snap.util.grad.parse", null, str).firstDefined(),
+                el;
+            if (!grad) {
+                return null;
+            }
+            grad.params.unshift(defs);
+            if (grad.type.toLowerCase() == "l") {
+                el = gradientLinear.apply(0, grad.params);
+            } else {
+                el = gradientRadial.apply(0, grad.params);
+            }
+            if (grad.type != grad.type.toLowerCase()) {
+                $(el.node, {
+                    gradientUnits: "userSpaceOnUse"
+                });
+            }
+            var stops = grad.stops,
+                len = stops.length;
+            for (var i = 0; i < len; i++) {
+                var stop = stops[i];
+                el.addStop(stop.color, stop.offset);
+            }
+            return el;
+        }
+        function gradientLinear(defs, x1, y1, x2, y2) {
+            var el = Snap._.make("linearGradient", defs);
+            el.stops = Gstops;
+            el.addStop = GaddStop;
+            el.getBBox = GgetBBox;
+            el.setStops = GsetStops;
+            if (x1 != null) {
+                $(el.node, {
+                    x1: x1,
+                    y1: y1,
+                    x2: x2,
+                    y2: y2
+                });
+            }
+            return el;
+        }
+        function gradientRadial(defs, cx, cy, r, fx, fy) {
+            var el = Snap._.make("radialGradient", defs);
+            el.stops = Gstops;
+            el.addStop = GaddStop;
+            el.getBBox = GgetBBox;
+            if (cx != null) {
+                $(el.node, {
+                    cx: cx,
+                    cy: cy,
+                    r: r
+                });
+            }
+            if (fx != null && fy != null) {
+                $(el.node, {
+                    fx: fx,
+                    fy: fy
+                });
+            }
+            return el;
+        }
+        /*\
+         * Paper.gradient
+         [ method ]
+         **
+         * Creates a gradient element
+         **
+         - gradient (string) gradient descriptor
+         > Gradient Descriptor
+         * The gradient descriptor is an expression formatted as
+         * follows: `<type>(<coords>)<colors>`.  The `<type>` can be
+         * either linear or radial.  The uppercase `L` or `R` letters
+         * indicate absolute coordinates offset from the SVG surface.
+         * Lowercase `l` or `r` letters indicate coordinates
+         * calculated relative to the element to which the gradient is
+         * applied.  Coordinates specify a linear gradient vector as
+         * `x1`, `y1`, `x2`, `y2`, or a radial gradient as `cx`, `cy`,
+         * `r` and optional `fx`, `fy` specifying a focal point away
+         * from the center of the circle. Specify `<colors>` as a list
+         * of dash-separated CSS color values.  Each color may be
+         * followed by a custom offset value, separated with a colon
+         * character.
+         > Examples
+         * Linear gradient, relative from top-left corner to bottom-right
+         * corner, from black through red to white:
+         | var g = paper.gradient("l(0, 0, 1, 1)#000-#f00-#fff");
+         * Linear gradient, absolute from (0, 0) to (100, 100), from black
+         * through red at 25% to white:
+         | var g = paper.gradient("L(0, 0, 100, 100)#000-#f00:25-#fff");
+         * Radial gradient, relative from the center of the element with radius
+         * half the width, from black to white:
+         | var g = paper.gradient("r(0.5, 0.5, 0.5)#000-#fff");
+         * To apply the gradient:
+         | paper.circle(50, 50, 40).attr({
+         |     fill: g
+         | });
+         = (object) the `gradient` element
+        \*/
+        proto.gradient = function (str) {
+            return gradient(this.defs, str);
+        };
+        proto.gradientLinear = function (x1, y1, x2, y2) {
+            return gradientLinear(this.defs, x1, y1, x2, y2);
+        };
+        proto.gradientRadial = function (cx, cy, r, fx, fy) {
+            return gradientRadial(this.defs, cx, cy, r, fx, fy);
+        };
+        /*\
+         * Paper.toString
+         [ method ]
+         **
+         * Returns SVG code for the @Paper
+         = (string) SVG code for the @Paper
+        \*/
+        proto.toString = function () {
+            var doc = this.node.ownerDocument,
+                f = doc.createDocumentFragment(),
+                d = doc.createElement("div"),
+                svg = this.node.cloneNode(true),
+                res;
+            f.appendChild(d);
+            d.appendChild(svg);
+            Snap._.$(svg, {xmlns: "http://www.w3.org/2000/svg"});
+            res = d.innerHTML;
+            f.removeChild(f.firstChild);
+            return res;
+        };
+        /*\
+         * Paper.toDataURL
+         [ method ]
+         **
+         * Returns SVG code for the @Paper as Data URI string.
+         = (string) Data URI string
+        \*/
+        proto.toDataURL = function () {
+            if (window && window.btoa) {
+                return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(this)));
+            }
+        };
+        /*\
+         * Paper.clear
+         [ method ]
+         **
+         * Removes all child nodes of the paper, except <defs>.
+        \*/
+        proto.clear = function () {
+            var node = this.node.firstChild,
+                next;
+            while (node) {
+                next = node.nextSibling;
+                if (node.tagName != "defs") {
+                    node.parentNode.removeChild(node);
+                } else {
+                    proto.clear.call({node: node});
+                }
+                node = next;
+            }
+        };
+    }());
+});
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob) {
+    var elproto = Element.prototype,
+        is = Snap.is,
+        clone = Snap._.clone,
+        has = "hasOwnProperty",
+        p2s = /,?([a-z]),?/gi,
+        toFloat = parseFloat,
+        math = Math,
+        PI = math.PI,
+        mmin = math.min,
+        mmax = math.max,
+        pow = math.pow,
+        abs = math.abs;
+    function paths(ps) {
+        var p = paths.ps = paths.ps || {};
+        if (p[ps]) {
+            p[ps].sleep = 100;
+        } else {
+            p[ps] = {
+                sleep: 100
+            };
+        }
+        setTimeout(function () {
+            for (var key in p) if (p[has](key) && key != ps) {
+                p[key].sleep--;
+                !p[key].sleep && delete p[key];
+            }
+        });
+        return p[ps];
+    }
+    function box(x, y, width, height) {
+        if (x == null) {
+            x = y = width = height = 0;
+        }
+        if (y == null) {
+            y = x.y;
+            width = x.width;
+            height = x.height;
+            x = x.x;
+        }
+        return {
+            x: x,
+            y: y,
+            width: width,
+            w: width,
+            height: height,
+            h: height,
+            x2: x + width,
+            y2: y + height,
+            cx: x + width / 2,
+            cy: y + height / 2,
+            r1: math.min(width, height) / 2,
+            r2: math.max(width, height) / 2,
+            r0: math.sqrt(width * width + height * height) / 2,
+            path: rectPath(x, y, width, height),
+            vb: [x, y, width, height].join(" ")
+        };
+    }
+    function toString() {
+        return this.join(",").replace(p2s, "$1");
+    }
+    function pathClone(pathArray) {
+        var res = clone(pathArray);
+        res.toString = toString;
+        return res;
+    }
+    function getPointAtSegmentLength(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, length) {
+        if (length == null) {
+            return bezlen(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y);
+        } else {
+            return findDotsAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y,
+                getTotLen(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, length));
+        }
+    }
+    function getLengthFactory(istotal, subpath) {
+        function O(val) {
+            return +(+val).toFixed(3);
+        }
+        return Snap._.cacher(function (path, length, onlystart) {
+            if (path instanceof Element) {
+                path = path.attr("d");
+            }
+            path = path2curve(path);
+            var x, y, p, l, sp = "", subpaths = {}, point,
+                len = 0;
+            for (var i = 0, ii = path.length; i < ii; i++) {
+                p = path[i];
+                if (p[0] == "M") {
+                    x = +p[1];
+                    y = +p[2];
+                } else {
+                    l = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6]);
+                    if (len + l > length) {
+                        if (subpath && !subpaths.start) {
+                            point = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6], length - len);
+                            sp += [
+                                "C" + O(point.start.x),
+                                O(point.start.y),
+                                O(point.m.x),
+                                O(point.m.y),
+                                O(point.x),
+                                O(point.y)
+                            ];
+                            if (onlystart) {return sp;}
+                            subpaths.start = sp;
+                            sp = [
+                                "M" + O(point.x),
+                                O(point.y) + "C" + O(point.n.x),
+                                O(point.n.y),
+                                O(point.end.x),
+                                O(point.end.y),
+                                O(p[5]),
+                                O(p[6])
+                            ].join();
+                            len += l;
+                            x = +p[5];
+                            y = +p[6];
+                            continue;
+                        }
+                        if (!istotal && !subpath) {
+                            point = getPointAtSegmentLength(x, y, p[1], p[2], p[3], p[4], p[5], p[6], length - len);
+                            return point;
+                        }
+                    }
+                    len += l;
+                    x = +p[5];
+                    y = +p[6];
+                }
+                sp += p.shift() + p;
+            }
+            subpaths.end = sp;
+            point = istotal ? len : subpath ? subpaths : findDotsAtSegment(x, y, p[0], p[1], p[2], p[3], p[4], p[5], 1);
+            return point;
+        }, null, Snap._.clone);
+    }
+    var getTotalLength = getLengthFactory(1),
+        getPointAtLength = getLengthFactory(),
+        getSubpathsAtLength = getLengthFactory(0, 1);
+    function findDotsAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
+        var t1 = 1 - t,
+            t13 = pow(t1, 3),
+            t12 = pow(t1, 2),
+            t2 = t * t,
+            t3 = t2 * t,
+            x = t13 * p1x + t12 * 3 * t * c1x + t1 * 3 * t * t * c2x + t3 * p2x,
+            y = t13 * p1y + t12 * 3 * t * c1y + t1 * 3 * t * t * c2y + t3 * p2y,
+            mx = p1x + 2 * t * (c1x - p1x) + t2 * (c2x - 2 * c1x + p1x),
+            my = p1y + 2 * t * (c1y - p1y) + t2 * (c2y - 2 * c1y + p1y),
+            nx = c1x + 2 * t * (c2x - c1x) + t2 * (p2x - 2 * c2x + c1x),
+            ny = c1y + 2 * t * (c2y - c1y) + t2 * (p2y - 2 * c2y + c1y),
+            ax = t1 * p1x + t * c1x,
+            ay = t1 * p1y + t * c1y,
+            cx = t1 * c2x + t * p2x,
+            cy = t1 * c2y + t * p2y,
+            alpha = 90 - math.atan2(mx - nx, my - ny) * 180 / PI;
+        // (mx > nx || my < ny) && (alpha += 180);
+        return {
+            x: x,
+            y: y,
+            m: {x: mx, y: my},
+            n: {x: nx, y: ny},
+            start: {x: ax, y: ay},
+            end: {x: cx, y: cy},
+            alpha: alpha
+        };
+    }
+    function bezierBBox(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
+        if (!Snap.is(p1x, "array")) {
+            p1x = [p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y];
+        }
+        var bbox = curveDim.apply(null, p1x);
+        return box(
+            bbox.min.x,
+            bbox.min.y,
+            bbox.max.x - bbox.min.x,
+            bbox.max.y - bbox.min.y
+        );
+    }
+    function isPointInsideBBox(bbox, x, y) {
+        return  x >= bbox.x &&
+                x <= bbox.x + bbox.width &&
+                y >= bbox.y &&
+                y <= bbox.y + bbox.height;
+    }
+    function isBBoxIntersect(bbox1, bbox2) {
+        bbox1 = box(bbox1);
+        bbox2 = box(bbox2);
+        return isPointInsideBBox(bbox2, bbox1.x, bbox1.y)
+            || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y)
+            || isPointInsideBBox(bbox2, bbox1.x, bbox1.y2)
+            || isPointInsideBBox(bbox2, bbox1.x2, bbox1.y2)
+            || isPointInsideBBox(bbox1, bbox2.x, bbox2.y)
+            || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y)
+            || isPointInsideBBox(bbox1, bbox2.x, bbox2.y2)
+            || isPointInsideBBox(bbox1, bbox2.x2, bbox2.y2)
+            || (bbox1.x < bbox2.x2 && bbox1.x > bbox2.x
+                || bbox2.x < bbox1.x2 && bbox2.x > bbox1.x)
+            && (bbox1.y < bbox2.y2 && bbox1.y > bbox2.y
+                || bbox2.y < bbox1.y2 && bbox2.y > bbox1.y);
+    }
+    function base3(t, p1, p2, p3, p4) {
+        var t1 = -3 * p1 + 9 * p2 - 9 * p3 + 3 * p4,
+            t2 = t * t1 + 6 * p1 - 12 * p2 + 6 * p3;
+        return t * t2 - 3 * p1 + 3 * p2;
+    }
+    function bezlen(x1, y1, x2, y2, x3, y3, x4, y4, z) {
+        if (z == null) {
+            z = 1;
+        }
+        z = z > 1 ? 1 : z < 0 ? 0 : z;
+        var z2 = z / 2,
+            n = 12,
+            Tvalues = [-.1252,.1252,-.3678,.3678,-.5873,.5873,-.7699,.7699,-.9041,.9041,-.9816,.9816],
+            Cvalues = [0.2491,0.2491,0.2335,0.2335,0.2032,0.2032,0.1601,0.1601,0.1069,0.1069,0.0472,0.0472],
+            sum = 0;
+        for (var i = 0; i < n; i++) {
+            var ct = z2 * Tvalues[i] + z2,
+                xbase = base3(ct, x1, x2, x3, x4),
+                ybase = base3(ct, y1, y2, y3, y4),
+                comb = xbase * xbase + ybase * ybase;
+            sum += Cvalues[i] * math.sqrt(comb);
+        }
+        return z2 * sum;
+    }
+    function getTotLen(x1, y1, x2, y2, x3, y3, x4, y4, ll) {
+        if (ll < 0 || bezlen(x1, y1, x2, y2, x3, y3, x4, y4) < ll) {
+            return;
+        }
+        var t = 1,
+            step = t / 2,
+            t2 = t - step,
+            l,
+            e = .01;
+        l = bezlen(x1, y1, x2, y2, x3, y3, x4, y4, t2);
+        while (abs(l - ll) > e) {
+            step /= 2;
+            t2 += (l < ll ? 1 : -1) * step;
+            l = bezlen(x1, y1, x2, y2, x3, y3, x4, y4, t2);
+        }
+        return t2;
+    }
+    function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+        if (
+            mmax(x1, x2) < mmin(x3, x4) ||
+            mmin(x1, x2) > mmax(x3, x4) ||
+            mmax(y1, y2) < mmin(y3, y4) ||
+            mmin(y1, y2) > mmax(y3, y4)
+        ) {
+            return;
+        }
+        var nx = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4),
+            ny = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4),
+            denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+        if (!denominator) {
+            return;
+        }
+        var px = nx / denominator,
+            py = ny / denominator,
+            px2 = +px.toFixed(2),
+            py2 = +py.toFixed(2);
+        if (
+            px2 < +mmin(x1, x2).toFixed(2) ||
+            px2 > +mmax(x1, x2).toFixed(2) ||
+            px2 < +mmin(x3, x4).toFixed(2) ||
+            px2 > +mmax(x3, x4).toFixed(2) ||
+            py2 < +mmin(y1, y2).toFixed(2) ||
+            py2 > +mmax(y1, y2).toFixed(2) ||
+            py2 < +mmin(y3, y4).toFixed(2) ||
+            py2 > +mmax(y3, y4).toFixed(2)
+        ) {
+            return;
+        }
+        return {x: px, y: py};
+    }
+    function inter(bez1, bez2) {
+        return interHelper(bez1, bez2);
+    }
+    function interCount(bez1, bez2) {
+        return interHelper(bez1, bez2, 1);
+    }
+    function interHelper(bez1, bez2, justCount) {
+        var bbox1 = bezierBBox(bez1),
+            bbox2 = bezierBBox(bez2);
+        if (!isBBoxIntersect(bbox1, bbox2)) {
+            return justCount ? 0 : [];
+        }
+        var l1 = bezlen.apply(0, bez1),
+            l2 = bezlen.apply(0, bez2),
+            n1 = ~~(l1 / 8),
+            n2 = ~~(l2 / 8),
+            dots1 = [],
+            dots2 = [],
+            xy = {},
+            res = justCount ? 0 : [];
+        for (var i = 0; i < n1 + 1; i++) {
+            var p = findDotsAtSegment.apply(0, bez1.concat(i / n1));
+            dots1.push({x: p.x, y: p.y, t: i / n1});
+        }
+        for (i = 0; i < n2 + 1; i++) {
+            p = findDotsAtSegment.apply(0, bez2.concat(i / n2));
+            dots2.push({x: p.x, y: p.y, t: i / n2});
+        }
+        for (i = 0; i < n1; i++) {
+            for (var j = 0; j < n2; j++) {
+                var di = dots1[i],
+                    di1 = dots1[i + 1],
+                    dj = dots2[j],
+                    dj1 = dots2[j + 1],
+                    ci = abs(di1.x - di.x) < .001 ? "y" : "x",
+                    cj = abs(dj1.x - dj.x) < .001 ? "y" : "x",
+                    is = intersect(di.x, di.y, di1.x, di1.y, dj.x, dj.y, dj1.x, dj1.y);
+                if (is) {
+                    if (xy[is.x.toFixed(4)] == is.y.toFixed(4)) {
+                        continue;
+                    }
+                    xy[is.x.toFixed(4)] = is.y.toFixed(4);
+                    var t1 = di.t + abs((is[ci] - di[ci]) / (di1[ci] - di[ci])) * (di1.t - di.t),
+                        t2 = dj.t + abs((is[cj] - dj[cj]) / (dj1[cj] - dj[cj])) * (dj1.t - dj.t);
+                    if (t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1) {
+                        if (justCount) {
+                            res++;
+                        } else {
+                            res.push({
+                                x: is.x,
+                                y: is.y,
+                                t1: t1,
+                                t2: t2
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        return res;
+    }
+    function pathIntersection(path1, path2) {
+        return interPathHelper(path1, path2);
+    }
+    function pathIntersectionNumber(path1, path2) {
+        return interPathHelper(path1, path2, 1);
+    }
+    function interPathHelper(path1, path2, justCount) {
+        path1 = path2curve(path1);
+        path2 = path2curve(path2);
+        var x1, y1, x2, y2, x1m, y1m, x2m, y2m, bez1, bez2,
+            res = justCount ? 0 : [];
+        for (var i = 0, ii = path1.length; i < ii; i++) {
+            var pi = path1[i];
+            if (pi[0] == "M") {
+                x1 = x1m = pi[1];
+                y1 = y1m = pi[2];
+            } else {
+                if (pi[0] == "C") {
+                    bez1 = [x1, y1].concat(pi.slice(1));
+                    x1 = bez1[6];
+                    y1 = bez1[7];
+                } else {
+                    bez1 = [x1, y1, x1, y1, x1m, y1m, x1m, y1m];
+                    x1 = x1m;
+                    y1 = y1m;
+                }
+                for (var j = 0, jj = path2.length; j < jj; j++) {
+                    var pj = path2[j];
+                    if (pj[0] == "M") {
+                        x2 = x2m = pj[1];
+                        y2 = y2m = pj[2];
+                    } else {
+                        if (pj[0] == "C") {
+                            bez2 = [x2, y2].concat(pj.slice(1));
+                            x2 = bez2[6];
+                            y2 = bez2[7];
+                        } else {
+                            bez2 = [x2, y2, x2, y2, x2m, y2m, x2m, y2m];
+                            x2 = x2m;
+                            y2 = y2m;
+                        }
+                        var intr = interHelper(bez1, bez2, justCount);
+                        if (justCount) {
+                            res += intr;
+                        } else {
+                            for (var k = 0, kk = intr.length; k < kk; k++) {
+                                intr[k].segment1 = i;
+                                intr[k].segment2 = j;
+                                intr[k].bez1 = bez1;
+                                intr[k].bez2 = bez2;
+                            }
+                            res = res.concat(intr);
+                        }
+                    }
+                }
+            }
+        }
+        return res;
+    }
+    function isPointInsidePath(path, x, y) {
+        var bbox = pathBBox(path);
+        return isPointInsideBBox(bbox, x, y) &&
+               interPathHelper(path, [["M", x, y], ["H", bbox.x2 + 10]], 1) % 2 == 1;
+    }
+    function pathBBox(path) {
+        var pth = paths(path);
+        if (pth.bbox) {
+            return clone(pth.bbox);
+        }
+        if (!path) {
+            return box();
+        }
+        path = path2curve(path);
+        var x = 0,
+            y = 0,
+            X = [],
+            Y = [],
+            p;
+        for (var i = 0, ii = path.length; i < ii; i++) {
+            p = path[i];
+            if (p[0] == "M") {
+                x = p[1];
+                y = p[2];
+                X.push(x);
+                Y.push(y);
+            } else {
+                var dim = curveDim(x, y, p[1], p[2], p[3], p[4], p[5], p[6]);
+                X = X.concat(dim.min.x, dim.max.x);
+                Y = Y.concat(dim.min.y, dim.max.y);
+                x = p[5];
+                y = p[6];
+            }
+        }
+        var xmin = mmin.apply(0, X),
+            ymin = mmin.apply(0, Y),
+            xmax = mmax.apply(0, X),
+            ymax = mmax.apply(0, Y),
+            bb = box(xmin, ymin, xmax - xmin, ymax - ymin);
+        pth.bbox = clone(bb);
+        return bb;
+    }
+    function rectPath(x, y, w, h, r) {
+        if (r) {
+            return [
+                ["M", +x + +r, y],
+                ["l", w - r * 2, 0],
+                ["a", r, r, 0, 0, 1, r, r],
+                ["l", 0, h - r * 2],
+                ["a", r, r, 0, 0, 1, -r, r],
+                ["l", r * 2 - w, 0],
+                ["a", r, r, 0, 0, 1, -r, -r],
+                ["l", 0, r * 2 - h],
+                ["a", r, r, 0, 0, 1, r, -r],
+                ["z"]
+            ];
+        }
+        var res = [["M", x, y], ["l", w, 0], ["l", 0, h], ["l", -w, 0], ["z"]];
+        res.toString = toString;
+        return res;
+    }
+    function ellipsePath(x, y, rx, ry, a) {
+        if (a == null && ry == null) {
+            ry = rx;
+        }
+        x = +x;
+        y = +y;
+        rx = +rx;
+        ry = +ry;
+        if (a != null) {
+            var rad = Math.PI / 180,
+                x1 = x + rx * Math.cos(-ry * rad),
+                x2 = x + rx * Math.cos(-a * rad),
+                y1 = y + rx * Math.sin(-ry * rad),
+                y2 = y + rx * Math.sin(-a * rad),
+                res = [["M", x1, y1], ["A", rx, rx, 0, +(a - ry > 180), 0, x2, y2]];
+        } else {
+            res = [
+                ["M", x, y],
+                ["m", 0, -ry],
+                ["a", rx, ry, 0, 1, 1, 0, 2 * ry],
+                ["a", rx, ry, 0, 1, 1, 0, -2 * ry],
+                ["z"]
+            ];
+        }
+        res.toString = toString;
+        return res;
+    }
+    var unit2px = Snap._unit2px,
+        getPath = {
+        path: function (el) {
+            return el.attr("path");
+        },
+        circle: function (el) {
+            var attr = unit2px(el);
+            return ellipsePath(attr.cx, attr.cy, attr.r);
+        },
+        ellipse: function (el) {
+            var attr = unit2px(el);
+            return ellipsePath(attr.cx || 0, attr.cy || 0, attr.rx, attr.ry);
+        },
+        rect: function (el) {
+            var attr = unit2px(el);
+            return rectPath(attr.x || 0, attr.y || 0, attr.width, attr.height, attr.rx, attr.ry);
+        },
+        image: function (el) {
+            var attr = unit2px(el);
+            return rectPath(attr.x || 0, attr.y || 0, attr.width, attr.height);
+        },
+        line: function (el) {
+            return "M" + [el.attr("x1") || 0, el.attr("y1") || 0, el.attr("x2"), el.attr("y2")];
+        },
+        polyline: function (el) {
+            return "M" + el.attr("points");
+        },
+        polygon: function (el) {
+            return "M" + el.attr("points") + "z";
+        },
+        deflt: function (el) {
+            var bbox = el.node.getBBox();
+            return rectPath(bbox.x, bbox.y, bbox.width, bbox.height);
+        }
+    };
+    function pathToRelative(pathArray) {
+        var pth = paths(pathArray),
+            lowerCase = String.prototype.toLowerCase;
+        if (pth.rel) {
+            return pathClone(pth.rel);
+        }
+        if (!Snap.is(pathArray, "array") || !Snap.is(pathArray && pathArray[0], "array")) {
+            pathArray = Snap.parsePathString(pathArray);
+        }
+        var res = [],
+            x = 0,
+            y = 0,
+            mx = 0,
+            my = 0,
+            start = 0;
+        if (pathArray[0][0] == "M") {
+            x = pathArray[0][1];
+            y = pathArray[0][2];
+            mx = x;
+            my = y;
+            start++;
+            res.push(["M", x, y]);
+        }
+        for (var i = start, ii = pathArray.length; i < ii; i++) {
+            var r = res[i] = [],
+                pa = pathArray[i];
+            if (pa[0] != lowerCase.call(pa[0])) {
+                r[0] = lowerCase.call(pa[0]);
+                switch (r[0]) {
+                    case "a":
+                        r[1] = pa[1];
+                        r[2] = pa[2];
+                        r[3] = pa[3];
+                        r[4] = pa[4];
+                        r[5] = pa[5];
+                        r[6] = +(pa[6] - x).toFixed(3);
+                        r[7] = +(pa[7] - y).toFixed(3);
+                        break;
+                    case "v":
+                        r[1] = +(pa[1] - y).toFixed(3);
+                        break;
+                    case "m":
+                        mx = pa[1];
+                        my = pa[2];
+                    default:
+                        for (var j = 1, jj = pa.length; j < jj; j++) {
+                            r[j] = +(pa[j] - (j % 2 ? x : y)).toFixed(3);
+                        }
+                }
+            } else {
+                r = res[i] = [];
+                if (pa[0] == "m") {
+                    mx = pa[1] + x;
+                    my = pa[2] + y;
+                }
+                for (var k = 0, kk = pa.length; k < kk; k++) {
+                    res[i][k] = pa[k];
+                }
+            }
+            var len = res[i].length;
+            switch (res[i][0]) {
+                case "z":
+                    x = mx;
+                    y = my;
+                    break;
+                case "h":
+                    x += +res[i][len - 1];
+                    break;
+                case "v":
+                    y += +res[i][len - 1];
+                    break;
+                default:
+                    x += +res[i][len - 2];
+                    y += +res[i][len - 1];
+            }
+        }
+        res.toString = toString;
+        pth.rel = pathClone(res);
+        return res;
+    }
+    function pathToAbsolute(pathArray) {
+        var pth = paths(pathArray);
+        if (pth.abs) {
+            return pathClone(pth.abs);
+        }
+        if (!is(pathArray, "array") || !is(pathArray && pathArray[0], "array")) { // rough assumption
+            pathArray = Snap.parsePathString(pathArray);
+        }
+        if (!pathArray || !pathArray.length) {
+            return [["M", 0, 0]];
+        }
+        var res = [],
+            x = 0,
+            y = 0,
+            mx = 0,
+            my = 0,
+            start = 0,
+            pa0;
+        if (pathArray[0][0] == "M") {
+            x = +pathArray[0][1];
+            y = +pathArray[0][2];
+            mx = x;
+            my = y;
+            start++;
+            res[0] = ["M", x, y];
+        }
+        var crz = pathArray.length == 3 &&
+            pathArray[0][0] == "M" &&
+            pathArray[1][0].toUpperCase() == "R" &&
+            pathArray[2][0].toUpperCase() == "Z";
+        for (var r, pa, i = start, ii = pathArray.length; i < ii; i++) {
+            res.push(r = []);
+            pa = pathArray[i];
+            pa0 = pa[0];
+            if (pa0 != pa0.toUpperCase()) {
+                r[0] = pa0.toUpperCase();
+                switch (r[0]) {
+                    case "A":
+                        r[1] = pa[1];
+                        r[2] = pa[2];
+                        r[3] = pa[3];
+                        r[4] = pa[4];
+                        r[5] = pa[5];
+                        r[6] = +pa[6] + x;
+                        r[7] = +pa[7] + y;
+                        break;
+                    case "V":
+                        r[1] = +pa[1] + y;
+                        break;
+                    case "H":
+                        r[1] = +pa[1] + x;
+                        break;
+                    case "R":
+                        var dots = [x, y].concat(pa.slice(1));
+                        for (var j = 2, jj = dots.length; j < jj; j++) {
+                            dots[j] = +dots[j] + x;
+                            dots[++j] = +dots[j] + y;
+                        }
+                        res.pop();
+                        res = res.concat(catmullRom2bezier(dots, crz));
+                        break;
+                    case "O":
+                        res.pop();
+                        dots = ellipsePath(x, y, pa[1], pa[2]);
+                        dots.push(dots[0]);
+                        res = res.concat(dots);
+                        break;
+                    case "U":
+                        res.pop();
+                        res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
+                        r = ["U"].concat(res[res.length - 1].slice(-2));
+                        break;
+                    case "M":
+                        mx = +pa[1] + x;
+                        my = +pa[2] + y;
+                    default:
+                        for (j = 1, jj = pa.length; j < jj; j++) {
+                            r[j] = +pa[j] + (j % 2 ? x : y);
+                        }
+                }
+            } else if (pa0 == "R") {
+                dots = [x, y].concat(pa.slice(1));
+                res.pop();
+                res = res.concat(catmullRom2bezier(dots, crz));
+                r = ["R"].concat(pa.slice(-2));
+            } else if (pa0 == "O") {
+                res.pop();
+                dots = ellipsePath(x, y, pa[1], pa[2]);
+                dots.push(dots[0]);
+                res = res.concat(dots);
+            } else if (pa0 == "U") {
+                res.pop();
+                res = res.concat(ellipsePath(x, y, pa[1], pa[2], pa[3]));
+                r = ["U"].concat(res[res.length - 1].slice(-2));
+            } else {
+                for (var k = 0, kk = pa.length; k < kk; k++) {
+                    r[k] = pa[k];
+                }
+            }
+            pa0 = pa0.toUpperCase();
+            if (pa0 != "O") {
+                switch (r[0]) {
+                    case "Z":
+                        x = +mx;
+                        y = +my;
+                        break;
+                    case "H":
+                        x = r[1];
+                        break;
+                    case "V":
+                        y = r[1];
+                        break;
+                    case "M":
+                        mx = r[r.length - 2];
+                        my = r[r.length - 1];
+                    default:
+                        x = r[r.length - 2];
+                        y = r[r.length - 1];
+                }
+            }
+        }
+        res.toString = toString;
+        pth.abs = pathClone(res);
+        return res;
+    }
+    function l2c(x1, y1, x2, y2) {
+        return [x1, y1, x2, y2, x2, y2];
+    }
+    function q2c(x1, y1, ax, ay, x2, y2) {
+        var _13 = 1 / 3,
+            _23 = 2 / 3;
+        return [
+                _13 * x1 + _23 * ax,
+                _13 * y1 + _23 * ay,
+                _13 * x2 + _23 * ax,
+                _13 * y2 + _23 * ay,
+                x2,
+                y2
+            ];
+    }
+    function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
+        // for more information of where this math came from visit:
+        // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+        var _120 = PI * 120 / 180,
+            rad = PI / 180 * (+angle || 0),
+            res = [],
+            xy,
+            rotate = Snap._.cacher(function (x, y, rad) {
+                var X = x * math.cos(rad) - y * math.sin(rad),
+                    Y = x * math.sin(rad) + y * math.cos(rad);
+                return {x: X, y: Y};
+            });
+        if (!rx || !ry) {
+            return [x1, y1, x2, y2, x2, y2];
+        }
+        if (!recursive) {
+            xy = rotate(x1, y1, -rad);
+            x1 = xy.x;
+            y1 = xy.y;
+            xy = rotate(x2, y2, -rad);
+            x2 = xy.x;
+            y2 = xy.y;
+            var cos = math.cos(PI / 180 * angle),
+                sin = math.sin(PI / 180 * angle),
+                x = (x1 - x2) / 2,
+                y = (y1 - y2) / 2;
+            var h = x * x / (rx * rx) + y * y / (ry * ry);
+            if (h > 1) {
+                h = math.sqrt(h);
+                rx = h * rx;
+                ry = h * ry;
+            }
+            var rx2 = rx * rx,
+                ry2 = ry * ry,
+                k = (large_arc_flag == sweep_flag ? -1 : 1) *
+                    math.sqrt(abs((rx2 * ry2 - rx2 * y * y - ry2 * x * x) / (rx2 * y * y + ry2 * x * x))),
+                cx = k * rx * y / ry + (x1 + x2) / 2,
+                cy = k * -ry * x / rx + (y1 + y2) / 2,
+                f1 = math.asin(((y1 - cy) / ry).toFixed(9)),
+                f2 = math.asin(((y2 - cy) / ry).toFixed(9));
+
+            f1 = x1 < cx ? PI - f1 : f1;
+            f2 = x2 < cx ? PI - f2 : f2;
+            f1 < 0 && (f1 = PI * 2 + f1);
+            f2 < 0 && (f2 = PI * 2 + f2);
+            if (sweep_flag && f1 > f2) {
+                f1 = f1 - PI * 2;
+            }
+            if (!sweep_flag && f2 > f1) {
+                f2 = f2 - PI * 2;
+            }
+        } else {
+            f1 = recursive[0];
+            f2 = recursive[1];
+            cx = recursive[2];
+            cy = recursive[3];
+        }
+        var df = f2 - f1;
+        if (abs(df) > _120) {
+            var f2old = f2,
+                x2old = x2,
+                y2old = y2;
+            f2 = f1 + _120 * (sweep_flag && f2 > f1 ? 1 : -1);
+            x2 = cx + rx * math.cos(f2);
+            y2 = cy + ry * math.sin(f2);
+            res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
+        }
+        df = f2 - f1;
+        var c1 = math.cos(f1),
+            s1 = math.sin(f1),
+            c2 = math.cos(f2),
+            s2 = math.sin(f2),
+            t = math.tan(df / 4),
+            hx = 4 / 3 * rx * t,
+            hy = 4 / 3 * ry * t,
+            m1 = [x1, y1],
+            m2 = [x1 + hx * s1, y1 - hy * c1],
+            m3 = [x2 + hx * s2, y2 - hy * c2],
+            m4 = [x2, y2];
+        m2[0] = 2 * m1[0] - m2[0];
+        m2[1] = 2 * m1[1] - m2[1];
+        if (recursive) {
+            return [m2, m3, m4].concat(res);
+        } else {
+            res = [m2, m3, m4].concat(res).join().split(",");
+            var newres = [];
+            for (var i = 0, ii = res.length; i < ii; i++) {
+                newres[i] = i % 2 ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
+            }
+            return newres;
+        }
+    }
+    function findDotAtSegment(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
+        var t1 = 1 - t;
+        return {
+            x: pow(t1, 3) * p1x + pow(t1, 2) * 3 * t * c1x + t1 * 3 * t * t * c2x + pow(t, 3) * p2x,
+            y: pow(t1, 3) * p1y + pow(t1, 2) * 3 * t * c1y + t1 * 3 * t * t * c2y + pow(t, 3) * p2y
+        };
+    }
+
+    // Returns bounding box of cubic bezier curve.
+    // Source: http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
+    // Original version: NISHIO Hirokazu
+    // Modifications: https://github.com/timo22345
+    function curveDim(x0, y0, x1, y1, x2, y2, x3, y3) {
+        var tvalues = [],
+            bounds = [[], []],
+            a, b, c, t, t1, t2, b2ac, sqrtb2ac;
+        for (var i = 0; i < 2; ++i) {
+            if (i == 0) {
+                b = 6 * x0 - 12 * x1 + 6 * x2;
+                a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
+                c = 3 * x1 - 3 * x0;
+            } else {
+                b = 6 * y0 - 12 * y1 + 6 * y2;
+                a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
+                c = 3 * y1 - 3 * y0;
+            }
+            if (abs(a) < 1e-12) {
+                if (abs(b) < 1e-12) {
+                    continue;
+                }
+                t = -c / b;
+                if (0 < t && t < 1) {
+                    tvalues.push(t);
+                }
+                continue;
+            }
+            b2ac = b * b - 4 * c * a;
+            sqrtb2ac = math.sqrt(b2ac);
+            if (b2ac < 0) {
+                continue;
+            }
+            t1 = (-b + sqrtb2ac) / (2 * a);
+            if (0 < t1 && t1 < 1) {
+                tvalues.push(t1);
+            }
+            t2 = (-b - sqrtb2ac) / (2 * a);
+            if (0 < t2 && t2 < 1) {
+                tvalues.push(t2);
+            }
+        }
+
+        var x, y, j = tvalues.length,
+            jlen = j,
+            mt;
+        while (j--) {
+            t = tvalues[j];
+            mt = 1 - t;
+            bounds[0][j] = mt * mt * mt * x0 + 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t * x3;
+            bounds[1][j] = mt * mt * mt * y0 + 3 * mt * mt * t * y1 + 3 * mt * t * t * y2 + t * t * t * y3;
+        }
+
+        bounds[0][jlen] = x0;
+        bounds[1][jlen] = y0;
+        bounds[0][jlen + 1] = x3;
+        bounds[1][jlen + 1] = y3;
+        bounds[0].length = bounds[1].length = jlen + 2;
+
+
+        return {
+          min: {x: mmin.apply(0, bounds[0]), y: mmin.apply(0, bounds[1])},
+          max: {x: mmax.apply(0, bounds[0]), y: mmax.apply(0, bounds[1])}
+        };
+    }
+
+    function path2curve(path, path2) {
+        var pth = !path2 && paths(path);
+        if (!path2 && pth.curve) {
+            return pathClone(pth.curve);
+        }
+        var p = pathToAbsolute(path),
+            p2 = path2 && pathToAbsolute(path2),
+            attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
+            attrs2 = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
+            processPath = function (path, d, pcom) {
+                var nx, ny;
+                if (!path) {
+                    return ["C", d.x, d.y, d.x, d.y, d.x, d.y];
+                }
+                !(path[0] in {T: 1, Q: 1}) && (d.qx = d.qy = null);
+                switch (path[0]) {
+                    case "M":
+                        d.X = path[1];
+                        d.Y = path[2];
+                        break;
+                    case "A":
+                        path = ["C"].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
+                        break;
+                    case "S":
+                        if (pcom == "C" || pcom == "S") { // In "S" case we have to take into account, if the previous command is C/S.
+                            nx = d.x * 2 - d.bx;          // And reflect the previous
+                            ny = d.y * 2 - d.by;          // command's control point relative to the current point.
+                        }
+                        else {                            // or some else or nothing
+                            nx = d.x;
+                            ny = d.y;
+                        }
+                        path = ["C", nx, ny].concat(path.slice(1));
+                        break;
+                    case "T":
+                        if (pcom == "Q" || pcom == "T") { // In "T" case we have to take into account, if the previous command is Q/T.
+                            d.qx = d.x * 2 - d.qx;        // And make a reflection similar
+                            d.qy = d.y * 2 - d.qy;        // to case "S".
+                        }
+                        else {                            // or something else or nothing
+                            d.qx = d.x;
+                            d.qy = d.y;
+                        }
+                        path = ["C"].concat(q2c(d.x, d.y, d.qx, d.qy, path[1], path[2]));
+                        break;
+                    case "Q":
+                        d.qx = path[1];
+                        d.qy = path[2];
+                        path = ["C"].concat(q2c(d.x, d.y, path[1], path[2], path[3], path[4]));
+                        break;
+                    case "L":
+                        path = ["C"].concat(l2c(d.x, d.y, path[1], path[2]));
+                        break;
+                    case "H":
+                        path = ["C"].concat(l2c(d.x, d.y, path[1], d.y));
+                        break;
+                    case "V":
+                        path = ["C"].concat(l2c(d.x, d.y, d.x, path[1]));
+                        break;
+                    case "Z":
+                        path = ["C"].concat(l2c(d.x, d.y, d.X, d.Y));
+                        break;
+                }
+                return path;
+            },
+            fixArc = function (pp, i) {
+                if (pp[i].length > 7) {
+                    pp[i].shift();
+                    var pi = pp[i];
+                    while (pi.length) {
+                        pcoms1[i] = "A"; // if created multiple C:s, their original seg is saved
+                        p2 && (pcoms2[i] = "A"); // the same as above
+                        pp.splice(i++, 0, ["C"].concat(pi.splice(0, 6)));
+                    }
+                    pp.splice(i, 1);
+                    ii = mmax(p.length, p2 && p2.length || 0);
+                }
+            },
+            fixM = function (path1, path2, a1, a2, i) {
+                if (path1 && path2 && path1[i][0] == "M" && path2[i][0] != "M") {
+                    path2.splice(i, 0, ["M", a2.x, a2.y]);
+                    a1.bx = 0;
+                    a1.by = 0;
+                    a1.x = path1[i][1];
+                    a1.y = path1[i][2];
+                    ii = mmax(p.length, p2 && p2.length || 0);
+                }
+            },
+            pcoms1 = [], // path commands of original path p
+            pcoms2 = [], // path commands of original path p2
+            pfirst = "", // temporary holder for original path command
+            pcom = ""; // holder for previous path command of original path
+        for (var i = 0, ii = mmax(p.length, p2 && p2.length || 0); i < ii; i++) {
+            p[i] && (pfirst = p[i][0]); // save current path command
+
+            if (pfirst != "C") // C is not saved yet, because it may be result of conversion
+            {
+                pcoms1[i] = pfirst; // Save current path command
+                i && ( pcom = pcoms1[i - 1]); // Get previous path command pcom
+            }
+            p[i] = processPath(p[i], attrs, pcom); // Previous path command is inputted to processPath
+
+            if (pcoms1[i] != "A" && pfirst == "C") pcoms1[i] = "C"; // A is the only command
+            // which may produce multiple C:s
+            // so we have to make sure that C is also C in original path
+
+            fixArc(p, i); // fixArc adds also the right amount of A:s to pcoms1
+
+            if (p2) { // the same procedures is done to p2
+                p2[i] && (pfirst = p2[i][0]);
+                if (pfirst != "C") {
+                    pcoms2[i] = pfirst;
+                    i && (pcom = pcoms2[i - 1]);
+                }
+                p2[i] = processPath(p2[i], attrs2, pcom);
+
+                if (pcoms2[i] != "A" && pfirst == "C") {
+                    pcoms2[i] = "C";
+                }
+
+                fixArc(p2, i);
+            }
+            fixM(p, p2, attrs, attrs2, i);
+            fixM(p2, p, attrs2, attrs, i);
+            var seg = p[i],
+                seg2 = p2 && p2[i],
+                seglen = seg.length,
+                seg2len = p2 && seg2.length;
+            attrs.x = seg[seglen - 2];
+            attrs.y = seg[seglen - 1];
+            attrs.bx = toFloat(seg[seglen - 4]) || attrs.x;
+            attrs.by = toFloat(seg[seglen - 3]) || attrs.y;
+            attrs2.bx = p2 && (toFloat(seg2[seg2len - 4]) || attrs2.x);
+            attrs2.by = p2 && (toFloat(seg2[seg2len - 3]) || attrs2.y);
+            attrs2.x = p2 && seg2[seg2len - 2];
+            attrs2.y = p2 && seg2[seg2len - 1];
+        }
+        if (!p2) {
+            pth.curve = pathClone(p);
+        }
+        return p2 ? [p, p2] : p;
+    }
+    function mapPath(path, matrix) {
+        if (!matrix) {
+            return path;
+        }
+        var x, y, i, j, ii, jj, pathi;
+        path = path2curve(path);
+        for (i = 0, ii = path.length; i < ii; i++) {
+            pathi = path[i];
+            for (j = 1, jj = pathi.length; j < jj; j += 2) {
+                x = matrix.x(pathi[j], pathi[j + 1]);
+                y = matrix.y(pathi[j], pathi[j + 1]);
+                pathi[j] = x;
+                pathi[j + 1] = y;
+            }
+        }
+        return path;
+    }
+
+    // http://schepers.cc/getting-to-the-point
+    function catmullRom2bezier(crp, z) {
+        var d = [];
+        for (var i = 0, iLen = crp.length; iLen - 2 * !z > i; i += 2) {
+            var p = [
+                        {x: +crp[i - 2], y: +crp[i - 1]},
+                        {x: +crp[i],     y: +crp[i + 1]},
+                        {x: +crp[i + 2], y: +crp[i + 3]},
+                        {x: +crp[i + 4], y: +crp[i + 5]}
+                    ];
+            if (z) {
+                if (!i) {
+                    p[0] = {x: +crp[iLen - 2], y: +crp[iLen - 1]};
+                } else if (iLen - 4 == i) {
+                    p[3] = {x: +crp[0], y: +crp[1]};
+                } else if (iLen - 2 == i) {
+                    p[2] = {x: +crp[0], y: +crp[1]};
+                    p[3] = {x: +crp[2], y: +crp[3]};
+                }
+            } else {
+                if (iLen - 4 == i) {
+                    p[3] = p[2];
+                } else if (!i) {
+                    p[0] = {x: +crp[i], y: +crp[i + 1]};
+                }
+            }
+            d.push(["C",
+                  (-p[0].x + 6 * p[1].x + p[2].x) / 6,
+                  (-p[0].y + 6 * p[1].y + p[2].y) / 6,
+                  (p[1].x + 6 * p[2].x - p[3].x) / 6,
+                  (p[1].y + 6*p[2].y - p[3].y) / 6,
+                  p[2].x,
+                  p[2].y
+            ]);
+        }
+
+        return d;
+    }
+
+    // export
+    Snap.path = paths;
+
+    /*\
+     * Snap.path.getTotalLength
+     [ method ]
+     **
+     * Returns the length of the given path in pixels
+     **
+     - path (string) SVG path string
+     **
+     = (number) length
+    \*/
+    Snap.path.getTotalLength = getTotalLength;
+    /*\
+     * Snap.path.getPointAtLength
+     [ method ]
+     **
+     * Returns the coordinates of the point located at the given length along the given path
+     **
+     - path (string) SVG path string
+     - length (number) length, in pixels, from the start of the path, excluding non-rendering jumps
+     **
+     = (object) representation of the point:
+     o {
+     o     x: (number) x coordinate,
+     o     y: (number) y coordinate,
+     o     alpha: (number) angle of derivative
+     o }
+    \*/
+    Snap.path.getPointAtLength = getPointAtLength;
+    /*\
+     * Snap.path.getSubpath
+     [ method ]
+     **
+     * Returns the subpath of a given path between given start and end lengths
+     **
+     - path (string) SVG path string
+     - from (number) length, in pixels, from the start of the path to the start of the segment
+     - to (number) length, in pixels, from the start of the path to the end of the segment
+     **
+     = (string) path string definition for the segment
+    \*/
+    Snap.path.getSubpath = function (path, from, to) {
+        if (this.getTotalLength(path) - to < 1e-6) {
+            return getSubpathsAtLength(path, from).end;
+        }
+        var a = getSubpathsAtLength(path, to, 1);
+        return from ? getSubpathsAtLength(a, from).end : a;
+    };
+    /*\
+     * Element.getTotalLength
+     [ method ]
+     **
+     * Returns the length of the path in pixels (only works for `path` elements)
+     = (number) length
+    \*/
+    elproto.getTotalLength = function () {
+        if (this.node.getTotalLength) {
+            return this.node.getTotalLength();
+        }
+    };
+    // SIERRA Element.getPointAtLength()/Element.getTotalLength(): If a <path> is broken into different segments, is the jump distance to the new coordinates set by the _M_ or _m_ commands calculated as part of the path's total length?
+    /*\
+     * Element.getPointAtLength
+     [ method ]
+     **
+     * Returns coordinates of the point located at the given length on the given path (only works for `path` elements)
+     **
+     - length (number) length, in pixels, from the start of the path, excluding non-rendering jumps
+     **
+     = (object) representation of the point:
+     o {
+     o     x: (number) x coordinate,
+     o     y: (number) y coordinate,
+     o     alpha: (number) angle of derivative
+     o }
+    \*/
+    elproto.getPointAtLength = function (length) {
+        return getPointAtLength(this.attr("d"), length);
+    };
+    // SIERRA Element.getSubpath(): Similar to the problem for Element.getPointAtLength(). Unclear how this would work for a segmented path. Overall, the concept of _subpath_ and what I'm calling a _segment_ (series of non-_M_ or _Z_ commands) is unclear.
+    /*\
+     * Element.getSubpath
+     [ method ]
+     **
+     * Returns subpath of a given element from given start and end lengths (only works for `path` elements)
+     **
+     - from (number) length, in pixels, from the start of the path to the start of the segment
+     - to (number) length, in pixels, from the start of the path to the end of the segment
+     **
+     = (string) path string definition for the segment
+    \*/
+    elproto.getSubpath = function (from, to) {
+        return Snap.path.getSubpath(this.attr("d"), from, to);
+    };
+    Snap._.box = box;
+    /*\
+     * Snap.path.findDotsAtSegment
+     [ method ]
+     **
+     * Utility method
+     **
+     * Finds dot coordinates on the given cubic beziér curve at the given t
+     - p1x (number) x of the first point of the curve
+     - p1y (number) y of the first point of the curve
+     - c1x (number) x of the first anchor of the curve
+     - c1y (number) y of the first anchor of the curve
+     - c2x (number) x of the second anchor of the curve
+     - c2y (number) y of the second anchor of the curve
+     - p2x (number) x of the second point of the curve
+     - p2y (number) y of the second point of the curve
+     - t (number) position on the curve (0..1)
+     = (object) point information in format:
+     o {
+     o     x: (number) x coordinate of the point,
+     o     y: (number) y coordinate of the point,
+     o     m: {
+     o         x: (number) x coordinate of the left anchor,
+     o         y: (number) y coordinate of the left anchor
+     o     },
+     o     n: {
+     o         x: (number) x coordinate of the right anchor,
+     o         y: (number) y coordinate of the right anchor
+     o     },
+     o     start: {
+     o         x: (number) x coordinate of the start of the curve,
+     o         y: (number) y coordinate of the start of the curve
+     o     },
+     o     end: {
+     o         x: (number) x coordinate of the end of the curve,
+     o         y: (number) y coordinate of the end of the curve
+     o     },
+     o     alpha: (number) angle of the curve derivative at the point
+     o }
+    \*/
+    Snap.path.findDotsAtSegment = findDotsAtSegment;
+    /*\
+     * Snap.path.bezierBBox
+     [ method ]
+     **
+     * Utility method
+     **
+     * Returns the bounding box of a given cubic beziér curve
+     - p1x (number) x of the first point of the curve
+     - p1y (number) y of the first point of the curve
+     - c1x (number) x of the first anchor of the curve
+     - c1y (number) y of the first anchor of the curve
+     - c2x (number) x of the second anchor of the curve
+     - c2y (number) y of the second anchor of the curve
+     - p2x (number) x of the second point of the curve
+     - p2y (number) y of the second point of the curve
+     * or
+     - bez (array) array of six points for beziér curve
+     = (object) bounding box
+     o {
+     o     x: (number) x coordinate of the left top point of the box,
+     o     y: (number) y coordinate of the left top point of the box,
+     o     x2: (number) x coordinate of the right bottom point of the box,
+     o     y2: (number) y coordinate of the right bottom point of the box,
+     o     width: (number) width of the box,
+     o     height: (number) height of the box
+     o }
+    \*/
+    Snap.path.bezierBBox = bezierBBox;
+    /*\
+     * Snap.path.isPointInsideBBox
+     [ method ]
+     **
+     * Utility method
+     **
+     * Returns `true` if given point is inside bounding box
+     - bbox (string) bounding box
+     - x (string) x coordinate of the point
+     - y (string) y coordinate of the point
+     = (boolean) `true` if point is inside
+    \*/
+    Snap.path.isPointInsideBBox = isPointInsideBBox;
+    Snap.closest = function (x, y, X, Y) {
+        var r = 100,
+            b = box(x - r / 2, y - r / 2, r, r),
+            inside = [],
+            getter = X[0].hasOwnProperty("x") ? function (i) {
+                return {
+                    x: X[i].x,
+                    y: X[i].y
+                };
+            } : function (i) {
+                return {
+                    x: X[i],
+                    y: Y[i]
+                };
+            },
+            found = 0;
+        while (r <= 1e6 && !found) {
+            for (var i = 0, ii = X.length; i < ii; i++) {
+                var xy = getter(i);
+                if (isPointInsideBBox(b, xy.x, xy.y)) {
+                    found++;
+                    inside.push(xy);
+                    break;
+                }
+            }
+            if (!found) {
+                r *= 2;
+                b = box(x - r / 2, y - r / 2, r, r)
+            }
+        }
+        if (r == 1e6) {
+            return;
+        }
+        var len = Infinity,
+            res;
+        for (i = 0, ii = inside.length; i < ii; i++) {
+            var l = Snap.len(x, y, inside[i].x, inside[i].y);
+            if (len > l) {
+                len = l;
+                inside[i].len = l;
+                res = inside[i];
+            }
+        }
+        return res;
+    };
+    /*\
+     * Snap.path.isBBoxIntersect
+     [ method ]
+     **
+     * Utility method
+     **
+     * Returns `true` if two bounding boxes intersect
+     - bbox1 (string) first bounding box
+     - bbox2 (string) second bounding box
+     = (boolean) `true` if bounding boxes intersect
+    \*/
+    Snap.path.isBBoxIntersect = isBBoxIntersect;
+    /*\
+     * Snap.path.intersection
+     [ method ]
+     **
+     * Utility method
+     **
+     * Finds intersections of two paths
+     - path1 (string) path string
+     - path2 (string) path string
+     = (array) dots of intersection
+     o [
+     o     {
+     o         x: (number) x coordinate of the point,
+     o         y: (number) y coordinate of the point,
+     o         t1: (number) t value for segment of path1,
+     o         t2: (number) t value for segment of path2,
+     o         segment1: (number) order number for segment of path1,
+     o         segment2: (number) order number for segment of path2,
+     o         bez1: (array) eight coordinates representing beziér curve for the segment of path1,
+     o         bez2: (array) eight coordinates representing beziér curve for the segment of path2
+     o     }
+     o ]
+    \*/
+    Snap.path.intersection = pathIntersection;
+    Snap.path.intersectionNumber = pathIntersectionNumber;
+    /*\
+     * Snap.path.isPointInside
+     [ method ]
+     **
+     * Utility method
+     **
+     * Returns `true` if given point is inside a given closed path.
+     *
+     * Note: fill mode doesn’t affect the result of this method.
+     - path (string) path string
+     - x (number) x of the point
+     - y (number) y of the point
+     = (boolean) `true` if point is inside the path
+    \*/
+    Snap.path.isPointInside = isPointInsidePath;
+    /*\
+     * Snap.path.getBBox
+     [ method ]
+     **
+     * Utility method
+     **
+     * Returns the bounding box of a given path
+     - path (string) path string
+     = (object) bounding box
+     o {
+     o     x: (number) x coordinate of the left top point of the box,
+     o     y: (number) y coordinate of the left top point of the box,
+     o     x2: (number) x coordinate of the right bottom point of the box,
+     o     y2: (number) y coordinate of the right bottom point of the box,
+     o     width: (number) width of the box,
+     o     height: (number) height of the box
+     o }
+    \*/
+    Snap.path.getBBox = pathBBox;
+    Snap.path.get = getPath;
+    /*\
+     * Snap.path.toRelative
+     [ method ]
+     **
+     * Utility method
+     **
+     * Converts path coordinates into relative values
+     - path (string) path string
+     = (array) path string
+    \*/
+    Snap.path.toRelative = pathToRelative;
+    /*\
+     * Snap.path.toAbsolute
+     [ method ]
+     **
+     * Utility method
+     **
+     * Converts path coordinates into absolute values
+     - path (string) path string
+     = (array) path string
+    \*/
+    Snap.path.toAbsolute = pathToAbsolute;
+    /*\
+     * Snap.path.toCubic
+     [ method ]
+     **
+     * Utility method
+     **
+     * Converts path to a new path where all segments are cubic beziér curves
+     - pathString (string|array) path string or array of segments
+     = (array) array of segments
+    \*/
+    Snap.path.toCubic = path2curve;
+    /*\
+     * Snap.path.map
+     [ method ]
+     **
+     * Transform the path string with the given matrix
+     - path (string) path string
+     - matrix (object) see @Matrix
+     = (string) transformed path string
+    \*/
+    Snap.path.map = mapPath;
+    Snap.path.toString = toString;
+    Snap.path.clone = pathClone;
+});
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob) {
+    var mmax = Math.max,
+        mmin = Math.min;
+
+    // Set
+    var Set = function (items) {
+        this.items = [];
+	this.bindings = {};
+        this.length = 0;
+        this.type = "set";
+        if (items) {
+            for (var i = 0, ii = items.length; i < ii; i++) {
+                if (items[i]) {
+                    this[this.items.length] = this.items[this.items.length] = items[i];
+                    this.length++;
+                }
+            }
+        }
+    },
+    setproto = Set.prototype;
+    /*\
+     * Set.push
+     [ method ]
+     **
+     * Adds each argument to the current set
+     = (object) original element
+    \*/
+    setproto.push = function () {
+        var item,
+            len;
+        for (var i = 0, ii = arguments.length; i < ii; i++) {
+            item = arguments[i];
+            if (item) {
+                len = this.items.length;
+                this[len] = this.items[len] = item;
+                this.length++;
+            }
+        }
+        return this;
+    };
+    /*\
+     * Set.pop
+     [ method ]
+     **
+     * Removes last element and returns it
+     = (object) element
+    \*/
+    setproto.pop = function () {
+        this.length && delete this[this.length--];
+        return this.items.pop();
+    };
+    /*\
+     * Set.forEach
+     [ method ]
+     **
+     * Executes given function for each element in the set
+     *
+     * If the function returns `false`, the loop stops running.
+     **
+     - callback (function) function to run
+     - thisArg (object) context object for the callback
+     = (object) Set object
+    \*/
+    setproto.forEach = function (callback, thisArg) {
+        for (var i = 0, ii = this.items.length; i < ii; i++) {
+            if (callback.call(thisArg, this.items[i], i) === false) {
+                return this;
+            }
+        }
+        return this;
+    };
+    /*\
+     * Set.animate
+     [ method ]
+     **
+     * Animates each element in set in sync.
+     *
+     **
+     - attrs (object) key-value pairs of destination attributes
+     - duration (number) duration of the animation in milliseconds
+     - easing (function) #optional easing function from @mina or custom
+     - callback (function) #optional callback function that executes when the animation ends
+     * or
+     - animation (array) array of animation parameter for each element in set in format `[attrs, duration, easing, callback]`
+     > Usage
+     | // animate all elements in set to radius 10
+     | set.animate({r: 10}, 500, mina.easein);
+     | // or
+     | // animate first element to radius 10, but second to radius 20 and in different time
+     | set.animate([{r: 10}, 500, mina.easein], [{r: 20}, 1500, mina.easein]);
+     = (Element) the current element
+    \*/
+    setproto.animate = function (attrs, ms, easing, callback) {
+        if (typeof easing == "function" && !easing.length) {
+            callback = easing;
+            easing = mina.linear;
+        }
+        if (attrs instanceof Snap._.Animation) {
+            callback = attrs.callback;
+            easing = attrs.easing;
+            ms = easing.dur;
+            attrs = attrs.attr;
+        }
+        var args = arguments;
+        if (Snap.is(attrs, "array") && Snap.is(args[args.length - 1], "array")) {
+            var each = true;
+        }
+        var begin,
+            handler = function () {
+                if (begin) {
+                    this.b = begin;
+                } else {
+                    begin = this.b;
+                }
+            },
+            cb = 0,
+            set = this,
+            callbacker = callback && function () {
+                if (++cb == set.length) {
+                    callback.call(this);
+                }
+            };
+        return this.forEach(function (el, i) {
+            eve.once("snap.animcreated." + el.id, handler);
+            if (each) {
+                args[i] && el.animate.apply(el, args[i]);
+            } else {
+                el.animate(attrs, ms, easing, callbacker);
+            }
+        });
+    };
+    /*\
+     * Set.remove
+     [ method ]
+     **
+     * Removes all children of the set.
+     *
+     = (object) Set object
+    \*/
+    setproto.remove = function () {
+        while (this.length) {
+            this.pop().remove();
+        }
+        return this;
+    };
+    /*\
+     * Set.bind
+     [ method ]
+     **
+     * Specifies how to handle a specific attribute when applied
+     * to a set.
+     *
+     **
+     - attr (string) attribute name
+     - callback (function) function to run
+     * or
+     - attr (string) attribute name
+     - element (Element) specific element in the set to apply the attribute to
+     * or
+     - attr (string) attribute name
+     - element (Element) specific element in the set to apply the attribute to
+     - eattr (string) attribute on the element to bind the attribute to
+     = (object) Set object
+    \*/
+    setproto.bind = function (attr, a, b) {
+        var data = {};
+        if (typeof a == "function") {
+            this.bindings[attr] = a;
+        } else {
+            var aname = b || attr;
+            this.bindings[attr] = function (v) {
+                data[aname] = v;
+                a.attr(data);
+            };
+        }
+        return this;
+    };
+    /*\
+     * Set.attr
+     [ method ]
+     **
+     * Equivalent of @Element.attr.
+     = (object) Set object
+    \*/
+    setproto.attr = function (value) {
+        var unbound = {};
+        for (var k in value) {
+            if (this.bindings[k]) {
+                this.bindings[k](value[k]);
+            } else {
+                unbound[k] = value[k];
+            }
+        }
+        for (var i = 0, ii = this.items.length; i < ii; i++) {
+            this.items[i].attr(unbound);
+        }
+        return this;
+    };
+    /*\
+     * Set.clear
+     [ method ]
+     **
+     * Removes all elements from the set
+    \*/
+    setproto.clear = function () {
+        while (this.length) {
+            this.pop();
+        }
+    };
+    /*\
+     * Set.splice
+     [ method ]
+     **
+     * Removes range of elements from the set
+     **
+     - index (number) position of the deletion
+     - count (number) number of element to remove
+     - insertion… (object) #optional elements to insert
+     = (object) set elements that were deleted
+    \*/
+    setproto.splice = function (index, count, insertion) {
+        index = index < 0 ? mmax(this.length + index, 0) : index;
+        count = mmax(0, mmin(this.length - index, count));
+        var tail = [],
+            todel = [],
+            args = [],
+            i;
+        for (i = 2; i < arguments.length; i++) {
+            args.push(arguments[i]);
+        }
+        for (i = 0; i < count; i++) {
+            todel.push(this[index + i]);
+        }
+        for (; i < this.length - index; i++) {
+            tail.push(this[index + i]);
+        }
+        var arglen = args.length;
+        for (i = 0; i < arglen + tail.length; i++) {
+            this.items[index + i] = this[index + i] = i < arglen ? args[i] : tail[i - arglen];
+        }
+        i = this.items.length = this.length -= count - arglen;
+        while (this[i]) {
+            delete this[i++];
+        }
+        return new Set(todel);
+    };
+    /*\
+     * Set.exclude
+     [ method ]
+     **
+     * Removes given element from the set
+     **
+     - element (object) element to remove
+     = (boolean) `true` if object was found and removed from the set
+    \*/
+    setproto.exclude = function (el) {
+        for (var i = 0, ii = this.length; i < ii; i++) if (this[i] == el) {
+            this.splice(i, 1);
+            return true;
+        }
+        return false;
+    };
+    /*\
+     * Set.insertAfter
+     [ method ]
+     **
+     * Inserts set elements after given element.
+     **
+     - element (object) set will be inserted after this element
+     = (object) Set object
+    \*/
+    setproto.insertAfter = function (el) {
+        var i = this.items.length;
+        while (i--) {
+            this.items[i].insertAfter(el);
+        }
+        return this;
+    };
+    /*\
+     * Set.getBBox
+     [ method ]
+     **
+     * Union of all bboxes of the set. See @Element.getBBox.
+     = (object) bounding box descriptor. See @Element.getBBox.
+    \*/
+    setproto.getBBox = function () {
+        var x = [],
+            y = [],
+            x2 = [],
+            y2 = [];
+        for (var i = this.items.length; i--;) if (!this.items[i].removed) {
+            var box = this.items[i].getBBox();
+            x.push(box.x);
+            y.push(box.y);
+            x2.push(box.x + box.width);
+            y2.push(box.y + box.height);
+        }
+        x = mmin.apply(0, x);
+        y = mmin.apply(0, y);
+        x2 = mmax.apply(0, x2);
+        y2 = mmax.apply(0, y2);
+        return {
+            x: x,
+            y: y,
+            x2: x2,
+            y2: y2,
+            width: x2 - x,
+            height: y2 - y,
+            cx: x + (x2 - x) / 2,
+            cy: y + (y2 - y) / 2
+        };
+    };
+    /*\
+     * Set.insertAfter
+     [ method ]
+     **
+     * Creates a clone of the set.
+     **
+     = (object) New Set object
+    \*/
+    setproto.clone = function (s) {
+        s = new Set;
+        for (var i = 0, ii = this.items.length; i < ii; i++) {
+            s.push(this.items[i].clone());
+        }
+        return s;
+    };
+    setproto.toString = function () {
+        return "Snap\u2018s set";
+    };
+    setproto.type = "set";
+    // export
+    /*\
+     * Snap.Set
+     [ property ]
+     **
+     * Set constructor.
+    \*/
+    Snap.Set = Set;
+    /*\
+     * Snap.set
+     [ method ]
+     **
+     * Creates a set and fills it with list of arguments.
+     **
+     = (object) New Set object
+     | var r = paper.rect(0, 0, 10, 10),
+     |     s1 = Snap.set(), // empty set
+     |     s2 = Snap.set(r, paper.circle(100, 100, 20)); // prefilled set
+    \*/
+    Snap.set = function () {
+        var set = new Set;
+        if (arguments.length) {
+            set.push.apply(set, Array.prototype.slice.call(arguments, 0));
+        }
+        return set;
+    };
+});
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob) {
+    var names = {},
+        reUnit = /[%a-z]+$/i,
+        Str = String;
+    names.stroke = names.fill = "colour";
+    function getEmpty(item) {
+        var l = item[0];
+        switch (l.toLowerCase()) {
+            case "t": return [l, 0, 0];
+            case "m": return [l, 1, 0, 0, 1, 0, 0];
+            case "r": if (item.length == 4) {
+                return [l, 0, item[2], item[3]];
+            } else {
+                return [l, 0];
+            }
+            case "s": if (item.length == 5) {
+                return [l, 1, 1, item[3], item[4]];
+            } else if (item.length == 3) {
+                return [l, 1, 1];
+            } else {
+                return [l, 1];
+            }
+        }
+    }
+    function equaliseTransform(t1, t2, getBBox) {
+        t1 = t1 || new Snap.Matrix;
+        t2 = t2 || new Snap.Matrix;
+        t1 = Snap.parseTransformString(t1.toTransformString()) || [];
+        t2 = Snap.parseTransformString(t2.toTransformString()) || [];
+        var maxlength = Math.max(t1.length, t2.length),
+            from = [],
+            to = [],
+            i = 0, j, jj,
+            tt1, tt2;
+        for (; i < maxlength; i++) {
+            tt1 = t1[i] || getEmpty(t2[i]);
+            tt2 = t2[i] || getEmpty(tt1);
+            if (tt1[0] != tt2[0] ||
+                tt1[0].toLowerCase() == "r" && (tt1[2] != tt2[2] || tt1[3] != tt2[3]) ||
+                tt1[0].toLowerCase() == "s" && (tt1[3] != tt2[3] || tt1[4] != tt2[4])
+                ) {
+                    t1 = Snap._.transform2matrix(t1, getBBox());
+                    t2 = Snap._.transform2matrix(t2, getBBox());
+                    from = [["m", t1.a, t1.b, t1.c, t1.d, t1.e, t1.f]];
+                    to = [["m", t2.a, t2.b, t2.c, t2.d, t2.e, t2.f]];
+                    break;
+            }
+            from[i] = [];
+            to[i] = [];
+            for (j = 0, jj = Math.max(tt1.length, tt2.length); j < jj; j++) {
+                j in tt1 && (from[i][j] = tt1[j]);
+                j in tt2 && (to[i][j] = tt2[j]);
+            }
+        }
+        return {
+            from: path2array(from),
+            to: path2array(to),
+            f: getPath(from)
+        };
+    }
+    function getNumber(val) {
+        return val;
+    }
+    function getUnit(unit) {
+        return function (val) {
+            return +val.toFixed(3) + unit;
+        };
+    }
+    function getViewBox(val) {
+        return val.join(" ");
+    }
+    function getColour(clr) {
+        return Snap.rgb(clr[0], clr[1], clr[2], clr[3]);
+    }
+    function getPath(path) {
+        var k = 0, i, ii, j, jj, out, a, b = [];
+        for (i = 0, ii = path.length; i < ii; i++) {
+            out = "[";
+            a = ['"' + path[i][0] + '"'];
+            for (j = 1, jj = path[i].length; j < jj; j++) {
+                a[j] = "val[" + k++ + "]";
+            }
+            out += a + "]";
+            b[i] = out;
+        }
+        return Function("val", "return Snap.path.toString.call([" + b + "])");
+    }
+    function path2array(path) {
+        var out = [];
+        for (var i = 0, ii = path.length; i < ii; i++) {
+            for (var j = 1, jj = path[i].length; j < jj; j++) {
+                out.push(path[i][j]);
+            }
+        }
+        return out;
+    }
+    function isNumeric(obj) {
+        return isFinite(obj);
+    }
+    function arrayEqual(arr1, arr2) {
+        if (!Snap.is(arr1, "array") || !Snap.is(arr2, "array")) {
+            return false;
+        }
+        return arr1.toString() == arr2.toString();
+    }
+    Element.prototype.equal = function (name, b) {
+        return eve("snap.util.equal", this, name, b).firstDefined();
+    };
+    eve.on("snap.util.equal", function (name, b) {
+        var A, B, a = Str(this.attr(name) || ""),
+            el = this;
+        if (names[name] == "colour") {
+            A = Snap.color(a);
+            B = Snap.color(b);
+            return {
+                from: [A.r, A.g, A.b, A.opacity],
+                to: [B.r, B.g, B.b, B.opacity],
+                f: getColour
+            };
+        }
+        if (name == "viewBox") {
+            A = this.attr(name).vb.split(" ").map(Number);
+            B = b.split(" ").map(Number);
+            return {
+                from: A,
+                to: B,
+                f: getViewBox
+            };
+        }
+        if (name == "transform" || name == "gradientTransform" || name == "patternTransform") {
+            if (typeof b == "string") {
+                b = Str(b).replace(/\.{3}|\u2026/g, a);
+            }
+            a = this.matrix;
+            if (!Snap._.rgTransform.test(b)) {
+                b = Snap._.transform2matrix(Snap._.svgTransform2string(b), this.getBBox());
+            } else {
+                b = Snap._.transform2matrix(b, this.getBBox());
+            }
+            return equaliseTransform(a, b, function () {
+                return el.getBBox(1);
+            });
+        }
+        if (name == "d" || name == "path") {
+            A = Snap.path.toCubic(a, b);
+            return {
+                from: path2array(A[0]),
+                to: path2array(A[1]),
+                f: getPath(A[0])
+            };
+        }
+        if (name == "points") {
+            A = Str(a).split(Snap._.separator);
+            B = Str(b).split(Snap._.separator);
+            return {
+                from: A,
+                to: B,
+                f: function (val) { return val; }
+            };
+        }
+        if (isNumeric(a) && isNumeric(b)) {
+            return {
+                from: parseFloat(a),
+                to: parseFloat(b),
+                f: getNumber
+            };
+        }
+        var aUnit = a.match(reUnit),
+            bUnit = Str(b).match(reUnit);
+        if (aUnit && arrayEqual(aUnit, bUnit)) {
+            return {
+                from: parseFloat(a),
+                to: parseFloat(b),
+                f: getUnit(aUnit)
+            };
+        } else {
+            return {
+                from: this.asPX(name),
+                to: this.asPX(name, b),
+                f: getNumber
+            };
+        }
+    });
+});
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+// http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob) {
+    var elproto = Element.prototype,
+    has = "hasOwnProperty",
+    supportsTouch = "createTouch" in glob.doc,
+    events = [
+        "click", "dblclick", "mousedown", "mousemove", "mouseout",
+        "mouseover", "mouseup", "touchstart", "touchmove", "touchend",
+        "touchcancel"
+    ],
+    touchMap = {
+        mousedown: "touchstart",
+        mousemove: "touchmove",
+        mouseup: "touchend"
+    },
+    getScroll = function (xy, el) {
+        var name = xy == "y" ? "scrollTop" : "scrollLeft",
+            doc = el && el.node ? el.node.ownerDocument : glob.doc;
+        return doc[name in doc.documentElement ? "documentElement" : "body"][name];
+    },
+    preventDefault = function () {
+        this.returnValue = false;
+    },
+    preventTouch = function () {
+        return this.originalEvent.preventDefault();
+    },
+    stopPropagation = function () {
+        this.cancelBubble = true;
+    },
+    stopTouch = function () {
+        return this.originalEvent.stopPropagation();
+    },
+    addEvent = function (obj, type, fn, element) {
+        var realName = supportsTouch && touchMap[type] ? touchMap[type] : type,
+            f = function (e) {
+                var scrollY = getScroll("y", element),
+                    scrollX = getScroll("x", element);
+                if (supportsTouch && touchMap[has](type)) {
+                    for (var i = 0, ii = e.targetTouches && e.targetTouches.length; i < ii; i++) {
+                        if (e.targetTouches[i].target == obj || obj.contains(e.targetTouches[i].target)) {
+                            var olde = e;
+                            e = e.targetTouches[i];
+                            e.originalEvent = olde;
+                            e.preventDefault = preventTouch;
+                            e.stopPropagation = stopTouch;
+                            break;
+                        }
+                    }
+                }
+                var x = e.clientX + scrollX,
+                    y = e.clientY + scrollY;
+                return fn.call(element, e, x, y);
+            };
+
+        if (type !== realName) {
+            obj.addEventListener(type, f, false);
+        }
+
+        obj.addEventListener(realName, f, false);
+
+        return function () {
+            if (type !== realName) {
+                obj.removeEventListener(type, f, false);
+            }
+
+            obj.removeEventListener(realName, f, false);
+            return true;
+        };
+    },
+    drag = [],
+    dragMove = function (e) {
+        var x = e.clientX,
+            y = e.clientY,
+            scrollY = getScroll("y"),
+            scrollX = getScroll("x"),
+            dragi,
+            j = drag.length;
+        while (j--) {
+            dragi = drag[j];
+            if (supportsTouch) {
+                var i = e.touches && e.touches.length,
+                    touch;
+                while (i--) {
+                    touch = e.touches[i];
+                    if (touch.identifier == dragi.el._drag.id || dragi.el.node.contains(touch.target)) {
+                        x = touch.clientX;
+                        y = touch.clientY;
+                        (e.originalEvent ? e.originalEvent : e).preventDefault();
+                        break;
+                    }
+                }
+            } else {
+                e.preventDefault();
+            }
+            var node = dragi.el.node,
+                o,
+                next = node.nextSibling,
+                parent = node.parentNode,
+                display = node.style.display;
+            // glob.win.opera && parent.removeChild(node);
+            // node.style.display = "none";
+            // o = dragi.el.paper.getElementByPoint(x, y);
+            // node.style.display = display;
+            // glob.win.opera && (next ? parent.insertBefore(node, next) : parent.appendChild(node));
+            // o && eve("snap.drag.over." + dragi.el.id, dragi.el, o);
+            x += scrollX;
+            y += scrollY;
+            eve("snap.drag.move." + dragi.el.id, dragi.move_scope || dragi.el, x - dragi.el._drag.x, y - dragi.el._drag.y, x, y, e);
+        }
+    },
+    dragUp = function (e) {
+        Snap.unmousemove(dragMove).unmouseup(dragUp);
+        var i = drag.length,
+            dragi;
+        while (i--) {
+            dragi = drag[i];
+            dragi.el._drag = {};
+            eve("snap.drag.end." + dragi.el.id, dragi.end_scope || dragi.start_scope || dragi.move_scope || dragi.el, e);
+            eve.off("snap.drag.*." + dragi.el.id);
+        }
+        drag = [];
+    };
+    /*\
+     * Element.click
+     [ method ]
+     **
+     * Adds a click event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.unclick
+     [ method ]
+     **
+     * Removes a click event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.dblclick
+     [ method ]
+     **
+     * Adds a double click event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.undblclick
+     [ method ]
+     **
+     * Removes a double click event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.mousedown
+     [ method ]
+     **
+     * Adds a mousedown event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.unmousedown
+     [ method ]
+     **
+     * Removes a mousedown event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.mousemove
+     [ method ]
+     **
+     * Adds a mousemove event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.unmousemove
+     [ method ]
+     **
+     * Removes a mousemove event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.mouseout
+     [ method ]
+     **
+     * Adds a mouseout event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.unmouseout
+     [ method ]
+     **
+     * Removes a mouseout event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.mouseover
+     [ method ]
+     **
+     * Adds a mouseover event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.unmouseover
+     [ method ]
+     **
+     * Removes a mouseover event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.mouseup
+     [ method ]
+     **
+     * Adds a mouseup event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.unmouseup
+     [ method ]
+     **
+     * Removes a mouseup event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.touchstart
+     [ method ]
+     **
+     * Adds a touchstart event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.untouchstart
+     [ method ]
+     **
+     * Removes a touchstart event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.touchmove
+     [ method ]
+     **
+     * Adds a touchmove event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.untouchmove
+     [ method ]
+     **
+     * Removes a touchmove event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.touchend
+     [ method ]
+     **
+     * Adds a touchend event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.untouchend
+     [ method ]
+     **
+     * Removes a touchend event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    
+    /*\
+     * Element.touchcancel
+     [ method ]
+     **
+     * Adds a touchcancel event handler to the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    /*\
+     * Element.untouchcancel
+     [ method ]
+     **
+     * Removes a touchcancel event handler from the element
+     - handler (function) handler for the event
+     = (object) @Element
+    \*/
+    for (var i = events.length; i--;) {
+        (function (eventName) {
+            Snap[eventName] = elproto[eventName] = function (fn, scope) {
+                if (Snap.is(fn, "function")) {
+                    this.events = this.events || [];
+                    this.events.push({
+                        name: eventName,
+                        f: fn,
+                        unbind: addEvent(this.node || document, eventName, fn, scope || this)
+                    });
+                } else {
+                    for (var i = 0, ii = this.events.length; i < ii; i++) if (this.events[i].name == eventName) {
+                        try {
+                            this.events[i].f.call(this);
+                        } catch (e) {}
+                    }
+                }
+                return this;
+            };
+            Snap["un" + eventName] =
+            elproto["un" + eventName] = function (fn) {
+                var events = this.events || [],
+                    l = events.length;
+                while (l--) if (events[l].name == eventName &&
+                               (events[l].f == fn || !fn)) {
+                    events[l].unbind();
+                    events.splice(l, 1);
+                    !events.length && delete this.events;
+                    return this;
+                }
+                return this;
+            };
+        })(events[i]);
+    }
+    /*\
+     * Element.hover
+     [ method ]
+     **
+     * Adds hover event handlers to the element
+     - f_in (function) handler for hover in
+     - f_out (function) handler for hover out
+     - icontext (object) #optional context for hover in handler
+     - ocontext (object) #optional context for hover out handler
+     = (object) @Element
+    \*/
+    elproto.hover = function (f_in, f_out, scope_in, scope_out) {
+        return this.mouseover(f_in, scope_in).mouseout(f_out, scope_out || scope_in);
+    };
+    /*\
+     * Element.unhover
+     [ method ]
+     **
+     * Removes hover event handlers from the element
+     - f_in (function) handler for hover in
+     - f_out (function) handler for hover out
+     = (object) @Element
+    \*/
+    elproto.unhover = function (f_in, f_out) {
+        return this.unmouseover(f_in).unmouseout(f_out);
+    };
+    var draggable = [];
+    // SIERRA unclear what _context_ refers to for starting, ending, moving the drag gesture.
+    // SIERRA Element.drag(): _x position of the mouse_: Where are the x/y values offset from?
+    // SIERRA Element.drag(): much of this member's doc appears to be duplicated for some reason.
+    // SIERRA Unclear about this sentence: _Additionally following drag events will be triggered: drag.start.<id> on start, drag.end.<id> on end and drag.move.<id> on every move._ Is there a global _drag_ object to which you can assign handlers keyed by an element's ID?
+    /*\
+     * Element.drag
+     [ method ]
+     **
+     * Adds event handlers for an element's drag gesture
+     **
+     - onmove (function) handler for moving
+     - onstart (function) handler for drag start
+     - onend (function) handler for drag end
+     - mcontext (object) #optional context for moving handler
+     - scontext (object) #optional context for drag start handler
+     - econtext (object) #optional context for drag end handler
+     * Additionaly following `drag` events are triggered: `drag.start.<id>` on start, 
+     * `drag.end.<id>` on end and `drag.move.<id>` on every move. When element is dragged over another element 
+     * `drag.over.<id>` fires as well.
+     *
+     * Start event and start handler are called in specified context or in context of the element with following parameters:
+     o x (number) x position of the mouse
+     o y (number) y position of the mouse
+     o event (object) DOM event object
+     * Move event and move handler are called in specified context or in context of the element with following parameters:
+     o dx (number) shift by x from the start point
+     o dy (number) shift by y from the start point
+     o x (number) x position of the mouse
+     o y (number) y position of the mouse
+     o event (object) DOM event object
+     * End event and end handler are called in specified context or in context of the element with following parameters:
+     o event (object) DOM event object
+     = (object) @Element
+    \*/
+    elproto.drag = function (onmove, onstart, onend, move_scope, start_scope, end_scope) {
+        var el = this;
+        if (!arguments.length) {
+            var origTransform;
+            return el.drag(function (dx, dy) {
+                this.attr({
+                    transform: origTransform + (origTransform ? "T" : "t") + [dx, dy]
+                });
+            }, function () {
+                origTransform = this.transform().local;
+            });
+        }
+        function start(e, x, y) {
+            (e.originalEvent || e).preventDefault();
+            el._drag.x = x;
+            el._drag.y = y;
+            el._drag.id = e.identifier;
+            !drag.length && Snap.mousemove(dragMove).mouseup(dragUp);
+            drag.push({el: el, move_scope: move_scope, start_scope: start_scope, end_scope: end_scope});
+            onstart && eve.on("snap.drag.start." + el.id, onstart);
+            onmove && eve.on("snap.drag.move." + el.id, onmove);
+            onend && eve.on("snap.drag.end." + el.id, onend);
+            eve("snap.drag.start." + el.id, start_scope || move_scope || el, x, y, e);
+        }
+        function init(e, x, y) {
+            eve("snap.draginit." + el.id, el, e, x, y);
+        }
+        eve.on("snap.draginit." + el.id, start);
+        el._drag = {};
+        draggable.push({el: el, start: start, init: init});
+        el.mousedown(init);
+        return el;
+    };
+    /*
+     * Element.onDragOver
+     [ method ]
+     **
+     * Shortcut to assign event handler for `drag.over.<id>` event, where `id` is the element's `id` (see @Element.id)
+     - f (function) handler for event, first argument would be the element you are dragging over
+    \*/
+    // elproto.onDragOver = function (f) {
+    //     f ? eve.on("snap.drag.over." + this.id, f) : eve.unbind("snap.drag.over." + this.id);
+    // };
+    /*\
+     * Element.undrag
+     [ method ]
+     **
+     * Removes all drag event handlers from the given element
+    \*/
+    elproto.undrag = function () {
+        var i = draggable.length;
+        while (i--) if (draggable[i].el == this) {
+            this.unmousedown(draggable[i].init);
+            draggable.splice(i, 1);
+            eve.unbind("snap.drag.*." + this.id);
+            eve.unbind("snap.draginit." + this.id);
+        }
+        !draggable.length && Snap.unmousemove(dragMove).unmouseup(dragUp);
+        return this;
+    };
+});
+
+// Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob) {
+    var elproto = Element.prototype,
+        pproto = Paper.prototype,
+        rgurl = /^\s*url\((.+)\)/,
+        Str = String,
+        $ = Snap._.$;
+    Snap.filter = {};
+    /*\
+     * Paper.filter
+     [ method ]
+     **
+     * Creates a `<filter>` element
+     **
+     - filstr (string) SVG fragment of filter provided as a string
+     = (object) @Element
+     * Note: It is recommended to use filters embedded into the page inside an empty SVG element.
+     > Usage
+     | var f = paper.filter('<feGaussianBlur stdDeviation="2"/>'),
+     |     c = paper.circle(10, 10, 10).attr({
+     |         filter: f
+     |     });
+    \*/
+    pproto.filter = function (filstr) {
+        var paper = this;
+        if (paper.type != "svg") {
+            paper = paper.paper;
+        }
+        var f = Snap.parse(Str(filstr)),
+            id = Snap._.id(),
+            width = paper.node.offsetWidth,
+            height = paper.node.offsetHeight,
+            filter = $("filter");
+        $(filter, {
+            id: id,
+            filterUnits: "userSpaceOnUse"
+        });
+        filter.appendChild(f.node);
+        paper.defs.appendChild(filter);
+        return new Element(filter);
+    };
+
+    eve.on("snap.util.getattr.filter", function () {
+        eve.stop();
+        var p = $(this.node, "filter");
+        if (p) {
+            var match = Str(p).match(rgurl);
+            return match && Snap.select(match[1]);
+        }
+    });
+    eve.on("snap.util.attr.filter", function (value) {
+        if (value instanceof Element && value.type == "filter") {
+            eve.stop();
+            var id = value.node.id;
+            if (!id) {
+                $(value.node, {id: value.id});
+                id = value.id;
+            }
+            $(this.node, {
+                filter: Snap.url(id)
+            });
+        }
+        if (!value || value == "none") {
+            eve.stop();
+            this.node.removeAttribute("filter");
+        }
+    });
+    /*\
+     * Snap.filter.blur
+     [ method ]
+     **
+     * Returns an SVG markup string for the blur filter
+     **
+     - x (number) amount of horizontal blur, in pixels
+     - y (number) #optional amount of vertical blur, in pixels
+     = (string) filter representation
+     > Usage
+     | var f = paper.filter(Snap.filter.blur(5, 10)),
+     |     c = paper.circle(10, 10, 10).attr({
+     |         filter: f
+     |     });
+    \*/
+    Snap.filter.blur = function (x, y) {
+        if (x == null) {
+            x = 2;
+        }
+        var def = y == null ? x : [x, y];
+        return Snap.format('\<feGaussianBlur stdDeviation="{def}"/>', {
+            def: def
+        });
+    };
+    Snap.filter.blur.toString = function () {
+        return this();
+    };
+    /*\
+     * Snap.filter.shadow
+     [ method ]
+     **
+     * Returns an SVG markup string for the shadow filter
+     **
+     - dx (number) #optional horizontal shift of the shadow, in pixels
+     - dy (number) #optional vertical shift of the shadow, in pixels
+     - blur (number) #optional amount of blur
+     - color (string) #optional color of the shadow
+     - opacity (number) #optional `0..1` opacity of the shadow
+     * or
+     - dx (number) #optional horizontal shift of the shadow, in pixels
+     - dy (number) #optional vertical shift of the shadow, in pixels
+     - color (string) #optional color of the shadow
+     - opacity (number) #optional `0..1` opacity of the shadow
+     * which makes blur default to `4`. Or
+     - dx (number) #optional horizontal shift of the shadow, in pixels
+     - dy (number) #optional vertical shift of the shadow, in pixels
+     - opacity (number) #optional `0..1` opacity of the shadow
+     = (string) filter representation
+     > Usage
+     | var f = paper.filter(Snap.filter.shadow(0, 2, .3)),
+     |     c = paper.circle(10, 10, 10).attr({
+     |         filter: f
+     |     });
+    \*/
+    Snap.filter.shadow = function (dx, dy, blur, color, opacity) {
+        if (opacity == null) {
+            if (color == null) {
+                opacity = blur;
+                blur = 4;
+                color = "#000";
+            } else {
+                opacity = color;
+                color = blur;
+                blur = 4;
+            }
+        }
+        if (blur == null) {
+            blur = 4;
+        }
+        if (opacity == null) {
+            opacity = 1;
+        }
+        if (dx == null) {
+            dx = 0;
+            dy = 2;
+        }
+        if (dy == null) {
+            dy = dx;
+        }
+        color = Snap.color(color);
+        return Snap.format('<feGaussianBlur in="SourceAlpha" stdDeviation="{blur}"/><feOffset dx="{dx}" dy="{dy}" result="offsetblur"/><feFlood flood-color="{color}"/><feComposite in2="offsetblur" operator="in"/><feComponentTransfer><feFuncA type="linear" slope="{opacity}"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>', {
+            color: color,
+            dx: dx,
+            dy: dy,
+            blur: blur,
+            opacity: opacity
+        });
+    };
+    Snap.filter.shadow.toString = function () {
+        return this();
+    };
+    /*\
+     * Snap.filter.grayscale
+     [ method ]
+     **
+     * Returns an SVG markup string for the grayscale filter
+     **
+     - amount (number) amount of filter (`0..1`)
+     = (string) filter representation
+    \*/
+    Snap.filter.grayscale = function (amount) {
+        if (amount == null) {
+            amount = 1;
+        }
+        return Snap.format('<feColorMatrix type="matrix" values="{a} {b} {c} 0 0 {d} {e} {f} 0 0 {g} {b} {h} 0 0 0 0 0 1 0"/>', {
+            a: 0.2126 + 0.7874 * (1 - amount),
+            b: 0.7152 - 0.7152 * (1 - amount),
+            c: 0.0722 - 0.0722 * (1 - amount),
+            d: 0.2126 - 0.2126 * (1 - amount),
+            e: 0.7152 + 0.2848 * (1 - amount),
+            f: 0.0722 - 0.0722 * (1 - amount),
+            g: 0.2126 - 0.2126 * (1 - amount),
+            h: 0.0722 + 0.9278 * (1 - amount)
+        });
+    };
+    Snap.filter.grayscale.toString = function () {
+        return this();
+    };
+    /*\
+     * Snap.filter.sepia
+     [ method ]
+     **
+     * Returns an SVG markup string for the sepia filter
+     **
+     - amount (number) amount of filter (`0..1`)
+     = (string) filter representation
+    \*/
+    Snap.filter.sepia = function (amount) {
+        if (amount == null) {
+            amount = 1;
+        }
+        return Snap.format('<feColorMatrix type="matrix" values="{a} {b} {c} 0 0 {d} {e} {f} 0 0 {g} {h} {i} 0 0 0 0 0 1 0"/>', {
+            a: 0.393 + 0.607 * (1 - amount),
+            b: 0.769 - 0.769 * (1 - amount),
+            c: 0.189 - 0.189 * (1 - amount),
+            d: 0.349 - 0.349 * (1 - amount),
+            e: 0.686 + 0.314 * (1 - amount),
+            f: 0.168 - 0.168 * (1 - amount),
+            g: 0.272 - 0.272 * (1 - amount),
+            h: 0.534 - 0.534 * (1 - amount),
+            i: 0.131 + 0.869 * (1 - amount)
+        });
+    };
+    Snap.filter.sepia.toString = function () {
+        return this();
+    };
+    /*\
+     * Snap.filter.saturate
+     [ method ]
+     **
+     * Returns an SVG markup string for the saturate filter
+     **
+     - amount (number) amount of filter (`0..1`)
+     = (string) filter representation
+    \*/
+    Snap.filter.saturate = function (amount) {
+        if (amount == null) {
+            amount = 1;
+        }
+        return Snap.format('<feColorMatrix type="saturate" values="{amount}"/>', {
+            amount: 1 - amount
+        });
+    };
+    Snap.filter.saturate.toString = function () {
+        return this();
+    };
+    /*\
+     * Snap.filter.hueRotate
+     [ method ]
+     **
+     * Returns an SVG markup string for the hue-rotate filter
+     **
+     - angle (number) angle of rotation
+     = (string) filter representation
+    \*/
+    Snap.filter.hueRotate = function (angle) {
+        angle = angle || 0;
+        return Snap.format('<feColorMatrix type="hueRotate" values="{angle}"/>', {
+            angle: angle
+        });
+    };
+    Snap.filter.hueRotate.toString = function () {
+        return this();
+    };
+    /*\
+     * Snap.filter.invert
+     [ method ]
+     **
+     * Returns an SVG markup string for the invert filter
+     **
+     - amount (number) amount of filter (`0..1`)
+     = (string) filter representation
+    \*/
+    Snap.filter.invert = function (amount) {
+        if (amount == null) {
+            amount = 1;
+        }
+//        <feColorMatrix type="matrix" values="-1 0 0 0 1  0 -1 0 0 1  0 0 -1 0 1  0 0 0 1 0" color-interpolation-filters="sRGB"/>
+        return Snap.format('<feComponentTransfer><feFuncR type="table" tableValues="{amount} {amount2}"/><feFuncG type="table" tableValues="{amount} {amount2}"/><feFuncB type="table" tableValues="{amount} {amount2}"/></feComponentTransfer>', {
+            amount: amount,
+            amount2: 1 - amount
+        });
+    };
+    Snap.filter.invert.toString = function () {
+        return this();
+    };
+    /*\
+     * Snap.filter.brightness
+     [ method ]
+     **
+     * Returns an SVG markup string for the brightness filter
+     **
+     - amount (number) amount of filter (`0..1`)
+     = (string) filter representation
+    \*/
+    Snap.filter.brightness = function (amount) {
+        if (amount == null) {
+            amount = 1;
+        }
+        return Snap.format('<feComponentTransfer><feFuncR type="linear" slope="{amount}"/><feFuncG type="linear" slope="{amount}"/><feFuncB type="linear" slope="{amount}"/></feComponentTransfer>', {
+            amount: amount
+        });
+    };
+    Snap.filter.brightness.toString = function () {
+        return this();
+    };
+    /*\
+     * Snap.filter.contrast
+     [ method ]
+     **
+     * Returns an SVG markup string for the contrast filter
+     **
+     - amount (number) amount of filter (`0..1`)
+     = (string) filter representation
+    \*/
+    Snap.filter.contrast = function (amount) {
+        if (amount == null) {
+            amount = 1;
+        }
+        return Snap.format('<feComponentTransfer><feFuncR type="linear" slope="{amount}" intercept="{amount2}"/><feFuncG type="linear" slope="{amount}" intercept="{amount2}"/><feFuncB type="linear" slope="{amount}" intercept="{amount2}"/></feComponentTransfer>', {
+            amount: amount,
+            amount2: .5 - amount / 2
+        });
+    };
+    Snap.filter.contrast.toString = function () {
+        return this();
+    };
+});
+
+// Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
+    var box = Snap._.box,
+        is = Snap.is,
+        firstLetter = /^[^a-z]*([tbmlrc])/i,
+        toString = function () {
+            return "T" + this.dx + "," + this.dy;
+        };
+    /*\
+     * Element.getAlign
+     [ method ]
+     **
+     * Returns shift needed to align the element relatively to given element.
+     * If no elements specified, parent `<svg>` container will be used.
+     - el (object) @optional alignment element
+     - way (string) one of six values: `"top"`, `"middle"`, `"bottom"`, `"left"`, `"center"`, `"right"`
+     = (object|string) Object in format `{dx: , dy: }` also has a string representation as a transformation string
+     > Usage
+     | el.transform(el.getAlign(el2, "top"));
+     * or
+     | var dy = el.getAlign(el2, "top").dy;
+    \*/
+    Element.prototype.getAlign = function (el, way) {
+        if (way == null && is(el, "string")) {
+            way = el;
+            el = null;
+        }
+        el = el || this.paper;
+        var bx = el.getBBox ? el.getBBox() : box(el),
+            bb = this.getBBox(),
+            out = {};
+        way = way && way.match(firstLetter);
+        way = way ? way[1].toLowerCase() : "c";
+        switch (way) {
+            case "t":
+                out.dx = 0;
+                out.dy = bx.y - bb.y;
+            break;
+            case "b":
+                out.dx = 0;
+                out.dy = bx.y2 - bb.y2;
+            break;
+            case "m":
+                out.dx = 0;
+                out.dy = bx.cy - bb.cy;
+            break;
+            case "l":
+                out.dx = bx.x - bb.x;
+                out.dy = 0;
+            break;
+            case "r":
+                out.dx = bx.x2 - bb.x2;
+                out.dy = 0;
+            break;
+            default:
+                out.dx = bx.cx - bb.cx;
+                out.dy = 0;
+            break;
+        }
+        out.toString = toString;
+        return out;
+    };
+    /*\
+     * Element.align
+     [ method ]
+     **
+     * Aligns the element relatively to given one via transformation.
+     * If no elements specified, parent `<svg>` container will be used.
+     - el (object) @optional alignment element
+     - way (string) one of six values: `"top"`, `"middle"`, `"bottom"`, `"left"`, `"center"`, `"right"`
+     = (object) this element
+     > Usage
+     | el.align(el2, "top");
+     * or
+     | el.align("middle");
+    \*/
+    Element.prototype.align = function (el, way) {
+        return this.transform("..." + this.getAlign(el, way));
+    };
+});
+
+// Copyright (c) 2016 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
+    var elproto = Element.prototype,
+        is = Snap.is,
+        Str = String,
+        has = "hasOwnProperty";
+    function slice(from, to, f) {
+        return function (arr) {
+            var res = arr.slice(from, to);
+            if (res.length == 1) {
+                res = res[0];
+            }
+            return f ? f(res) : res;
+        };
+    }
+    var Animation = function (attr, ms, easing, callback) {
+        if (typeof easing == "function" && !easing.length) {
+            callback = easing;
+            easing = mina.linear;
+        }
+        this.attr = attr;
+        this.dur = ms;
+        easing && (this.easing = easing);
+        callback && (this.callback = callback);
+    };
+    Snap._.Animation = Animation;
+    /*\
+     * Snap.animation
+     [ method ]
+     **
+     * Creates an animation object
+     **
+     - attr (object) attributes of final destination
+     - duration (number) duration of the animation, in milliseconds
+     - easing (function) #optional one of easing functions of @mina or custom one
+     - callback (function) #optional callback function that fires when animation ends
+     = (object) animation object
+    \*/
+    Snap.animation = function (attr, ms, easing, callback) {
+        return new Animation(attr, ms, easing, callback);
+    };
+    /*\
+     * Element.inAnim
+     [ method ]
+     **
+     * Returns a set of animations that may be able to manipulate the current element
+     **
+     = (object) in format:
+     o {
+     o     anim (object) animation object,
+     o     mina (object) @mina object,
+     o     curStatus (number) 0..1 — status of the animation: 0 — just started, 1 — just finished,
+     o     status (function) gets or sets the status of the animation,
+     o     stop (function) stops the animation
+     o }
+    \*/
+    elproto.inAnim = function () {
+        var el = this,
+            res = [];
+        for (var id in el.anims) if (el.anims[has](id)) {
+            (function (a) {
+                res.push({
+                    anim: new Animation(a._attrs, a.dur, a.easing, a._callback),
+                    mina: a,
+                    curStatus: a.status(),
+                    status: function (val) {
+                        return a.status(val);
+                    },
+                    stop: function () {
+                        a.stop();
+                    }
+                });
+            }(el.anims[id]));
+        }
+        return res;
+    };
+    /*\
+     * Snap.animate
+     [ method ]
+     **
+     * Runs generic animation of one number into another with a caring function
+     **
+     - from (number|array) number or array of numbers
+     - to (number|array) number or array of numbers
+     - setter (function) caring function that accepts one number argument
+     - duration (number) duration, in milliseconds
+     - easing (function) #optional easing function from @mina or custom
+     - callback (function) #optional callback function to execute when animation ends
+     = (object) animation object in @mina format
+     o {
+     o     id (string) animation id, consider it read-only,
+     o     duration (function) gets or sets the duration of the animation,
+     o     easing (function) easing,
+     o     speed (function) gets or sets the speed of the animation,
+     o     status (function) gets or sets the status of the animation,
+     o     stop (function) stops the animation
+     o }
+     | var rect = Snap().rect(0, 0, 10, 10);
+     | Snap.animate(0, 10, function (val) {
+     |     rect.attr({
+     |         x: val
+     |     });
+     | }, 1000);
+     | // in given context is equivalent to
+     | rect.animate({x: 10}, 1000);
+    \*/
+    Snap.animate = function (from, to, setter, ms, easing, callback) {
+        if (typeof easing == "function" && !easing.length) {
+            callback = easing;
+            easing = mina.linear;
+        }
+        var now = mina.time(),
+            anim = mina(from, to, now, now + ms, mina.time, setter, easing);
+        callback && eve.once("mina.finish." + anim.id, callback);
+        return anim;
+    };
+    /*\
+     * Element.stop
+     [ method ]
+     **
+     * Stops all the animations for the current element
+     **
+     = (Element) the current element
+    \*/
+    elproto.stop = function () {
+        var anims = this.inAnim();
+        for (var i = 0, ii = anims.length; i < ii; i++) {
+            anims[i].stop();
+        }
+        return this;
+    };
+    /*\
+     * Element.animate
+     [ method ]
+     **
+     * Animates the given attributes of the element
+     **
+     - attrs (object) key-value pairs of destination attributes
+     - duration (number) duration of the animation in milliseconds
+     - easing (function) #optional easing function from @mina or custom
+     - callback (function) #optional callback function that executes when the animation ends
+     = (Element) the current element
+    \*/
+    elproto.animate = function (attrs, ms, easing, callback) {
+        if (typeof easing == "function" && !easing.length) {
+            callback = easing;
+            easing = mina.linear;
+        }
+        if (attrs instanceof Animation) {
+            callback = attrs.callback;
+            easing = attrs.easing;
+            ms = attrs.dur;
+            attrs = attrs.attr;
+        }
+        var fkeys = [], tkeys = [], keys = {}, from, to, f, eq,
+            el = this;
+        for (var key in attrs) if (attrs[has](key)) {
+            if (el.equal) {
+                eq = el.equal(key, Str(attrs[key]));
+                from = eq.from;
+                to = eq.to;
+                f = eq.f;
+            } else {
+                from = +el.attr(key);
+                to = +attrs[key];
+            }
+            var len = is(from, "array") ? from.length : 1;
+            keys[key] = slice(fkeys.length, fkeys.length + len, f);
+            fkeys = fkeys.concat(from);
+            tkeys = tkeys.concat(to);
+        }
+        var now = mina.time(),
+            anim = mina(fkeys, tkeys, now, now + ms, mina.time, function (val) {
+                var attr = {};
+                for (var key in keys) if (keys[has](key)) {
+                    attr[key] = keys[key](val);
+                }
+                el.attr(attr);
+            }, easing);
+        el.anims[anim.id] = anim;
+        anim._attrs = attrs;
+        anim._callback = callback;
+        eve("snap.animcreated." + el.id, anim);
+        eve.once("mina.finish." + anim.id, function () {
+            eve.off("mina.*." + anim.id);
+            delete el.anims[anim.id];
+            callback && callback.call(el);
+        });
+        eve.once("mina.stop." + anim.id, function () {
+            eve.off("mina.*." + anim.id);
+            delete el.anims[anim.id];
+        });
+        return el;
+    };
+});
+
+// Copyright (c) 2017 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Snap.plugin(function (Snap, Element, Paper, glob) {
+    // Colours are from https://www.materialui.co
+    var red         = "#ffebee#ffcdd2#ef9a9a#e57373#ef5350#f44336#e53935#d32f2f#c62828#b71c1c#ff8a80#ff5252#ff1744#d50000",
+        pink        = "#FCE4EC#F8BBD0#F48FB1#F06292#EC407A#E91E63#D81B60#C2185B#AD1457#880E4F#FF80AB#FF4081#F50057#C51162",
+        purple      = "#F3E5F5#E1BEE7#CE93D8#BA68C8#AB47BC#9C27B0#8E24AA#7B1FA2#6A1B9A#4A148C#EA80FC#E040FB#D500F9#AA00FF",
+        deeppurple  = "#EDE7F6#D1C4E9#B39DDB#9575CD#7E57C2#673AB7#5E35B1#512DA8#4527A0#311B92#B388FF#7C4DFF#651FFF#6200EA",
+        indigo      = "#E8EAF6#C5CAE9#9FA8DA#7986CB#5C6BC0#3F51B5#3949AB#303F9F#283593#1A237E#8C9EFF#536DFE#3D5AFE#304FFE",
+        blue        = "#E3F2FD#BBDEFB#90CAF9#64B5F6#64B5F6#2196F3#1E88E5#1976D2#1565C0#0D47A1#82B1FF#448AFF#2979FF#2962FF",
+        lightblue   = "#E1F5FE#B3E5FC#81D4FA#4FC3F7#29B6F6#03A9F4#039BE5#0288D1#0277BD#01579B#80D8FF#40C4FF#00B0FF#0091EA",
+        cyan        = "#E0F7FA#B2EBF2#80DEEA#4DD0E1#26C6DA#00BCD4#00ACC1#0097A7#00838F#006064#84FFFF#18FFFF#00E5FF#00B8D4",
+        teal        = "#E0F2F1#B2DFDB#80CBC4#4DB6AC#26A69A#009688#00897B#00796B#00695C#004D40#A7FFEB#64FFDA#1DE9B6#00BFA5",
+        green       = "#E8F5E9#C8E6C9#A5D6A7#81C784#66BB6A#4CAF50#43A047#388E3C#2E7D32#1B5E20#B9F6CA#69F0AE#00E676#00C853",
+        lightgreen  = "#F1F8E9#DCEDC8#C5E1A5#AED581#9CCC65#8BC34A#7CB342#689F38#558B2F#33691E#CCFF90#B2FF59#76FF03#64DD17",
+        lime        = "#F9FBE7#F0F4C3#E6EE9C#DCE775#D4E157#CDDC39#C0CA33#AFB42B#9E9D24#827717#F4FF81#EEFF41#C6FF00#AEEA00",
+        yellow      = "#FFFDE7#FFF9C4#FFF59D#FFF176#FFEE58#FFEB3B#FDD835#FBC02D#F9A825#F57F17#FFFF8D#FFFF00#FFEA00#FFD600",
+        amber       = "#FFF8E1#FFECB3#FFE082#FFD54F#FFCA28#FFC107#FFB300#FFA000#FF8F00#FF6F00#FFE57F#FFD740#FFC400#FFAB00",
+        orange      = "#FFF3E0#FFE0B2#FFCC80#FFB74D#FFA726#FF9800#FB8C00#F57C00#EF6C00#E65100#FFD180#FFAB40#FF9100#FF6D00",
+        deeporange  = "#FBE9E7#FFCCBC#FFAB91#FF8A65#FF7043#FF5722#F4511E#E64A19#D84315#BF360C#FF9E80#FF6E40#FF3D00#DD2C00",
+        brown       = "#EFEBE9#D7CCC8#BCAAA4#A1887F#8D6E63#795548#6D4C41#5D4037#4E342E#3E2723",
+        grey        = "#FAFAFA#F5F5F5#EEEEEE#E0E0E0#BDBDBD#9E9E9E#757575#616161#424242#212121",
+        bluegrey    = "#ECEFF1#CFD8DC#B0BEC5#90A4AE#78909C#607D8B#546E7A#455A64#37474F#263238";
+    /*\
+     * Snap.mui
+     [ property ]
+     **
+     * Contain Material UI colours.
+     | Snap().rect(0, 0, 10, 10).attr({fill: Snap.mui.deeppurple, stroke: Snap.mui.amber[600]});
+     # For colour reference: <a href="https://www.materialui.co">https://www.materialui.co</a>.
+    \*/
+    Snap.mui = {};
+    /*\
+     * Snap.flat
+     [ property ]
+     **
+     * Contain Flat UI colours.
+     | Snap().rect(0, 0, 10, 10).attr({fill: Snap.flat.carrot, stroke: Snap.flat.wetasphalt});
+     # For colour reference: <a href="https://www.materialui.co">https://www.materialui.co</a>.
+    \*/
+    Snap.flat = {};
+    function saveColor(colors) {
+        colors = colors.split(/(?=#)/);
+        var color = new String(colors[5]);
+        color[50] = colors[0];
+        color[100] = colors[1];
+        color[200] = colors[2];
+        color[300] = colors[3];
+        color[400] = colors[4];
+        color[500] = colors[5];
+        color[600] = colors[6];
+        color[700] = colors[7];
+        color[800] = colors[8];
+        color[900] = colors[9];
+        if (colors[10]) {
+            color.A100 = colors[10];
+            color.A200 = colors[11];
+            color.A400 = colors[12];
+            color.A700 = colors[13];
+        }
+        return color;
+    }
+    Snap.mui.red = saveColor(red);
+    Snap.mui.pink = saveColor(pink);
+    Snap.mui.purple = saveColor(purple);
+    Snap.mui.deeppurple = saveColor(deeppurple);
+    Snap.mui.indigo = saveColor(indigo);
+    Snap.mui.blue = saveColor(blue);
+    Snap.mui.lightblue = saveColor(lightblue);
+    Snap.mui.cyan = saveColor(cyan);
+    Snap.mui.teal = saveColor(teal);
+    Snap.mui.green = saveColor(green);
+    Snap.mui.lightgreen = saveColor(lightgreen);
+    Snap.mui.lime = saveColor(lime);
+    Snap.mui.yellow = saveColor(yellow);
+    Snap.mui.amber = saveColor(amber);
+    Snap.mui.orange = saveColor(orange);
+    Snap.mui.deeporange = saveColor(deeporange);
+    Snap.mui.brown = saveColor(brown);
+    Snap.mui.grey = saveColor(grey);
+    Snap.mui.bluegrey = saveColor(bluegrey);
+    Snap.flat.turquoise = "#1abc9c";
+    Snap.flat.greensea = "#16a085";
+    Snap.flat.sunflower = "#f1c40f";
+    Snap.flat.orange = "#f39c12";
+    Snap.flat.emerland = "#2ecc71";
+    Snap.flat.nephritis = "#27ae60";
+    Snap.flat.carrot = "#e67e22";
+    Snap.flat.pumpkin = "#d35400";
+    Snap.flat.peterriver = "#3498db";
+    Snap.flat.belizehole = "#2980b9";
+    Snap.flat.alizarin = "#e74c3c";
+    Snap.flat.pomegranate = "#c0392b";
+    Snap.flat.amethyst = "#9b59b6";
+    Snap.flat.wisteria = "#8e44ad";
+    Snap.flat.clouds = "#ecf0f1";
+    Snap.flat.silver = "#bdc3c7";
+    Snap.flat.wetasphalt = "#34495e";
+    Snap.flat.midnightblue = "#2c3e50";
+    Snap.flat.concrete = "#95a5a6";
+    Snap.flat.asbestos = "#7f8c8d";
+    /*\
+     * Snap.importMUIColors
+     [ method ]
+     **
+     * Imports Material UI colours into global object.
+     | Snap.importMUIColors();
+     | Snap().rect(0, 0, 10, 10).attr({fill: deeppurple, stroke: amber[600]});
+     # For colour reference: <a href="https://www.materialui.co">https://www.materialui.co</a>.
+    \*/
+    Snap.importMUIColors = function () {
+        for (var color in Snap.mui) {
+            if (Snap.mui.hasOwnProperty(color)) {
+                window[color] = Snap.mui[color];
+            }
+        }
+    };
+});
+
+module.exports = Snap
+
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// Copyright (c) 2017 Adobe Systems Incorporated. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ┌────────────────────────────────────────────────────────────┐ \\
+// │ Eve 0.5.4 - JavaScript Events Library                      │ \\
+// ├────────────────────────────────────────────────────────────┤ \\
+// │ Author Dmitry Baranovskiy (http://dmitry.baranovskiy.com/) │ \\
+// └────────────────────────────────────────────────────────────┘ \\
+
+(function (glob) {
+    var version = "0.5.4",
+        has = "hasOwnProperty",
+        separator = /[\.\/]/,
+        comaseparator = /\s*,\s*/,
+        wildcard = "*",
+        numsort = function (a, b) {
+            return a - b;
+        },
+        current_event,
+        stop,
+        events = {n: {}},
+        firstDefined = function () {
+            for (var i = 0, ii = this.length; i < ii; i++) {
+                if (typeof this[i] != "undefined") {
+                    return this[i];
+                }
+            }
+        },
+        lastDefined = function () {
+            var i = this.length;
+            while (--i) {
+                if (typeof this[i] != "undefined") {
+                    return this[i];
+                }
+            }
+        },
+        objtos = Object.prototype.toString,
+        Str = String,
+        isArray = Array.isArray || function (ar) {
+            return ar instanceof Array || objtos.call(ar) == "[object Array]";
+        },
+    /*\
+     * eve
+     [ method ]
+
+     * Fires event with given `name`, given scope and other parameters.
+
+     - name (string) name of the *event*, dot (`.`) or slash (`/`) separated
+     - scope (object) context for the event handlers
+     - varargs (...) the rest of arguments will be sent to event handlers
+
+     = (object) array of returned values from the listeners. Array has two methods `.firstDefined()` and `.lastDefined()` to get first or last not `undefined` value.
+    \*/
+        eve = function (name, scope) {
+            var oldstop = stop,
+                args = Array.prototype.slice.call(arguments, 2),
+                listeners = eve.listeners(name),
+                z = 0,
+                l,
+                indexed = [],
+                queue = {},
+                out = [],
+                ce = current_event;
+            out.firstDefined = firstDefined;
+            out.lastDefined = lastDefined;
+            current_event = name;
+            stop = 0;
+            for (var i = 0, ii = listeners.length; i < ii; i++) if ("zIndex" in listeners[i]) {
+                indexed.push(listeners[i].zIndex);
+                if (listeners[i].zIndex < 0) {
+                    queue[listeners[i].zIndex] = listeners[i];
+                }
+            }
+            indexed.sort(numsort);
+            while (indexed[z] < 0) {
+                l = queue[indexed[z++]];
+                out.push(l.apply(scope, args));
+                if (stop) {
+                    stop = oldstop;
+                    return out;
+                }
+            }
+            for (i = 0; i < ii; i++) {
+                l = listeners[i];
+                if ("zIndex" in l) {
+                    if (l.zIndex == indexed[z]) {
+                        out.push(l.apply(scope, args));
+                        if (stop) {
+                            break;
+                        }
+                        do {
+                            z++;
+                            l = queue[indexed[z]];
+                            l && out.push(l.apply(scope, args));
+                            if (stop) {
+                                break;
+                            }
+                        } while (l)
+                    } else {
+                        queue[l.zIndex] = l;
+                    }
+                } else {
+                    out.push(l.apply(scope, args));
+                    if (stop) {
+                        break;
+                    }
+                }
+            }
+            stop = oldstop;
+            current_event = ce;
+            return out;
+        };
+    // Undocumented. Debug only.
+    eve._events = events;
+    /*\
+     * eve.listeners
+     [ method ]
+
+     * Internal method which gives you array of all event handlers that will be triggered by the given `name`.
+
+     - name (string) name of the event, dot (`.`) or slash (`/`) separated
+
+     = (array) array of event handlers
+    \*/
+    eve.listeners = function (name) {
+        var names = isArray(name) ? name : name.split(separator),
+            e = events,
+            item,
+            items,
+            k,
+            i,
+            ii,
+            j,
+            jj,
+            nes,
+            es = [e],
+            out = [];
+        for (i = 0, ii = names.length; i < ii; i++) {
+            nes = [];
+            for (j = 0, jj = es.length; j < jj; j++) {
+                e = es[j].n;
+                items = [e[names[i]], e[wildcard]];
+                k = 2;
+                while (k--) {
+                    item = items[k];
+                    if (item) {
+                        nes.push(item);
+                        out = out.concat(item.f || []);
+                    }
+                }
+            }
+            es = nes;
+        }
+        return out;
+    };
+    /*\
+     * eve.separator
+     [ method ]
+
+     * If for some reasons you don’t like default separators (`.` or `/`) you can specify yours
+     * here. Be aware that if you pass a string longer than one character it will be treated as
+     * a list of characters.
+
+     - separator (string) new separator. Empty string resets to default: `.` or `/`.
+    \*/
+    eve.separator = function (sep) {
+        if (sep) {
+            sep = Str(sep).replace(/(?=[\.\^\]\[\-])/g, "\\");
+            sep = "[" + sep + "]";
+            separator = new RegExp(sep);
+        } else {
+            separator = /[\.\/]/;
+        }
+    };
+    /*\
+     * eve.on
+     [ method ]
+     **
+     * Binds given event handler with a given name. You can use wildcards “`*`” for the names:
+     | eve.on("*.under.*", f);
+     | eve("mouse.under.floor"); // triggers f
+     * Use @eve to trigger the listener.
+     **
+     - name (string) name of the event, dot (`.`) or slash (`/`) separated, with optional wildcards
+     - f (function) event handler function
+     **
+     - name (array) if you don’t want to use separators, you can use array of strings
+     - f (function) event handler function
+     **
+     = (function) returned function accepts a single numeric parameter that represents z-index of the handler. It is an optional feature and only used when you need to ensure that some subset of handlers will be invoked in a given order, despite of the order of assignment.
+     > Example:
+     | eve.on("mouse", eatIt)(2);
+     | eve.on("mouse", scream);
+     | eve.on("mouse", catchIt)(1);
+     * This will ensure that `catchIt` function will be called before `eatIt`.
+     *
+     * If you want to put your handler before non-indexed handlers, specify a negative value.
+     * Note: I assume most of the time you don’t need to worry about z-index, but it’s nice to have this feature “just in case”.
+    \*/
+    eve.on = function (name, f) {
+        if (typeof f != "function") {
+            return function () {};
+        }
+        var names = isArray(name) ? isArray(name[0]) ? name : [name] : Str(name).split(comaseparator);
+        for (var i = 0, ii = names.length; i < ii; i++) {
+            (function (name) {
+                var names = isArray(name) ? name : Str(name).split(separator),
+                    e = events,
+                    exist;
+                for (var i = 0, ii = names.length; i < ii; i++) {
+                    e = e.n;
+                    e = e.hasOwnProperty(names[i]) && e[names[i]] || (e[names[i]] = {n: {}});
+                }
+                e.f = e.f || [];
+                for (i = 0, ii = e.f.length; i < ii; i++) if (e.f[i] == f) {
+                    exist = true;
+                    break;
+                }
+                !exist && e.f.push(f);
+            }(names[i]));
+        }
+        return function (zIndex) {
+            if (+zIndex == +zIndex) {
+                f.zIndex = +zIndex;
+            }
+        };
+    };
+    /*\
+     * eve.f
+     [ method ]
+     **
+     * Returns function that will fire given event with optional arguments.
+     * Arguments that will be passed to the result function will be also
+     * concated to the list of final arguments.
+     | el.onclick = eve.f("click", 1, 2);
+     | eve.on("click", function (a, b, c) {
+     |     console.log(a, b, c); // 1, 2, [event object]
+     | });
+     - event (string) event name
+     - varargs (…) and any other arguments
+     = (function) possible event handler function
+    \*/
+    eve.f = function (event) {
+        var attrs = [].slice.call(arguments, 1);
+        return function () {
+            eve.apply(null, [event, null].concat(attrs).concat([].slice.call(arguments, 0)));
+        };
+    };
+    /*\
+     * eve.stop
+     [ method ]
+     **
+     * Is used inside an event handler to stop the event, preventing any subsequent listeners from firing.
+    \*/
+    eve.stop = function () {
+        stop = 1;
+    };
+    /*\
+     * eve.nt
+     [ method ]
+     **
+     * Could be used inside event handler to figure out actual name of the event.
+     **
+     - subname (string) #optional subname of the event
+     **
+     = (string) name of the event, if `subname` is not specified
+     * or
+     = (boolean) `true`, if current event’s name contains `subname`
+    \*/
+    eve.nt = function (subname) {
+        var cur = isArray(current_event) ? current_event.join(".") : current_event;
+        if (subname) {
+            return new RegExp("(?:\\.|\\/|^)" + subname + "(?:\\.|\\/|$)").test(cur);
+        }
+        return cur;
+    };
+    /*\
+     * eve.nts
+     [ method ]
+     **
+     * Could be used inside event handler to figure out actual name of the event.
+     **
+     **
+     = (array) names of the event
+    \*/
+    eve.nts = function () {
+        return isArray(current_event) ? current_event : current_event.split(separator);
+    };
+    /*\
+     * eve.off
+     [ method ]
+     **
+     * Removes given function from the list of event listeners assigned to given name.
+     * If no arguments specified all the events will be cleared.
+     **
+     - name (string) name of the event, dot (`.`) or slash (`/`) separated, with optional wildcards
+     - f (function) event handler function
+    \*/
+    /*\
+     * eve.unbind
+     [ method ]
+     **
+     * See @eve.off
+    \*/
+    eve.off = eve.unbind = function (name, f) {
+        if (!name) {
+            eve._events = events = {n: {}};
+            return;
+        }
+        var names = isArray(name) ? isArray(name[0]) ? name : [name] : Str(name).split(comaseparator);
+        if (names.length > 1) {
+            for (var i = 0, ii = names.length; i < ii; i++) {
+                eve.off(names[i], f);
+            }
+            return;
+        }
+        names = isArray(name) ? name : Str(name).split(separator);
+        var e,
+            key,
+            splice,
+            i, ii, j, jj,
+            cur = [events],
+            inodes = [];
+        for (i = 0, ii = names.length; i < ii; i++) {
+            for (j = 0; j < cur.length; j += splice.length - 2) {
+                splice = [j, 1];
+                e = cur[j].n;
+                if (names[i] != wildcard) {
+                    if (e[names[i]]) {
+                        splice.push(e[names[i]]);
+                        inodes.unshift({
+                            n: e,
+                            name: names[i]
+                        });
+                    }
+                } else {
+                    for (key in e) if (e[has](key)) {
+                        splice.push(e[key]);
+                        inodes.unshift({
+                            n: e,
+                            name: key
+                        });
+                    }
+                }
+                cur.splice.apply(cur, splice);
+            }
+        }
+        for (i = 0, ii = cur.length; i < ii; i++) {
+            e = cur[i];
+            while (e.n) {
+                if (f) {
+                    if (e.f) {
+                        for (j = 0, jj = e.f.length; j < jj; j++) if (e.f[j] == f) {
+                            e.f.splice(j, 1);
+                            break;
+                        }
+                        !e.f.length && delete e.f;
+                    }
+                    for (key in e.n) if (e.n[has](key) && e.n[key].f) {
+                        var funcs = e.n[key].f;
+                        for (j = 0, jj = funcs.length; j < jj; j++) if (funcs[j] == f) {
+                            funcs.splice(j, 1);
+                            break;
+                        }
+                        !funcs.length && delete e.n[key].f;
+                    }
+                } else {
+                    delete e.f;
+                    for (key in e.n) if (e.n[has](key) && e.n[key].f) {
+                        delete e.n[key].f;
+                    }
+                }
+                e = e.n;
+            }
+        }
+        // prune inner nodes in path
+        prune: for (i = 0, ii = inodes.length; i < ii; i++) {
+            e = inodes[i];
+            for (key in e.n[e.name].f) {
+                // not empty (has listeners)
+                continue prune;
+            }
+            for (key in e.n[e.name].n) {
+                // not empty (has children)
+                continue prune;
+            }
+            // is empty
+            delete e.n[e.name];
+        }
+    };
+    /*\
+     * eve.once
+     [ method ]
+     **
+     * Binds given event handler with a given name to only run once then unbind itself.
+     | eve.once("login", f);
+     | eve("login"); // triggers f
+     | eve("login"); // no listeners
+     * Use @eve to trigger the listener.
+     **
+     - name (string) name of the event, dot (`.`) or slash (`/`) separated, with optional wildcards
+     - f (function) event handler function
+     **
+     = (function) same return function as @eve.on
+    \*/
+    eve.once = function (name, f) {
+        var f2 = function () {
+            eve.off(name, f2);
+            return f.apply(this, arguments);
+        };
+        return eve.on(name, f2);
+    };
+    /*\
+     * eve.version
+     [ property (string) ]
+     **
+     * Current version of the library.
+    \*/
+    eve.version = version;
+    eve.toString = function () {
+        return "You are running Eve " + version;
+    };
+    glob.eve = eve;
+    typeof module != "undefined" && module.exports ? module.exports = eve :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function () { return eve; }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : glob.eve = eve;
+})(typeof window != "undefined" ? window : this);
+
+
+/***/ }),
+/* 31 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -39899,7 +39134,964 @@ module.exports = function(module) {
 
 
 /***/ }),
+/* 32 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+const STORAGE_KEY = "_chatter_graph";
+
+class Story {
+
+    static toLocalStorage(story) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(story));
+    }
+
+    static fromLocalStorage() {
+        let story =  JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if(!story){
+            story = {
+                entries: [
+                    {id: "Start", pos: {x: 30, y: 30}, data: {content: '<<MO "Hello">> [[B]] [[C]]'}, children: ['B', 'C']},
+                ]
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(story));
+        }
+
+        return story;
+
+    }
+
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Story;
+;
+
+/***/ }),
+/* 33 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ChatEditor_js__ = __webpack_require__(36);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Events_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Util_js__ = __webpack_require__(9);
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */]({
+    el: '#editor',
+    template: `<div class="modal chat-modal" v-bind:class="{active: active}" id="editor">
+    <a href="" class="modal-overlay" aria-label="Close"></a>
+    <div class="modal-container">
+        <div class="modal-header">
+            <a  @click="closeEditor()" class="btn btn-clear float-right" aria-label="Close"></a>
+            <div class="modal-title h5">Passage</div>
+        </div>
+        <div class="modal-body">
+            <div class="content columns editor-columns">
+                <div id="editor-form-column" class="form-group column col-6">
+                  <label class="form-label" for="input-entry-id">Id</label>
+                  <input class="form-input" type="text" id="input-entry-id" placeholder="" v-model="entryId">
+    
+                  <label class="form-label" for="input-content">Content</label>
+                  <textarea class="form-input" id="input-content" placeholder="" v-model="content" @input="textChanged"></textarea> 
+                </div>
+                
+                <div id="editor-chat-column" class="column col-6">
+                    <chat-editor :messages="messages" :options="options" :users="users"></chat-editor>
+                </div> 
+            </div>
+        </div>
+        <div class="modal-footer">
+        
+        </div>
+    </div>
+    </div>`,
+    data: {
+        $eventTarget: null, //  EventTarget-API not Vue Events
+        active: false,
+        entryId: "",
+        content: "",
+
+        messages: [],
+        options: [],
+        users: {}
+    },
+    methods: {
+        closeEditor() {
+            this.updateData();
+            if (this.$eventTarget) {
+                //TODO how to do it better
+                //console.log(this.content,this.entryId,this.messages);
+                const detail = {
+                    id: this.entryId,
+                    originalId : this.originalId,
+                    content: this.content,
+                    messages: this.messages,
+                    options: JSON.parse(JSON.stringify(this.options))
+                };
+                this.$eventTarget.dispatchEvent(new CustomEvent(__WEBPACK_IMPORTED_MODULE_2__Events_js__["a" /* default */].CHATTER_ENTRY_CHANGED, {detail}))
+            }
+            this.active = false;
+        },
+        showEditor({id, data, children},users, $eventTarget) {
+            this.$eventTarget = $eventTarget;
+            this.entryId = id;
+            this.originalId = id;
+            this.content = data.content;
+            this.users = users || {};
+            console.log("USERS",users);
+            this.updateData();
+            this.active = true;
+        },
+        textChanged(e) {
+            this.updateData();
+            console.log(this.options);
+        },
+        updateData(){
+            this.messages = __WEBPACK_IMPORTED_MODULE_3__Util_js__["a" /* default */].parseMessages(this.content);
+            this.options = __WEBPACK_IMPORTED_MODULE_3__Util_js__["a" /* default */].parseOptions(this.content);
+        }
+
+    },
+    created() {
+
+    }
+}));
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var apply = Function.prototype.apply;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) {
+  if (timeout) {
+    timeout.close();
+  }
+};
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// setimmediate attaches itself to the global object
+__webpack_require__(35);
+exports.setImmediate = setImmediate;
+exports.clearImmediate = clearImmediate;
+
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
+    "use strict";
+
+    if (global.setImmediate) {
+        return;
+    }
+
+    var nextHandle = 1; // Spec says greater than zero
+    var tasksByHandle = {};
+    var currentlyRunningATask = false;
+    var doc = global.document;
+    var registerImmediate;
+
+    function setImmediate(callback) {
+      // Callback can either be a function or a string
+      if (typeof callback !== "function") {
+        callback = new Function("" + callback);
+      }
+      // Copy function arguments
+      var args = new Array(arguments.length - 1);
+      for (var i = 0; i < args.length; i++) {
+          args[i] = arguments[i + 1];
+      }
+      // Store and register the task
+      var task = { callback: callback, args: args };
+      tasksByHandle[nextHandle] = task;
+      registerImmediate(nextHandle);
+      return nextHandle++;
+    }
+
+    function clearImmediate(handle) {
+        delete tasksByHandle[handle];
+    }
+
+    function run(task) {
+        var callback = task.callback;
+        var args = task.args;
+        switch (args.length) {
+        case 0:
+            callback();
+            break;
+        case 1:
+            callback(args[0]);
+            break;
+        case 2:
+            callback(args[0], args[1]);
+            break;
+        case 3:
+            callback(args[0], args[1], args[2]);
+            break;
+        default:
+            callback.apply(undefined, args);
+            break;
+        }
+    }
+
+    function runIfPresent(handle) {
+        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
+        // So if we're currently running a task, we'll need to delay this invocation.
+        if (currentlyRunningATask) {
+            // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
+            // "too much recursion" error.
+            setTimeout(runIfPresent, 0, handle);
+        } else {
+            var task = tasksByHandle[handle];
+            if (task) {
+                currentlyRunningATask = true;
+                try {
+                    run(task);
+                } finally {
+                    clearImmediate(handle);
+                    currentlyRunningATask = false;
+                }
+            }
+        }
+    }
+
+    function installNextTickImplementation() {
+        registerImmediate = function(handle) {
+            process.nextTick(function () { runIfPresent(handle); });
+        };
+    }
+
+    function canUsePostMessage() {
+        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
+        // where `global.postMessage` means something completely different and can't be used for this purpose.
+        if (global.postMessage && !global.importScripts) {
+            var postMessageIsAsynchronous = true;
+            var oldOnMessage = global.onmessage;
+            global.onmessage = function() {
+                postMessageIsAsynchronous = false;
+            };
+            global.postMessage("", "*");
+            global.onmessage = oldOnMessage;
+            return postMessageIsAsynchronous;
+        }
+    }
+
+    function installPostMessageImplementation() {
+        // Installs an event handler on `global` for the `message` event: see
+        // * https://developer.mozilla.org/en/DOM/window.postMessage
+        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
+
+        var messagePrefix = "setImmediate$" + Math.random() + "$";
+        var onGlobalMessage = function(event) {
+            if (event.source === global &&
+                typeof event.data === "string" &&
+                event.data.indexOf(messagePrefix) === 0) {
+                runIfPresent(+event.data.slice(messagePrefix.length));
+            }
+        };
+
+        if (global.addEventListener) {
+            global.addEventListener("message", onGlobalMessage, false);
+        } else {
+            global.attachEvent("onmessage", onGlobalMessage);
+        }
+
+        registerImmediate = function(handle) {
+            global.postMessage(messagePrefix + handle, "*");
+        };
+    }
+
+    function installMessageChannelImplementation() {
+        var channel = new MessageChannel();
+        channel.port1.onmessage = function(event) {
+            var handle = event.data;
+            runIfPresent(handle);
+        };
+
+        registerImmediate = function(handle) {
+            channel.port2.postMessage(handle);
+        };
+    }
+
+    function installReadyStateChangeImplementation() {
+        var html = doc.documentElement;
+        registerImmediate = function(handle) {
+            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
+            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
+            var script = doc.createElement("script");
+            script.onreadystatechange = function () {
+                runIfPresent(handle);
+                script.onreadystatechange = null;
+                html.removeChild(script);
+                script = null;
+            };
+            html.appendChild(script);
+        };
+    }
+
+    function installSetTimeoutImplementation() {
+        registerImmediate = function(handle) {
+            setTimeout(runIfPresent, 0, handle);
+        };
+    }
+
+    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
+    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
+    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
+
+    // Don't get fooled by e.g. browserify environments.
+    if ({}.toString.call(global.process) === "[object process]") {
+        // For Node.js before 0.9
+        installNextTickImplementation();
+
+    } else if (canUsePostMessage()) {
+        // For non-IE10 modern browsers
+        installPostMessageImplementation();
+
+    } else if (global.MessageChannel) {
+        // For web workers, where supported
+        installMessageChannelImplementation();
+
+    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
+        // For IE 6–8
+        installReadyStateChangeImplementation();
+
+    } else {
+        // For older browsers
+        installSetTimeoutImplementation();
+    }
+
+    attachTo.setImmediate = setImmediate;
+    attachTo.clearImmediate = clearImmediate;
+}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(5)))
+
+/***/ }),
+/* 36 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ChatMessage_js__ = __webpack_require__(37);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ChatOption_js__ = __webpack_require__(39);
+
+
+
+
+
+/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('chat-editor', {
+    template: `<div class="zoom-wrap">
+                <div class="chat chat-editor chat-frame">
+                    <header>
+                    
+                    </header>
+                    <main>
+                        <chat-message v-for="(message,index) in messages" :content="message.content" :user="message.user" :key="index" :users="users"></chat-message>
+                    </main>
+                    <div class="options show">
+                        <chat-option v-for="(option,index) in options" :content="option.content" :link="options.link" :key="index"></chat-option>
+                    </div>
+                    <footer>
+                    
+                    </footer>
+                </div>
+            </div>`,
+    props: [
+        'messages',
+        'options',
+        'users'
+    ]
+}));
+
+/***/ }),
+/* 37 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_lodash__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_js_chatter_util_js__ = __webpack_require__(38);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_js_chatter_util_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__common_js_chatter_util_js__);
+
+
+
+
+
+
+
+
+const USER_IMAGES = {
+    'monty': 'https://pbs.twimg.com/profile_images/2448976216/2707k2edzysqpknh4bhi_400x400.gif'
+}
+
+
+/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('chat-message', {
+    template: `<div class="message-wrapper"  v-bind:class="{me: (user === 'me'), other: !(user === 'me')}">
+                    <img  v-if="!(user === 'me') && !!(userImage)" class="user" :src="userImage">  
+                    <div  v-if="!(user === 'me') && !userImage" class="user letter" :style="backgroundStyle">{{letter}}</div>
+                    <div class="message" v-bind:class="{me: (user === 'me'), other: !(user === 'me')}">  
+                        <div class="content">{{content}}</div>
+                    </div>
+               </div>`,
+    props: [
+        'user',
+        'content',
+        'users'
+    ],
+    computed: {
+        userImage: function () {
+            console.log("userImage USERS",this.users);
+
+            let url = null;
+            this.users.forEach((user)=> {
+                console.log(user.name,this.user);
+                if (user.name === this.user) {
+                    url = user.url;
+                }
+            });
+            return url;
+        },
+        backgroundStyle: function () {
+            const bg = __WEBPACK_IMPORTED_MODULE_2__common_js_chatter_util_js___default.a.stringToColour(this.user);
+            const color = __WEBPACK_IMPORTED_MODULE_2__common_js_chatter_util_js___default.a.invertColor(bg);
+            return 'background-color: ' + bg + '; color: ' + color + ';';
+        },
+        letter: function () {
+            return this.user[0].toUpperCase();
+        }
+    }
+}));
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+(function (root, factory) {
+    /*global module, define, define*/
+    /* istanbul ignore next */
+    if (true) {
+        // COMMON-JS
+        module.exports = factory();
+    } else if (typeof define === 'function' && define['amd']) {
+        // Asynchronous Module Definition AMD
+        define([], factory);
+    } else {
+        //GLOBAL (e.g. browser)
+        root['chatter_util'] = factory();
+    }
+}(this, function () {
+
+    var util = {};
+
+    util.stringToColour = function(str){
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        var colour = '#';
+        for (var i = 0; i < 3; i++) {
+            var value = (hash >> (i * 8)) & 0xFF;
+            colour += ('00' + value.toString(16)).substr(-2);
+        }
+        return colour;
+    };
+
+    util.invertColor = function(hex) {
+        function padZero(str, len) {
+            len = len || 2;
+            var zeros = new Array(len).join('0');
+            return (zeros + str).slice(-len);
+        }
+
+
+        if (hex.indexOf('#') === 0) {
+            hex = hex.slice(1);
+        }
+        // convert 3-digit hex to 6-digits.
+        if (hex.length === 3) {
+            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        }
+        if (hex.length !== 6) {
+            throw new Error('Invalid HEX color.');
+        }
+        // invert color components
+        var r = (255 - parseInt(hex.slice(0, 2), 16)).toString(16),
+            g = (255 - parseInt(hex.slice(2, 4), 16)).toString(16),
+            b = (255 - parseInt(hex.slice(4, 6), 16)).toString(16);
+        // pad each with zeros and return
+        return '#' + padZero(r) + padZero(g) + padZero(b);
+    };
+
+    return util;
+
+}));
+
+/***/ }),
+/* 39 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+
+
+
+/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('chat-option', {
+    template: `
+                    <div>{{content}}</div>
+                </div>`,
+    props: [
+        'content',
+        'link'
+    ]
+}));
+
+// TODO: link handling -> onClick createAndJump
+
+/***/ }),
+/* 40 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Events_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_assets_plus_svg__ = __webpack_require__(41);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_assets_plus_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__common_assets_plus_svg__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__common_assets_download_svg__ = __webpack_require__(42);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__common_assets_download_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__common_assets_download_svg__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__common_assets_play_svg__ = __webpack_require__(43);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__common_assets_play_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__common_assets_play_svg__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__common_assets_sliders_svg__ = __webpack_require__(44);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__common_assets_sliders_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__common_assets_sliders_svg__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__common_assets_trash_svg__ = __webpack_require__(45);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__common_assets_trash_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6__common_assets_trash_svg__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__common_assets_upload_svg__ = __webpack_require__(46);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__common_assets_upload_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7__common_assets_upload_svg__);
+
+
+
+
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */]({
+    el: '#menu',
+    template: `
+            <menu id="menu">
+           
+            <button class="btn btn-action btn-primary circle btn-lg play" v-html="PlayIcon" @click="play"></button>
+            <button class="btn btn-action btn-primary circle btn-lg download" v-html="DownloadIcon" @click="exportStory"></button>
+            <button class="btn btn-action btn-primary circle btn-lg settings" v-html="SettingsIcon" @click="settings"></button>
+            <button class="btn btn-action btn-primary circle btn-lg upload" v-html="UploadIcon" @click="upload"></button>
+             <button class="btn btn-action btn-primary circle btn-lg add" v-html="AddIcon" @click="add"></button>
+             <button class="btn btn-action btn-primary circle btn-lg delete" :disabled="!deleteEnabled" v-html="DeleteIcon" @click="deleteSelected"></button>
+            </menu>
+        `,
+    data: {
+        PlayIcon: __WEBPACK_IMPORTED_MODULE_4__common_assets_play_svg___default.a,
+        DownloadIcon: __WEBPACK_IMPORTED_MODULE_3__common_assets_download_svg___default.a,
+        SettingsIcon: __WEBPACK_IMPORTED_MODULE_5__common_assets_sliders_svg___default.a,
+        AddIcon: __WEBPACK_IMPORTED_MODULE_2__common_assets_plus_svg___default.a,
+        DeleteIcon: __WEBPACK_IMPORTED_MODULE_6__common_assets_trash_svg___default.a,
+        UploadIcon: __WEBPACK_IMPORTED_MODULE_7__common_assets_upload_svg___default.a,
+        deleteEnabled : false,
+        eventTarget: null},
+    methods: {
+        sendEvent(eventType) {
+            if (this.eventTarget) {
+                this.eventTarget.dispatchEvent(new CustomEvent(eventType));
+            }
+        },
+        setEventTarget(eventTarget){
+            this.eventTarget = eventTarget;
+            this.eventTarget.addEventListener(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_SELECTION_CHANGED, (e)=>{
+                console.log(e.detail.selected);
+                this.deleteEnabled = e.detail.selected && (e.detail.selected.length>0);
+            });
+        },
+        add() {
+            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_ADD);
+        },
+        play() {
+            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_PLAY);
+        },
+        exportStory() {
+            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_EXPORT);
+        },
+        settings() {
+            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_SETTINGS);
+        },
+        upload() {
+            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_UPLOAD);
+        },
+        deleteSelected() {
+            console.log("deleteSelected");
+            this.sendEvent(__WEBPACK_IMPORTED_MODULE_1__Events_js__["a" /* default */].CHATTER_DELETE_SELECTED);
+        }
+    }
+}));
+
+
+
+
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports) {
+
+module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 11 14\"><path d=\"M11 5.75v1.5q0 0.312-0.219 0.531t-0.531 0.219h-3.25v3.25q0 0.312-0.219 0.531t-0.531 0.219h-1.5q-0.312 0-0.531-0.219t-0.219-0.531v-3.25h-3.25q-0.312 0-0.531-0.219t-0.219-0.531v-1.5q0-0.312 0.219-0.531t0.531-0.219h3.25v-3.25q0-0.312 0.219-0.531t0.531-0.219h1.5q0.312 0 0.531 0.219t0.219 0.531v3.25h3.25q0.312 0 0.531 0.219t0.219 0.531z\"></path></svg>"
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports) {
+
+module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 13 14\"><path d=\"M10 10.5q0-0.203-0.148-0.352t-0.352-0.148-0.352 0.148-0.148 0.352 0.148 0.352 0.352 0.148 0.352-0.148 0.148-0.352zM12 10.5q0-0.203-0.148-0.352t-0.352-0.148-0.352 0.148-0.148 0.352 0.148 0.352 0.352 0.148 0.352-0.148 0.148-0.352zM13 8.75v2.5q0 0.312-0.219 0.531t-0.531 0.219h-11.5q-0.312 0-0.531-0.219t-0.219-0.531v-2.5q0-0.312 0.219-0.531t0.531-0.219h3.633l1.055 1.062q0.453 0.438 1.062 0.438t1.062-0.438l1.062-1.062h3.625q0.312 0 0.531 0.219t0.219 0.531zM10.461 4.305q0.133 0.32-0.109 0.547l-3.5 3.5q-0.141 0.148-0.352 0.148t-0.352-0.148l-3.5-3.5q-0.242-0.227-0.109-0.547 0.133-0.305 0.461-0.305h2v-3.5q0-0.203 0.148-0.352t0.352-0.148h2q0.203 0 0.352 0.148t0.148 0.352v3.5h2q0.328 0 0.461 0.305z\"></path></svg>"
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports) {
+
+module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 11 14\"><path d=\"M10.812 7.242l-10.375 5.766q-0.18 0.102-0.309 0.023t-0.129-0.281v-11.5q0-0.203 0.129-0.281t0.309 0.023l10.375 5.766q0.18 0.102 0.18 0.242t-0.18 0.242z\"></path></svg>"
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports) {
+
+module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 12 14\"><path d=\"M2.75 11v1h-2.75v-1h2.75zM5.5 10q0.203 0 0.352 0.148t0.148 0.352v2q0 0.203-0.148 0.352t-0.352 0.148h-2q-0.203 0-0.352-0.148t-0.148-0.352v-2q0-0.203 0.148-0.352t0.352-0.148h2zM6.75 7v1h-6.75v-1h6.75zM1.75 3v1h-1.75v-1h1.75zM12 11v1h-5.75v-1h5.75zM4.5 2q0.203 0 0.352 0.148t0.148 0.352v2q0 0.203-0.148 0.352t-0.352 0.148h-2q-0.203 0-0.352-0.148t-0.148-0.352v-2q0-0.203 0.148-0.352t0.352-0.148h2zM9.5 6q0.203 0 0.352 0.148t0.148 0.352v2q0 0.203-0.148 0.352t-0.352 0.148h-2q-0.203 0-0.352-0.148t-0.148-0.352v-2q0-0.203 0.148-0.352t0.352-0.148h2zM12 7v1h-1.75v-1h1.75zM12 3v1h-6.75v-1h6.75z\"></path></svg>"
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports) {
+
+module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 11 14\"><path d=\"M4 10.75v-5.5q0-0.109-0.070-0.18t-0.18-0.070h-0.5q-0.109 0-0.18 0.070t-0.070 0.18v5.5q0 0.109 0.070 0.18t0.18 0.070h0.5q0.109 0 0.18-0.070t0.070-0.18zM6 10.75v-5.5q0-0.109-0.070-0.18t-0.18-0.070h-0.5q-0.109 0-0.18 0.070t-0.070 0.18v5.5q0 0.109 0.070 0.18t0.18 0.070h0.5q0.109 0 0.18-0.070t0.070-0.18zM8 10.75v-5.5q0-0.109-0.070-0.18t-0.18-0.070h-0.5q-0.109 0-0.18 0.070t-0.070 0.18v5.5q0 0.109 0.070 0.18t0.18 0.070h0.5q0.109 0 0.18-0.070t0.070-0.18zM3.75 3h3.5l-0.375-0.914q-0.055-0.070-0.133-0.086h-2.477q-0.078 0.016-0.133 0.086zM11 3.25v0.5q0 0.109-0.070 0.18t-0.18 0.070h-0.75v7.406q0 0.648-0.367 1.121t-0.883 0.473h-6.5q-0.516 0-0.883-0.457t-0.367-1.105v-7.438h-0.75q-0.109 0-0.18-0.070t-0.070-0.18v-0.5q0-0.109 0.070-0.18t0.18-0.070h2.414l0.547-1.305q0.117-0.289 0.422-0.492t0.617-0.203h2.5q0.312 0 0.617 0.203t0.422 0.492l0.547 1.305h2.414q0.109 0 0.18 0.070t0.070 0.18z\"></path></svg>"
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports) {
+
+module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 13 14\"><path d=\"M10 11.5q0-0.203-0.148-0.352t-0.352-0.148-0.352 0.148-0.148 0.352 0.148 0.352 0.352 0.148 0.352-0.148 0.148-0.352zM12 11.5q0-0.203-0.148-0.352t-0.352-0.148-0.352 0.148-0.148 0.352 0.148 0.352 0.352 0.148 0.352-0.148 0.148-0.352zM13 9.75v2.5q0 0.312-0.219 0.531t-0.531 0.219h-11.5q-0.312 0-0.531-0.219t-0.219-0.531v-2.5q0-0.312 0.219-0.531t0.531-0.219h3.336q0.164 0.438 0.551 0.719t0.863 0.281h2q0.477 0 0.863-0.281t0.551-0.719h3.336q0.312 0 0.531 0.219t0.219 0.531zM10.461 4.687q-0.133 0.312-0.461 0.312h-2v3.5q0 0.203-0.148 0.352t-0.352 0.148h-2q-0.203 0-0.352-0.148t-0.148-0.352v-3.5h-2q-0.328 0-0.461-0.312-0.133-0.305 0.109-0.539l3.5-3.5q0.141-0.148 0.352-0.148t0.352 0.148l3.5 3.5q0.242 0.234 0.109 0.539z\"></path></svg>"
+
+/***/ }),
+/* 47 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__DialogResult__ = __webpack_require__(10);
+
+
+
+/* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */]({
+    el: '#confirm',
+    template:
+        `<div class="modal chat-modal" v-bind:class="{active: active}" id="confirm">
+            <a href="" class="modal-overlay" aria-label="Close" ></a>
+            <div class="modal-container">
+                <div class="modal-header">
+                    <a @click="cancel" class="btn btn-clear float-right" aria-label="Close"></a>
+                    <div class="modal-title h5">Confirm</div>
+                </div>
+                <div class="modal-body">
+                    {{message}}
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" @click="okay">Okay</button>
+                    <button class="btn btn-primary" @click="cancel">Cancel</button>
+                </div>
+            </div>
+        </div>`,
+    data : {
+        active : false,
+        message : '',
+        resolve : null
+    },
+    methods: {
+        showDialog(message) {
+            console.log('message');
+            this.active = true;
+            return new Promise((resolve)=>{
+
+                this.message = message;
+                this.resolve = resolve;
+            });
+        },
+        cancel(){
+            if(this.resolve){
+                this.resolve(__WEBPACK_IMPORTED_MODULE_1__DialogResult__["a" /* default */].CANCEL);
+                this.resolve = null;
+                this.active = false;
+            }
+        },
+        okay(){
+            if(this.resolve){
+                this.resolve(__WEBPACK_IMPORTED_MODULE_1__DialogResult__["a" /* default */].OKAY);
+                this.resolve = null;
+                this.active = false;
+            }
+        }
+    }
+}));
+
+/***/ }),
+/* 48 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__avatar_avatar_js__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__UserSettings_js__ = __webpack_require__(55);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Events__ = __webpack_require__(2);
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */]({
+    el: '#settings',
+    template:
+        `<div class="modal chat-modal" v-bind:class="{active: active}" id="settings">
+            <a href="" class="modal-overlay" aria-label="Close"></a>
+            <div class="modal-container">
+                <div class="modal-header">
+                    <a @click="closeSettings()" class="btn btn-clear float-right" aria-label="Close"></a>
+                    <div class="modal-title h5">Settings</div>
+                </div>
+                <div class="modal-body">
+                    <div id="editor-form-column" class="form-group column col-12">
+                        <label class="form-label" for="input-entry-id">StoryTitle</label>
+                        <input class="form-input" type="text" id="input-story-title" placeholder="" v-model="storyTitle">
+                        
+                        <label class="form-label" for="input-entry-id">StoryAuthor</label>
+                        <input class="form-input" type="text" id="input-story-author" placeholder="" v-model="storyAuthor">
+                        
+                        <label class="form-switch">
+                            <input type="checkbox" v-model="groupChat">
+                            <i class="form-icon"></i> Group Chat
+                        </label>
+                        
+                        
+                        <h3>Characters</h3>
+                       
+
+                        <button @click="add" class="btn btn-action"><i class="icon icon-plus"></i></button>
+                        <button @click="remove" class="btn btn-action"><i class="icon icon-minus"></i></button>
+                       
+                        <userSettings v-for="(user, index) in users" :key="index" :user="user" :index="index"></userSettings>
+                        
+             
+                     
+                        
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>`,
+    data : {
+        active : false,
+        storyTitle : "",
+        storyAuthor : "",
+        groupChat : false,
+        model : {
+            head: {shape: 0}
+        },
+        closeResolve: null,
+        users : []
+    },
+    methods: {
+        closeSettings() {
+            this.active = false;
+            this.closeResolve({
+                users : this.users,
+                storyTitle : this.storyAuthor,
+                storyAuthor : this.storyAuthor
+            });
+        },
+        showSettings({users, storyTitle, storyAuthor}) {
+            return new Promise((resolve)=>{
+                this.users = users || [];
+                this.storyTitle = storyTitle || "Enter title here";
+                this.storyAuthor = storyAuthor || "Enter autor here";
+                this.active = true;
+                this.closeResolve = resolve;
+            });
+        },
+        remove(){
+
+        },
+        add() {
+            console.log('add', this.users);
+            this.users.push(
+                {
+                    name: 'user_' + this.users.length,
+                    url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAVlpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KTMInWQAAGthJREFUeAHtnQlwXdV5x7973yLJlmR5wZYX2XgNBuMQBNhlAJs1IcYuSUtTICEJAbIzSWfKtJk24zZNMp02TbNMNiATUpYpNAnDlgRIYzABE2TMYjDxBgZjW8ayrV1vvf39z333+UmWnhbLDqY59n13O+db/uc723fOPfLsKIcgMM/WLI/Z8uV5z1udj9i558+ummsWnGSBncLzeVw3mPlTOE/hWR0pK1z8wFJcHzTzms3yHN4bPN9qXvAy8TfZ6fdt8zxSFEKwerVvy9b4tnxNrvR59H40z95oEiulFQQosf7+mHfG+kz0PFi3aorF7TzuLwakpZwXWGWswpJ+GEXw5vjJgoUOUHYBFCxeOGLELUS3DHG7cynibOZ4GpAfsaT3mHfqfYAchqCpMWGNKwHyUOZF70bjPOoABqtRb9ly3zt/TVYCBr9dHrea2vcCxtUoeJFVxU+wBGylfJoj51DKYVUBcSSP5/7pHB6OjEi5fzp7xDXievDyPd9lQAJUBXpXdh90HjXPv93szYejDHRyPLYm7602mI5eGDUAXZFc3xgvCvzkeydYsuIjFLlPWmV8oUnBbnDK5gVWHiX9foAarmYy0RBYr0Az4cesKhZmUE/uFV7fbLnEbd6SX7SIeGiR67OjVbRHBcAguAKJ76GOA5amlWMwps9iIF+02sRUZ2U9ORT1sMiAeMUCKH2ORsDCvBwyxKyC8q7qoS2zB0b/yfEd74z7uySMBVf4nncPmXlk4YgBVI4Wre6ZlVci2lesJjHXepAtE2QKlqZa64h5DVNVWWYernmsP0FdKyC3I8+XvbMeuEO0SmUfJu1i9BEr5RoJyKhyDpounUst/y2rjq9w9VB3Lovgoi2LezuEnCvoVbG4a4zas7+0jHejd/Z9W0v1GImgIwJQFXKxkWhaeRWMv4/V1Vp7xjUc3MdHIswxSBPKV5OIY43tNECf9hrvC62xRKfhyDFsACOzDxuNlT/C6q6zHqqdbF7dlcRwmP8R42awxLBYd2Rvtcb7rw/r70PV0VBlGxaARfBeWDHeMv4vbFxymR1MRxXx26W4DlV3FWuz8cmYHUg/bhX5y73FDx6IdBwqEVXuQwpB0w2usQieWTHHUv56G5sQeGkSi8bxBp50jlFL+06HmsR50ilounyuGkTpqghDCUOywChXgg2Xzbec9xjFdqp1ZAVecihMjoM4aRsbT6LTHsvnlnlLHtoc6TyY7IMCGBEKXsDy0v4TdFKn0iF+J4EXYZRGt6R15faYFzvHO+PebZHuUYT+zmWLsGttZdKq81L+o+TSOxU8YZN0hlEdr7cg94h0dsVZQ9EyYUAA1T9SV8W1tmowahKzrfMdVWz7gyXpdJSu6CzdQwxWD4jTgC+K1NfTVVFr25EZZrH1aeQ4aOny/Ogsz9bRHcmJp8aTpTyl4uBqFvWVJUpX6SzdBwn91oFR2Q/WX3Y1re3t1p5lbOmk6Dd+Lx50r9CCUtCKQ4SL+FjkR4G8+opdFuRRMTaOIQzPAuUJcRywvagM78ajLQvwT4hnDBFjY0p4dgIowyIfni4UvWvleITDwJp4zDozH/YaH7gjwqRvosMAkWNAg2w16Ui0gXFkDa4nAVimqyIQ1PIDSu4NwNphVr0SzMbYgZbXrbu7zSoqq238hJkWTzAY6Pg1mKFQbE5BHgF5mCiFdwOdxLPQCchtB8BWeL7Xcpm47YdnKtVhVVW1Nn7iTPKvC573I94seDaQjsw0AVmWZ87ieHay+TYSne4alQI2JCyGXhUkpg/Fe0SdkPs23pQahmcZnpbpF0kRHMd5vEUAlx/7YfOmXGp/eK3FHn3gf+ylpiets73FxlRPtHmLknbxyg/ZqSdda7bvt+a33YJSk5GvvmCNjvHQfjx40mBafq/laz9hNukCe/GVHfbI/f9tWzc+ZV0d+21szSQ7+YxxdvFlf2nvmvsJC5ofMr8TN6GA9CfCR77YAUEUeJnCEPXbRFwhbIRRqSusV+rITHFJXUVf7w76RRo79gKZ+95BimS3WZBstPSU63HIn2G/X/e0/fvHzrYkBjIObMhHV4I79pm17jC78a5f2fILLzY7sNESe35qfvcvAfFk6EqhIQTH82XLV15qmfprzCYssjWPPmLfufp9VjsTQ5wETwqDPI+tYJyC7N/e9qSdtXQJeDdZcs/N5qXXw3MuzAblmQWLOFhcjSvszgijSMoigPIke6up7+XPM3sB949cUmUAlOVVAt6zlhv3GeuZ/jFL1Ey0N7Zts9Ur5lnFCWZVFNlMzxvUQco2ciI51XLp3bbrYbOvPLfeFr77dEt3tlvlrrsstv/rRGiEpopzuUCuZJssN+FL1jPtSkuOrbFNzz1r//ieRpt2CZjAIwsPNSQylUTlTOvev8NSZN7qB7daw5y5lqVEVLz5E4u1fg+ep8Osh6MIBde9QhYs4mCxzaZUnuo13NMdYaVY5FMh4IZ3V573OefPk0tqQOsrgJfbZLm6Gy114mcpxRNQLGvr/vd+60LYqoknWarrdQee6EqhdM9ui1XOs8o5ZmsfuttyqbR5ibHWM/Nay076Z9K/SEzVa6LfN+iZwHuRuF8hzcddWtFY+8u7HU3RFg/xUlDGpbp2OFm63mLS5DfUg8gYIKtkluyGDs4Q+uXpyMTpH2YdJnu6P++eRFhx40Ar9vlewg0fBF90ztDQn+fi9/4pKJJ/w/JjLrfUzOtwPidpYbLW1d1j215cZ2NnI1fmoLO60rSywlyaumma2fbnf2Pt7W0WU0vN//SMK7HkG4jwB5Jg2b0UEk+e8S437pOWbriS17RqpBWNbc/Tx4emaItHaXA8kUUybUW2bmSUrJJZsksHy+8kyUAZxythIQex538hYKqitG8YWh2zZ45pN3MYtYl6Wl01UeEz96L0R0koZl6VpadTMaubkqceoaLLk1Gp7g7zqTWDIHLSlKbVNU5iKKe63rAM3S1PNwGOaxKlp10NvXdx30G8UvaK08G7k4hzFcqLAW0baUUj3bnT0RTt/oJkkUySLaeC5SrllJNdOpinDFPVEcLRDw0YwbCWkZib5yFGATMfK/fckCXQkCUgexFCPeB+A5agPlf2JctOuN5y1bOZfQA8FAno5yWSFVZ3wgzLdvNI/cHDAuaB8koybkqjVY0ZS+MCP9KLTn5MvWVPuA5T2kxKxCkGrnmWPeETLk7EU2lFY1x9o6Mp2hArpoouJItkkmxJZJSsEU/pIF2kU1kr1CSYsAGj4hAX7Hw36S1O65l6rIgttBQTs2GnWU/7BHBV55f+W3bC2cV3qqzzNHmVVVV2ylnn28HnUb9iYrEuiiKqE52orLeWdWaLlr7PqmvGOYtQehdQLFvXaEFiCXzaeaR8FM92Wvkl7h2MeEaZIo2sSTRESzRFWzxKg+rDOHWeZFqEbBXIKOCLPInsdIlRxstZoTDpYd5UGGmaVoEFA749tlwSEZi31QxWwIxWf9no6iRZwm6s4AK6EFOZnKSkR8qjVC6btyXnXWKnf3Klvbn2RauqXUzL22AxaoVYcoZV1i6ylq0b7cQ/b7DzLv1gCHBU45OXXj5reYDPVy+Dzw7EkEWJ52v0L5e5d4pT5ElaJRetE1c1ONriIV7iKd6S4c21G+30T62ys5ZdAugFdaEsOtJBukgn6Rby7J0Jikogl/1siBFYKbDaIvZPa9YEbsWAb9+gChlDR0bmoKNP4JGKJUUpN/4ay45bBHNVrGHU0CJyNra62ha8+2zbuf9Ve+m/HrdMuo2uTId17mmzPU/utTkXnmmf+erPbcbMObxjxYY6bMWA4LGE+el2i7X9FHln8wb6+U20vJ+2fA1VRgmAjietam3deFtwxqW2eVOT/eGeDSxugGdXh7XvbLPmdc327mtW2XV//22bNJkqAh/wIZ7QVibEKizW02J+x8/gPwOeA9XfCKPyGQT1q6896adeww87lMXYfrCMye9JzOqXH7Ix3iQyljDFJYM75xBAPfABI02vtX76LPvC12+zF/7id/bKhqestWW3VddNtvmLGu20pcsY0k1y8Q4pUiCnEyTzSTqRnniIHw+4DpL0jsWuTxAN8Zw97yS76VsP2HNXPm5bNjZZx8G9Vjtxqi08baktPvMcV9QV73CeIdF8BT1+WbvTsQ+TQ7e+G9aOiZ1g3fnzeHxPCGDAWhUtt9Dsfjj5fShJ8UpASZkxxKgqPu17IQFlWWOqa+zci95vSyk2ainj8QSNTIJiHlj6MMvrTSWQM8Cr42HBErh2rX3vaMW7CMRxdRPtwss+aOdespLuXsYSiSRH3DJULYdbezG5u3A6oVuYSwVde0cJ78J55hgAXsyDe+LqVXOxxK1VCZdb9Jes5Fk/ZlDyVpdSKEfRymZozrmOx2n5yNmebixA9Y48MeWCM+q+fPre9yYgngItU8JTjUV3xJP3oxLUQ9G6Hi9YQulHk5Wr5kB4gWui0W1gJlKA10EXXQ76BIMEASXwlKNqoTUq0L2eDxY83F4WsJrN9QWhwbV7NkjCIk94iad4D5mndEI3p2N/dUXEWxiFXb0F9tSquZhKfqFbYpZ3hX8Q7QRI1vxUtHpskOiOqSwuPCIZyp4h6aUZCwaMvVzhUCd6b/hsKOxEvMhvKAnCOH5qDwnVwkvHsoFCDFaVsUqrCE7S8rCTw6bZ1dhlOMoCZbpTzO96qdCBDi2sLLthvYQ9xS7W+Qp8GFs7SxDfCeGzQh9wWCTLRoa2uk904qWTa7icHYnngIFWGCBcl89OEQLzClHLpoI60cghfHd+12/N79njhl/qBoxKgE7AGiA/RXeicy3GNyvk53jOcs/81H4XZ3R5xp0uftcap5vTsVxNFiobKT0PAL0GTFKZXcb6IohkgRU0jq9afP8T0cNROiMDRS9+oIniyrDCq4Eu/JzV17hn8QPPuDihZY4SW8g4XdDJ6eZ4DkJbWAkzz2bIAqewSlQphgAgUTSUi58M01ss1vGq64Ti+h+E4yCvKTbqzPrdzRbfdyuWsIAEWHsxyPIX8O7HWEtzgafAPYKAzK4DjQ7SRTqFczRDg8Fhlg/qAZAF3TT9wDeElBJYguNQyPdY8s1baR3xkvjcjxRE1TlyAjCkSu66HXpbuK+GR2mmcM0zL7sZnsRxQ0jSuPpKMg0zCDxkluzSwQK8G86dNeRMoc8kzLzJssA6t7Cb26GJoWhyKMygLvyZVey4xSkU0CiFIDprHgIp4jlFEgy/GaPvxCvd+n3ozidtXw+xePKMd4qTJK7SqM4cEU9kVSZIdr9Tw7fpoU5DhUBY0Tkn1JGNzAiFOg8RQKWLFGLg3vYDq3gtZ+mGjzPEm0CLRnErWiPxSqkWseWC1i+Io0imE/DuwKX/DYrRadAmc3ol4tYFEVL1cRpF+V8AoMdSM/Af4tH2chl4Fqynbz/T8SwwltuNJTBqjJJv/ATZfwS9U0nbN8MKLAc+qSVWqPSYA1FZkSWOIAgILI+ipUmlTP2ncDktpm6RNQoGSEeKOeqApn6W+mlYQKz1ZSaVbqPuewBFFhND4A0lUGVkX7Cg6jJL138UL/XCQjVC7e74lRRFZZQ65MrLXI/FD74Azx/QKK2H54KRgFcqYN4LnlnZBXxVcBGmpfZSGrHMdQHE3H6EwdU19q8A8XxcUvNwCjD369NqCzQpBmh+ppViQ8V98Anz2+/kXQ1FqJ73qoeGEVxvgA4988H5mqvgea7l8NsHCfGkaBd50sdLw7NjKzzpfnXezbupxFE/c9iWFwmodlhW2CUL3MUEMlNZrpc6ckt0U8fgn9/FsdMVjSDxLhSajNVVYRkIyyccfppGIvscSuBxic0sCEQRHHbeKb8BSiH3OkAycqF4B8n5FNNJ8KR6CLqpIpo5NsOTCSufuk6Hs5WR8HTc9KOF6xoT7wLAVRusyj+NZV3lXVnFtINdSCmARHjnVQ46uVfRlFXIy1KLEpyl/5CLrOKWCxRpBY1lg7bw7FYe8NxjzkZWTiaGTAXcEYcsS+E0W7dB/Ydmi1FHhNSPmHIIiiocAYYPz7A0Z11CTAdFebTWxEAtDCr+4inAJofXfXm6zBJ/4h1pEBmtwfGsGQD5cM93N3o8CiESUBW5joFCFG+g98N5HtE6RjxV+wmzwHaqzttaEDWSYjiS/3+NG2G11WdM93LBFygwR8kK39G4qgUOpzg9e8lnen8Ts+49mOSfABxavqv4MsUJZkFsk6+PlUm3peDf+pMFDgai+svyBRrfKDfeu50vFl2xfdp9juomlQajcPy9l8uy7zFiLXBkOazMe1rYOShpiR92HhlNKh3HIQRJ8yHhoXkYBQ2PPVpNLf91B9dR3GGrSwF2k0rG1/EEORPopdvj1s0wIeFPOrIRiaN2zH+0bFRBxYk63YHlUJPTk5UIAjTHTFpO9y4ezqtK9eAAEreUkg0xyPqY0sy9ZVnvcaWJB/qcwVvdzJDuEXrXV1q7XClvf0uMLMjHmvxE6CyQZbS1pmzfgR5rbum2t1q6rOVAt7V1pFl6xyquNJ4iWSOIzW4YbysvmG114ysBsfdamYHBZNlLFTnUnn/EW3pfs7CL25o1Krb0QL076M5cyaWyRlk19HwZmOPov0EyWZyv4sgievnl9jZ32pbXDtrGzS22acsue3NninXZWCSvWYzFhD6WglbR1LAGXg//fJ/t299ln/8o7rE4HhshUF5jcWYNnjrr3p1OMbDzkEUZwqf67G5h055num4hJjpK4+LRxU9FURZnfGCZ68na5lcP2roNu+2ppm22ZxfOOYa7LIjgiwD1zsLqXPVgeEiWQ3YRB/zW1ox97e8usBkzaizPR6eO9kAiUwtgfTG6L5ussX2x54UfIcUj8NwawfXTbqaJ/g8iCWby6e0RisUV4GRxGze+Zb96/FVbuxZHEtk+kSH3zBPjDiitRsgjvtYAuvlogAwn+A/povtUSks/AL0CmuA6iPWpPGoqU/XfzQ48bXXgreejCgX2VWGBINQqb7O2npuoKLVKlWd/fBBlPQ4IwGve02n3PbrNHnjwVRuDpc2YycJMNM+yJirNx/KyuhhGol1RMpmc9fQELCfhHb4GylTRt4sfxfZtM/uHry62SRNxhQ5eB+bAJGFt2d0ssrmtFLNiqQ8Kn7wHz6y6iaWs/8on8dr3IATYpTj2P67IUj+pz/FE02679U5WXVG3TZ4isQIHnKRScRSQHR1Zaz0QyjkJp8z0aROt/oQaGz+u0sZUJayCTFA8rRGcMbXaFs3HqQoCg9Z/sGLpM586pG/iq6V/i7ByvEN2/LIpjbv2gu/ycc0NlPdBPnMopjwqFw48FO7pzNjdD22xO+/aYg2zmYOtZ7UVeatinaD1Vby9e7E23I6nnFpj779ohi2YXWfTJo+12upkWESd6wmkiuZSEJlWe1Dw1MmT7689s83SVd91KSOsuOlFMvqIJHiW7UvGxO8c0oc2RwG+CLy2gz32vdufsyefbLZZs1nnzIqvHHPYMQBRUW3ZxwoweibnL5tl5zROt7mzalngSZOrhkbthfp9HAJbD9w50phnrmqI7gfWI/zQpj17lXfm/XdFGEXReyWHgbvHyrWBzoN8G/F+96lX0XceJTt6Z1fnUWxbD6bsmz9usuefb7GGmXySwPcgkdWlUjnX6l6Eta1YPsfmn8g8SKGBCQBYNKSJpi0U0GekQZ96UfdlHgK8FaX4RATDtr5wJ+DMrig8i90IeG3MlzBx22uWO0o76ment4ZZVOp33veKbXi2xWbOStIYhOAlk3E7sJ8eFoB86W/OtBuvOc3mzx/v5MjTrRF4euc611zoWseIgnSW7sLAAwsXtNuRs+0iyV4A6mn4paa2/7h3G+b/GaNPVchIVxCKKY/CBbbjhmJ79nXb79btsOkN1IGAJxAqKhK2a2fWTl00xb5600V29tLprjOdxxoFvEAbMViH6xLqKt3BoPj5fz9bRR0GoGiF340wxNMWSR3ZW6xO5cPN0hzOahSfRMaSoAirH5yjL5dkWXBFRdJefy1jF13I2utrT7fJ9XxfIouj2Rtl4CJtMm47FHQXBm64W7KNXxRJ534BLI3ApjQ3WGuanTo0IBq1abReLKIbV2dRfNU3++DKRfZKU2DNzRl78fdpW3HpbLvhQ4v4sCbJh1HhqGEULS4SQec09V7S6SzdBwlRpvcbLervBGvZdKLKb+KzzzlYpOYoBeZRCVE9qNHEhk37bPvrrTZtSrWdtXiyJRg15Ol6lB1yHZlU4fYnndntlsyf4TbiKfSPByJbFkAlipptt+GOd2y2PQlBhLnrRHOWlLidouEZd0cjhNuedOd3WzJ3DuBtj3Qvx2xQAJU4IlTceEfbnxzlHTwEohoVFevofJSKrFQc8cY7g9eBUHeNirZ+es8DWzCDcwBve0mdGLZYEmMUg8BSn6H0PIrkI1KSPe10kU5e9pxw16Jwm6soUrnzkCwwInDIEi+vs2zuXlqqcPMxiVF2U4qIwtvoHPVttfmYGsmu/Ae8c4e/+diwAJT6RRAFWdOqH1p17PrjfPu7W9TTwNKdT1SlbTjZPGwAHYgl238w5LuKZ8fpBowBGzAWtgMdpLUdCNQRARiCuNrVn8ynHH9bgHZkH2LIc2O4F8whPQYCqdzzEQMYEY2KtAP12VV/zdBHm9DOw6utrYj5lp/OupZChJ2RKNmxOKvx1sepmkkLd6uUS8rsy9q+RAKUyj5SgY4YQCfI3WyDfEVhG+Qnr6iyRPfnaD7DbZDp+OIGp5nxtHhaQ8IhtfwjVYh0MNRH40Gc+R3PrSLQNsie901que+6bZCd1+ltsg1ypCj9Ns/6bsQdT3yEdXQ34GoKPyc72htxazpW2zVpI27NnqXYiNuzH1kqfZt39q9ZgxxanTW+zTbijkB0Aq7GwthXRVuDuHsqZ6uuvgQLuJr7i1GOreAxQlmmlDySreBl0THcMFqrIpr6dkNbwbtVA0zTHk9bwQus0iAPxmF/jOD5D0y2TG4ZpexiitkS4uuPEVQ6AJQYPN03KwJCh4YjCvIwyy2vP0jAvHaxEgirB60U38LxNOkfsTx/jIBJbyVTUD13XP0xglDsQ7+uaLO7hfX35zDWXz4HH/1C5v5OIcU81G2g4p+CtWqdbh0H30u4IJAOAuhewOQrR9vJ/Vbm/19mZ81N9md9/hyGMk8LBo7Bn8P4Pwh67KW8o1GJAAAAAElFTkSuQmCC'
+                });
+        }
+    }
+}));
+
+/***/ }),
+/* 49 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+
+
+
+
+
+
+/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar-body', {
+    template: `<g></g>`,
+    props: [
+        'model'
+    ]
+}));
+
+/***/ }),
+/* 50 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+
+
+
+/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar-eyes', {
+    template: `<g>
+            <ellipse
+       ry="2"
+       rx="2"
+       cy="58"
+       cx="40"
+       id="ellipse73501-0"
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0e232e;fill-opacity:1;fill-rule:nonzero;stroke:#0e232e;stroke-width:5.33194542;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
+        <ellipse
+       ry="2"
+       rx="2"
+       cy="58"
+       cx="70"
+       id="ellipse73501-0"
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0e232e;fill-opacity:1;fill-rule:nonzero;stroke:#0e232e;stroke-width:5.33194542;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
+        
+        
+        
+        </g>`,
+    props: [
+        'model'
+    ]
+}));
+
+/***/ }),
 /* 51 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+
+
+
+/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar-hair', {
+    template: `<g>
+                  <path
+       style="fill:#f68585;fill-opacity:1;fill-rule:evenodd;stroke:#c96b6b;stroke-width:5.33194542;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+                        d="m 47,8 -29.06349,6.93257 -13.59852,25.06393 22.39756,-14.13179 17.86471,-5.06611 -10.6655,17.33143 23.19746,-17.59808 -9.59895,21.86429 25.86385,-20.79773 -10.13223,33.06305 21.86427,-18.66462 3.46629,20.53109 12.7986,-12.53196 9.06567,12.53196 -10.93214,-25.59721 -15.19833,-19.1979 -28.53021,-5.59939 z"
+                    />          
+
+               </g>`,
+    props: [
+        'model'
+    ]
+}));
+
+/***/ }),
+/* 52 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_lodash__);
+
+
+
+const HEAD_SHAPE = [
+    {
+        d : "m 40,120 c -7.69258,-2.85806 -16.05447,-8.16178 -21.87077,-18.85411 -5.81631,-10.69234 -5.69611,-10.05706 -7.28037,-19.17972 -1.69222,-7.45349 -15.86377,-14.55774 -2.73107,-24.30382 1.60206,-1.71636 1.29008,-21.82442 12.0528,-31.80686 10.76272,-9.98244 28.05446,-10.84942 34.12537,-11.33299 6.07091,0.48357 23.36265,1.35055 34.12537,11.33299 10.76272,9.98244 10.45074,30.0905 12.0528,31.80686 13.1327,9.74608 -1.03885,16.85033 -2.73107,24.30382 -1.58426,9.12266 -1.46406,8.48738 -7.28037,19.17972 -5.8163,10.69233 -14.17819,15.99605 -21.87077,18.85411 -7.69259,2.85807 -9.58434,3.30224 -14.29596,3.30224 -4.71162,0 -6.60337,-0.44417 -14.29596,-3.30224 z"
+    }
+];
+
+/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('avatar-head', {
+    template: `<g>
+       <path
+       style="fill:#ffd4c6;fill-rule:evenodd;stroke:#000000;stroke-width:6;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+       :d="d"/>
+</g>`,
+    props: [
+        'model'
+    ],
+    computed : {
+        d: function(){
+            const shape = HEAD_SHAPE[__WEBPACK_IMPORTED_MODULE_1_lodash___default.a.get(this,'model.head')];
+            if(shape)
+                return shape.d
+            return HEAD_SHAPE[0].d;
+        }
+    }
+}));
+
+/***/ }),
+/* 53 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -39922,7 +40114,7 @@ module.exports = function(module) {
 }));
 
 /***/ }),
-/* 52 */
+/* 54 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -39944,13 +40136,33 @@ module.exports = function(module) {
 }));
 
 /***/ }),
-/* 53 */
+/* 55 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+
+
+/* unused harmony default export */ var _unused_webpack_default_export = (__WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */].component('userSettings', {
+    template: `<div v-bind="{user}">
+                        <hr/>
+                        <img class="roundIcon" :src="user.url" width="50">
+                        <label class="form-label" for="input-entry-id">Character</label>
+                        <input class="form-input" type="text" id="charName0" placeholder="" v-model="user.name">
+                        <label class="form-label" for="input-entry-id">Url</label>
+                        <input class="form-input" type="text" id="charImage0" placeholder="" v-model="user.url">
+               </div>`,
+    props: ['user', 'index']
+}));
+
+/***/ }),
+/* 56 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Events__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_assets_refresh_svg__ = __webpack_require__(54);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_assets_refresh_svg__ = __webpack_require__(57);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__common_assets_refresh_svg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__common_assets_refresh_svg__);
 
 
@@ -40011,17 +40223,82 @@ module.exports = function(module) {
 }));
 
 /***/ }),
-/* 54 */
+/* 57 */
 /***/ (function(module, exports) {
 
 module.exports = "<svg version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 12 14\"><path d=\"M11.805 8.25q0 0.039-0.008 0.055-0.5 2.094-2.094 3.395t-3.734 1.301q-1.141 0-2.207-0.43t-1.902-1.227l-1.008 1.008q-0.148 0.148-0.352 0.148t-0.352-0.148-0.148-0.352v-3.5q0-0.203 0.148-0.352t0.352-0.148h3.5q0.203 0 0.352 0.148t0.148 0.352-0.148 0.352l-1.070 1.070q0.555 0.516 1.258 0.797t1.461 0.281q1.047 0 1.953-0.508t1.453-1.398q0.086-0.133 0.414-0.914 0.062-0.18 0.234-0.18h1.5q0.102 0 0.176 0.074t0.074 0.176zM12 2v3.5q0 0.203-0.148 0.352t-0.352 0.148h-3.5q-0.203 0-0.352-0.148t-0.148-0.352 0.148-0.352l1.078-1.078q-1.156-1.070-2.727-1.070-1.047 0-1.953 0.508t-1.453 1.398q-0.086 0.133-0.414 0.914-0.062 0.18-0.234 0.18h-1.555q-0.102 0-0.176-0.074t-0.074-0.176v-0.055q0.508-2.094 2.109-3.395t3.75-1.301q1.141 0 2.219 0.434t1.914 1.223l1.016-1.008q0.148-0.148 0.352-0.148t0.352 0.148 0.148 0.352z\"></path></svg>"
 
 /***/ }),
-/* 55 */
+/* 58 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios__ = __webpack_require__(56);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__avatar_avatar_js__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Events__ = __webpack_require__(2);
+
+
+
+
+/* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_0_vue__["a" /* default */]({
+    el: '#upload',
+    template:
+        `<div class="modal chat-modal" v-bind:class="{active: active}" id="upload">
+            <a href="" class="modal-overlay" aria-label="Close"></a>
+            <div class="modal-container">
+                <div class="modal-header">
+                    <a @click="closeUpload()" class="btn btn-clear float-right" aria-label="Close"></a>
+                    <div class="modal-title h5">Import story</div>
+                </div>
+                <div class="modal-body">
+               
+                    <div id="editor-form-column" class="form-group column col-12">
+                                    <div class="form-group">
+                                        <label class="form-label" for="input-example-1">Name</label>
+                                        <input ref="file-input" class="form-input" type="file" id="input-example-1" placeholder="Name">
+                                    </div>
+                                    <button class="btn btn-lg" @click="importHtml">Import HTML</button>
+                                  
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>`,
+    data: {
+        $eventTarget: null, //  EventTarget-API not Vue Events
+        active: false,
+
+    },
+    methods: {
+        closeUpload() {
+            this.active = false;
+        },
+        showUpload($eventTarget) {
+            this.$eventTarget = $eventTarget;
+            this.active = true;
+        },
+        importHtml() {
+
+            const files = this.$refs['file-input'].files;
+            if (files.length > 0) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                   // console.log(reader.result);
+                    const detail = {html: reader.result};
+                    this.$eventTarget.dispatchEvent(new CustomEvent(__WEBPACK_IMPORTED_MODULE_2__Events__["a" /* default */].CHATTER_IMPORT_HTML_STRING, {detail}));
+                };
+                reader.readAsText(files[0], 'UTF-8');
+            }
+        }
+    }
+}));
+
+/***/ }),
+/* 59 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios__ = __webpack_require__(60);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_axios__);
 //import Inliner from 'inliner';
 
@@ -40043,6 +40320,7 @@ class Generator {
     static restoreGameFromHTML(html){
         const DATA_REGEX = / <!-- \$INTERNAL_DATA_START\$ (.*) \$INTERNAL_DATA_END\$ -->/g;
         const match = DATA_REGEX.exec(html);
+        return JSON.parse(match[1]);
 
     }
 
@@ -40054,22 +40332,22 @@ class Generator {
 
 
 /***/ }),
-/* 56 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(57);
+module.exports = __webpack_require__(61);
 
 /***/ }),
-/* 57 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var utils = __webpack_require__(1);
-var bind = __webpack_require__(10);
-var Axios = __webpack_require__(59);
-var defaults = __webpack_require__(7);
+var bind = __webpack_require__(12);
+var Axios = __webpack_require__(63);
+var defaults = __webpack_require__(8);
 
 /**
  * Create an instance of Axios
@@ -40102,15 +40380,15 @@ axios.create = function create(instanceConfig) {
 };
 
 // Expose Cancel & CancelToken
-axios.Cancel = __webpack_require__(14);
-axios.CancelToken = __webpack_require__(73);
-axios.isCancel = __webpack_require__(13);
+axios.Cancel = __webpack_require__(16);
+axios.CancelToken = __webpack_require__(77);
+axios.isCancel = __webpack_require__(15);
 
 // Expose all/spread
 axios.all = function all(promises) {
   return Promise.all(promises);
 };
-axios.spread = __webpack_require__(74);
+axios.spread = __webpack_require__(78);
 
 module.exports = axios;
 
@@ -40119,7 +40397,7 @@ module.exports.default = axios;
 
 
 /***/ }),
-/* 58 */
+/* 62 */
 /***/ (function(module, exports) {
 
 /*!
@@ -40146,16 +40424,16 @@ function isSlowBuffer (obj) {
 
 
 /***/ }),
-/* 59 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var defaults = __webpack_require__(7);
+var defaults = __webpack_require__(8);
 var utils = __webpack_require__(1);
-var InterceptorManager = __webpack_require__(68);
-var dispatchRequest = __webpack_require__(69);
+var InterceptorManager = __webpack_require__(72);
+var dispatchRequest = __webpack_require__(73);
 
 /**
  * Create a new instance of Axios
@@ -40232,7 +40510,7 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 60 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40251,13 +40529,13 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 61 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var createError = __webpack_require__(12);
+var createError = __webpack_require__(14);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -40284,7 +40562,7 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 62 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40312,7 +40590,7 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 63 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40387,7 +40665,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 64 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40447,7 +40725,7 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 65 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40522,7 +40800,7 @@ module.exports = (
 
 
 /***/ }),
-/* 66 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40565,7 +40843,7 @@ module.exports = btoa;
 
 
 /***/ }),
-/* 67 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40625,7 +40903,7 @@ module.exports = (
 
 
 /***/ }),
-/* 68 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40684,18 +40962,18 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 69 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var utils = __webpack_require__(1);
-var transformData = __webpack_require__(70);
-var isCancel = __webpack_require__(13);
-var defaults = __webpack_require__(7);
-var isAbsoluteURL = __webpack_require__(71);
-var combineURLs = __webpack_require__(72);
+var transformData = __webpack_require__(74);
+var isCancel = __webpack_require__(15);
+var defaults = __webpack_require__(8);
+var isAbsoluteURL = __webpack_require__(75);
+var combineURLs = __webpack_require__(76);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -40777,7 +41055,7 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 70 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40804,7 +41082,7 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 71 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40825,7 +41103,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 72 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -40846,13 +41124,13 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 73 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Cancel = __webpack_require__(14);
+var Cancel = __webpack_require__(16);
 
 /**
  * A `CancelToken` is an object that can be used to request cancellation of an operation.
@@ -40910,7 +41188,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 74 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
